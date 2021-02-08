@@ -1,0 +1,2 @@
+﻿  3D_Snake.cpp
+LINK : fatal error LNK1104: не удается открыть файл "glut32.lib"
