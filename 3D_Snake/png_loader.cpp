@@ -5,7 +5,8 @@
 //#include <png.h>
 #include "Texture.h"
 
-int _png_load(const char* file, int* width, int* height) {
+int _png_load(const char* file, int* width, int* height) 
+{
    /* FILE* f;
     int is_png, bit_depth, color_type, row_bytes;
     png_infop info_ptr, end_info;
@@ -104,6 +105,7 @@ int _png_load(const char* file, int* width, int* height) {
     fclose(f);
     return texture;
     */
+    return 0;
 }
 
 Texture* load_texture(std::string filename) {

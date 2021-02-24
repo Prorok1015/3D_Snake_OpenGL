@@ -30,8 +30,8 @@ Shader* load_shader(std::string vertexFile, std::string fragmentFile) {
 	vShaderFile.exceptions(std::ifstream::badbit);
 	fShaderFile.exceptions(std::ifstream::badbit);
 	try {
-		vShaderFile.open(vertexFile);
-		fShaderFile.open(fragmentFile);
+		vShaderFile.open(vertexFile, std::ifstream::in);
+		fShaderFile.open(fragmentFile, std::ifstream::in);
 		std::stringstream vShaderStream, fShaderStream;
 
 		vShaderStream << vShaderFile.rdbuf();

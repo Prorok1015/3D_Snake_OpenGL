@@ -1,8 +1,9 @@
 ﻿  3D_Snake.cpp
 D:\Program Files (x86)\VSLibrary\glfw\include\GLFW\glfw3.h(1157,37): warning C4099: GLFWwindow: имя типа, ранее отображенное с помощью "class", теперь отображено с помощью "struct"
-C:\Users\Захар\source\repos\3D_Snake\3D_Snake\Window.h(5): message : см. объявление "GLFWwindow"
-C:\Users\Захар\source\repos\3D_Snake\3D_Snake\3D_Snake.cpp(24,38): warning C4305: аргумент: усечение из "double" в "GLfloat"
-C:\Users\Захар\source\repos\3D_Snake\3D_Snake\3D_Snake.cpp(26,38): warning C4305: аргумент: усечение из "double" в "GLfloat"
-C:\Users\Захар\source\repos\3D_Snake\3D_Snake\3D_Snake.cpp(28,38): warning C4305: аргумент: усечение из "double" в "GLfloat"
-C:\Users\Захар\source\repos\3D_Snake\3D_Snake\3D_Snake.cpp(30,40): warning C4305: аргумент: усечение из "double" в "GLfloat"
-  3D_Snake.vcxproj -> C:\Users\Захар\source\repos\3D_Snake\x64\Debug\3D_Snake.exe
+C:\Users\Захар\source\repos\3D_Snake_OpenGL\3D_Snake\Window.h(5): message : см. объявление "GLFWwindow"
+C:\Users\Захар\source\repos\3D_Snake_OpenGL\3D_Snake\3D_Snake.cpp(50,38): warning C4305: аргумент: усечение из "double" в "GLfloat"
+C:\Users\Захар\source\repos\3D_Snake_OpenGL\3D_Snake\3D_Snake.cpp(52,38): warning C4305: аргумент: усечение из "double" в "GLfloat"
+C:\Users\Захар\source\repos\3D_Snake_OpenGL\3D_Snake\3D_Snake.cpp(54,38): warning C4305: аргумент: усечение из "double" в "GLfloat"
+C:\Users\Захар\source\repos\3D_Snake_OpenGL\3D_Snake\3D_Snake.cpp(56,40): warning C4305: аргумент: усечение из "double" в "GLfloat"
+LINK : warning LNK4098: библиотека по умолчанию "MSVCRT" конфликтует с использованием других библиотек; используйте /NODEFAULTLIB:library
+  3D_Snake.vcxproj -> C:\Users\Захар\source\repos\3D_Snake_OpenGL\x64\Debug\3D_Snake.exe
