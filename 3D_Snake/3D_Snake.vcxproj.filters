@@ -25,6 +25,9 @@
     <Filter Include="Исходные файлы\loaders">
       <UniqueIdentifier>{9d2c4a95-7322-4ecf-a875-514c761e2544}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Файлы ресурсов\Shaders">
+      <UniqueIdentifier>{bc4ebad5-d4ea-4648-a9ff-dbfaf3b61f07}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3D_Snake.cpp">
@@ -48,6 +51,9 @@
     <ClCompile Include="png_loader.cpp">
       <Filter>Исходные файлы\loaders</Filter>
     </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Исходные файлы\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Window.h">
@@ -65,5 +71,16 @@
     <ClInclude Include="png_loader.h">
       <Filter>Файлы заголовков\loaders</Filter>
     </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\fragment.glslf">
+      <Filter>Файлы ресурсов\Shaders</Filter>
+    </None>
+    <None Include="res\vertex.glslv">
+      <Filter>Файлы ресурсов\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

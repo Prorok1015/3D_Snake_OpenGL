@@ -25,5 +25,7 @@ public:
 
 	static bool clicked(int button);
 	static bool justCliced(int button);
+
+	static void toogleCursor();
 };
 
