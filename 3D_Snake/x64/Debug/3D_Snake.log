@@ -1,7 +1,0 @@
-﻿  3D_Snake.cpp
-C:\Users\Захар\source\repos\3D_Snake_OpenGL\3D_Snake\Window.h(5,17): warning C4099: GLFWwindow: имя типа, ранее отображенное с помощью "struct", теперь отображено с помощью "class"
-D:\Program Files (x86)\VSLibrary\glfw\include\GLFW\glfw3.h(1157): message : см. объявление "GLFWwindow"
-C:\Users\Захар\source\repos\3D_Snake_OpenGL\3D_Snake\3D_Snake.cpp(79,20): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-C:\Users\Захар\source\repos\3D_Snake_OpenGL\3D_Snake\3D_Snake.cpp(91,27): warning C4244: инициализация: преобразование "double" в "float", возможна потеря данных
-C:\Users\Захар\source\repos\3D_Snake_OpenGL\3D_Snake\3D_Snake.cpp(116,38): warning C4305: аргумент: усечение из "double" в "GLfloat"
-  3D_Snake.vcxproj -> C:\Users\Захар\source\repos\3D_Snake_OpenGL\x64\Debug\3D_Snake.exe

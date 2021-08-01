@@ -1,0 +1,20 @@
+#pragma once
+
+#ifndef VOXEL_RENDERER_H_
+#define VOXEL_RENDERER_H_
+
+class Mesh;
+class Chank;
+
+class VoxelRenderer
+{
+	float* buffer;
+	size_t capacity;
+public:
+	VoxelRenderer(size_t capacity);
+	~VoxelRenderer();
+
+	Mesh* render(Chank* chunk);
+};
+
+#endif // !VOXEL_RENDERER_H_
