@@ -4,8 +4,7 @@
 
 int main()
 {
-	Image img("test.jpg");
-	img.mirrorY();
+	Image img("test5.jpg");
 	img.write("write.png");
 	system("pause");
 }

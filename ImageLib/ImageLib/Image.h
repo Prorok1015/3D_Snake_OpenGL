@@ -23,8 +23,6 @@ public:
 
 	ImageType getTypeFilename(const char* filename);
 	bool write(const char* filename);
-	void rotate();
-	void mirrorY();
 	unsigned char* getData() { isGetData = true; return data; };
 	int getChannels() { return channels; };
 	int getWidth() { return width; };

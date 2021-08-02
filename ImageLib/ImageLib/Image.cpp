@@ -5,102 +5,62 @@
 
 #include <iostream>
 #include <string>
+#include <exception>
 
-struct Exeption
-{
-	std::string exep;
+#define EXCEPT(msg) std::exception(msg)
 
-	Exeption(std::string&& s) : exep(s) {};
-};
+class Loger {
+	std::wstring _msg;
+	std::string _func;
+	int _line;
+	std::wstring _file;
+public:
+	Loger(std::wstring m, std::string func, int line, std::wstring file)
+		: _msg(m),
+		_func(func),
+		_line(line),
+		_file(file) {};
 
-void Image::rotate()
-{
-	auto* mat = getData();
-	// Consider all squares one by one
-	for (int x = 0; x < width / 2; x++) {
-		// Consider elements in group
-		// of 4 in current square
-		for (int y = x; y < height - x - 1; y++) {
-			// Store current cell in
-			// temp variable
-			unsigned char temp = mat[x + y];
-
-			// Move values from right to top
-			mat[x + y] = mat[y + width - 1 - x];
-
-			// Move values from bottom to right
-			mat[y + width - 1 - x]
-				= mat[height - 1 - x + width - 1 - y];
-
-			// Move values from left to bottom
-			mat[height - 1 - x + width - 1 - y]
-				= mat[height - 1 - y + x];
-
-			// Assign temp to left
-			mat[height - 1 - y + x] = temp;
-		}
-	}
-}
-
-void Image::mirrorY()
-{
-	if (height >= 2)
+	void Trace() const
 	{
-		int col = 0;
-		for (; col < width; ++col)
-		{
-			int i = 0;          // top
-			int j = height - 1;  // bottom
-
-			while (i < j) // swap top and bottom row data progressively
-			{
-				for (int chan = 0; chan < channels; ++chan) {
-					auto tmp = data[col + i + chan];
-					data[col + i + chan] = data[col + j + chan];
-					data[col + j + chan] = tmp;
-					//std::swap(data[col + i + chan], data[col + j + chan]);
-				}
-				++i; 
-				--j;
-			}
-			//std::cout << "i = " << i << "; j = " << j << std::endl;
-			//std::cout << "/*=========================*/" << std::endl;
-		}
-
-		//std::cout << "       " << col << std::endl;
+		std::wcout	<< L"Дамп ошибки: "	<< std::endl
+					<< L"Функция: "		<< std::wstring(_func.begin(), _func.end())	<< std::endl
+					<< L"Строка: "		<< _file	<< L" (" << _line <<L")" << std::endl
+					<< _msg << std::endl;
 	}
-}
+};
 
 Image::Image(const char* filename)
 {
 	try
 	{
+		stbi_set_flip_vertically_on_load(true);
 		if (!read(filename))
 		{
-			Exeption e("bad");
-			throw e;
-		}
-		
+			throw Loger(L"Ошибка чтения файла", __func__, __LINE__, __FILEW__);
+		}		
 		
 	}
-	catch (Exeption e)
+	catch (Loger& e)
 	{
-		std::cout << e.exep;
-		system("pause");
-		exit(1);
+		e.Trace();
 	}
+	catch (...) {};
 
 };
+
 Image::~Image()
 {
 	if(!isGetData)
-	stbi_image_free(data);
+		stbi_image_free(data);
 };
 
 bool Image::read(const char* filename)
 {
 	data = stbi_load(filename, &width, &height, &channels, 0);
-	size = width * height * channels;
+	size = width;
+	size *= height;
+	size *= channels;
 
 	return data != NULL;
 };
