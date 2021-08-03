@@ -20,11 +20,11 @@ public:
 	static int initialize();
 	static void pullEvents();
 
-	static bool isPressed(int keycode);
-	static bool justPressed(int keycode);
+	static bool pressed(int keycode);
+	static bool jpressed(int keycode);
 
 	static bool clicked(int button);
-	static bool justCliced(int button);
+	static bool jclicked(int button);
 
 	static void toogleCursor();
 };

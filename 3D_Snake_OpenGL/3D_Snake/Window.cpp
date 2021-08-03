@@ -6,7 +6,7 @@ GLFWwindow* Window::window;
 int Window::width;
 int Window::height;
 
-int Window::createWindow(int width, int height, const char* title)
+int Window::initialize(int width, int height, const char* title)
 {
     /* Initialize the library */
     glfwInit();
@@ -41,17 +41,17 @@ void Window::terminate()
     glfwTerminate();
 }
 
-void Window::swapBuffer()
+void Window::swapBuffers()
 {
     glfwSwapBuffers(window);
 }
 
-bool Window::isWindowClose()
+bool Window::isShouldClose()
 {
-    return !glfwWindowShouldClose(window);
+    return glfwWindowShouldClose(window);
 }
 
-void Window::closeWindow(bool close)
+void Window::setShouldClose(bool close)
 {
     glfwSetWindowShouldClose(window, close);
 }

@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 
 #include "Window.h"
@@ -12,142 +13,191 @@
 #include "Texture.h"
 #include "Camera.h"
 #include "Mesh.h"
-#include "Chank.h"
+#include "voxel.h"
+#include "Chunk.h"
+#include "Chunks.h"
 #include "VoxelRenderer.h"
 
-#define WIDTH   1920
-#define HEIGHT  1080
+int WIDTH = 1280;
+int HEIGHT = 720;
 
-float vertex[]{
-       -1.0f,-1.0f, 0.0f, 1.0f, 1.0f,
-        1.0f,-1.0f, 0.0f, 0.0f, 1.0f,
-       -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+float vertices[] = {
+	// x    y
+   -0.01f,-0.01f,
+	0.01f, 0.01f,
 
-        1.0f,-1.0f, 0.0f, 0.0f, 1.0f,
-        1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-       -1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+   -0.01f, 0.01f,
+	0.01f,-0.01f,
 };
 
-int main(void)
-{
-    Window::createWindow(WIDTH, HEIGHT, "Window");
-    Events::initialize();
+int attrs[] = {
+		2,  0 //null terminator
+};
 
-    Shader* shader = load_shader("./res/vertex.glslv", "./res/fragment.glslf");
-    if (shader == nullptr)
-    {
-        std::cout << "error";
-        system("pause");
-        Window::terminate();
-        return 1;
-    }
+int main() {
+	Window::initialize(WIDTH, HEIGHT, "Window 2.0");
+	Events::initialize();
 
-    Texture* texture = load_texture("./res/block.png");
-    if (texture == nullptr)
-    {
-        std::cout << "error";
-        system("pause");
-        delete shader;
-        Window::terminate();
-        return 1;
-    }
+	Shader* shader = load_shader("./res/main.glslv", "./res/main.glslf");
+	if (shader == nullptr) {
+		std::cerr << "failed to load shader" << std::endl;
+		Window::terminate();
+		return 1;
+	}
 
-    VoxelRenderer voxRender(1024 * 1024 * 8);
-    Chank* chank = new Chank();
-    Mesh* mesh = voxRender.render(chank);
-    glClearColor(0.6f, 0.62f, 0.65f, 1);
+	Shader* crosshairShader = load_shader("./res/crosshair.glslv", "./res/crosshair.glslf");
+	if (crosshairShader == nullptr) {
+		std::cerr << "failed to load crosshair shader" << std::endl;
+		Window::terminate();
+		return 1;
+	}
 
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	Texture* texture = load_texture("./res/block.png");
+	if (texture == nullptr) {
+		std::cerr << "failed to load texture" << std::endl;
+		delete shader;
+		Window::terminate();
+		return 1;
+	}
 
+	Chunks* chunks = new Chunks(8, 1, 8);
+	Mesh** meshes = new Mesh * [chunks->volume];
+	for (size_t i = 0; i < chunks->volume; i++)
+		meshes[i] = nullptr;
+	VoxelRenderer renderer(1024 * 1024 * 8);
 
-    Camera* camera = new Camera(vec3(0, 0, 1), radians(90.0f));
+	glClearColor(0.6f, 0.62f, 0.65f, 1);
 
-    mat4 model(1.0f);
-    model = translate(model, vec3(0.5f, 0, 0));
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    float lastTime = glfwGetTime();
-    float delta = 0.0f;
+	Mesh* crosshair = new Mesh(vertices, 4, attrs);
+	Camera* camera = new Camera(vec3(0, 0, 20), radians(90.0f));
 
-    float camX = 0.0f;
-    float camY = 0.0f;
+	float lastTime = glfwGetTime();
+	float delta = 0.0f;
 
-    float speed = 5;
-    GLuint ViewMode = GL_TRIANGLES;
+	float camX = 0.0f;
+	float camY = 0.0f;
 
-    /* Loop until the user closes the window */
-    while (Window::isWindowClose())
-    {
-        float currentTime = glfwGetTime();
-        delta = currentTime - lastTime;
-        lastTime = currentTime;
-        /* Render here */
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     
+	float speed = 5;
 
-        if (Events::justPressed(GLFW_KEY_ESCAPE))
-            Window::closeWindow();
+	while (!Window::isShouldClose()) {
+		float currentTime = glfwGetTime();
+		delta = currentTime - lastTime;
+		lastTime = currentTime;
 
-        if (Events::justPressed(GLFW_KEY_SPACE))
-        {
-            ViewMode = ViewMode == GL_LINE_STRIP? GL_TRIANGLES : GL_LINE_STRIP;
-        }
-        if (Events::justPressed(GLFW_KEY_TAB)) {
-            Events::toogleCursor();
-        }
+		if (Events::jpressed(GLFW_KEY_ESCAPE)) {
+			Window::setShouldClose(true);
+		}
+		if (Events::jpressed(GLFW_KEY_TAB)) {
+			Events::toogleCursor();
+		}
 
-        if (Events::isPressed(GLFW_KEY_W)) {
-            camera->position += camera->front * delta * speed;
-        }
-        if (Events::isPressed(GLFW_KEY_S)) {
-            camera->position -= camera->front * delta * speed;
-        }
-        if (Events::isPressed(GLFW_KEY_D)) {
-            camera->position += camera->right * delta * speed;
-        }
-        if (Events::isPressed(GLFW_KEY_A)) {
-            camera->position -= camera->right * delta * speed;
-        }
-        if (Events::justCliced(GLFW_MOUSE_BUTTON_1))
-            glClearColor(0.1, 1, 1, 1);
+		if (Events::pressed(GLFW_KEY_W)) {
+			camera->position += camera->front * delta * speed;
+		}
+		if (Events::pressed(GLFW_KEY_S)) {
+			camera->position -= camera->front * delta * speed;
+		}
+		if (Events::pressed(GLFW_KEY_D)) {
+			camera->position += camera->right * delta * speed;
+		}
+		if (Events::pressed(GLFW_KEY_A)) {
+			camera->position -= camera->right * delta * speed;
+		}
 
+		if (Events::_cursor_locked) {
+			camY += -Events::deltaY / Window::height * 2;
+			camX += -Events::deltaX / Window::height * 2;
 
+			if (camY < -radians(89.0f)) {
+				camY = -radians(89.0f);
+			}
+			if (camY > radians(89.0f)) {
+				camY = radians(89.0f);
+			}
 
-        if (Events::_cursor_locked) {
-            camY += -Events::deltaY / Window::height * 2;
-            camX += -Events::deltaX / Window::height * 2;
+			camera->rotation = mat4(1.0f);
+			camera->rotate(camY, camX, 0);
+		}
+		
+		 {
+			vec3 end;
+			vec3 norm;
+			vec3 iend;
+			voxel* vox = chunks->rayCast(camera->position, camera->front, 10.0f, end, norm, iend);
+			if (vox != nullptr) {
+				if (Events::jclicked(GLFW_MOUSE_BUTTON_1)) {
+					chunks->set((int)iend.x, (int)iend.y, (int)iend.z, 0);
+				}
+				if (Events::jclicked(GLFW_MOUSE_BUTTON_2)) {
+					chunks->set((int)(iend.x) + (int)(norm.x), (int)(iend.y) + (int)(norm.y), (int)(iend.z) + (int)(norm.z), 2);
+				}
+			}
+		}
 
-            if (camY < -radians(89.0f)) {
-                camY = -radians(89.0f);
-            }
-            if (camY > radians(89.0f)) {
-                camY = radians(89.0f);
-            }
+		Chunk* closes[27];
+		for (size_t i = 0; i < chunks->volume; i++) {
+			Chunk* chunk = chunks->chunks[i];
+			if (!chunk->modified)
+				continue;
+			chunk->modified = false;
+			if (meshes[i] != nullptr)
+				delete meshes[i];
 
-            camera->rotation = mat4(1.0f);
-            camera->rotate(camY, camX, 0);
-        }
+			for (int i = 0; i < 27; i++)
+				closes[i] = nullptr;
+			for (size_t j = 0; j < chunks->volume; j++) {
+				Chunk* other = chunks->chunks[j];
 
+				int ox = other->x - chunk->x;
+				int oy = other->y - chunk->y;
+				int oz = other->z - chunk->z;
 
-        shader->use();
-        shader->uniformMatrix("model", model);
-        shader->uniformMatrix("projview", camera->getProjection() * camera->getView());
-        texture->bind();
-        mesh->draw(ViewMode);
+				if (abs(ox) > 1 || abs(oy) > 1 || abs(oz) > 1)
+					continue;
 
-        /* Swap front and back buffers */
-        Window::swapBuffer();
-        /* Poll for and process events */
-        Events::pullEvents();
-    }
+				ox += 1;
+				oy += 1;
+				oz += 1;
+				closes[(oy * 3 + oz) * 3 + ox] = other;
+			}
+			Mesh* mesh = renderer.render(chunk, (const Chunk**)closes);
+			meshes[i] = mesh;
+		}
 
-    delete shader;
-    delete texture;
-    delete mesh;
-    delete chank;
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    Window::terminate();
-    return 0;
+		// Draw VAO
+		shader->use();
+		shader->uniformMatrix("projview", camera->getProjection() * camera->getView());
+		texture->bind();
+		mat4 model(1.0f);
+		for (size_t i = 0; i < chunks->volume; i++) {
+			Chunk* chunk = chunks->chunks[i];
+			Mesh* mesh = meshes[i];
+			model = glm::translate(mat4(1.0f), vec3(chunk->x * CHUNK_W + 0.5f, chunk->y * CHUNK_H + 0.5f, chunk->z * CHUNK_D + 0.5f));
+			shader->uniformMatrix("model", model);
+			mesh->draw(GL_TRIANGLES);
+		}
+
+		crosshairShader->use();
+		crosshair->draw(GL_LINES);
+
+		Window::swapBuffers();
+		Events::pullEvents();
+	}
+
+	delete shader;
+	delete texture;
+	delete chunks;
+	delete crosshair;
+	delete crosshairShader;
+
+	Window::terminate();
+	return 0;
 }
 

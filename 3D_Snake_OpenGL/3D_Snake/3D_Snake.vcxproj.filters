@@ -72,11 +72,14 @@
     <ClCompile Include="voxel.cpp">
       <Filter>Исходные файлы\Voxels</Filter>
     </ClCompile>
-    <ClCompile Include="Chank.cpp">
+    <ClCompile Include="Chunk.cpp">
       <Filter>Исходные файлы\Voxels</Filter>
     </ClCompile>
     <ClCompile Include="VoxelRenderer.cpp">
       <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="Chunks.cpp">
+      <Filter>Исходные файлы\Voxels</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -104,11 +107,14 @@
     <ClInclude Include="voxel.h">
       <Filter>Файлы заголовков\Voxels</Filter>
     </ClInclude>
-    <ClInclude Include="Chank.h">
+    <ClInclude Include="Chunk.h">
       <Filter>Файлы заголовков\Voxels</Filter>
     </ClInclude>
     <ClInclude Include="VoxelRenderer.h">
       <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="Chunks.h">
+      <Filter>Файлы заголовков\Voxels</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -4,7 +4,7 @@
 #define VOXEL_RENDERER_H_
 
 class Mesh;
-class Chank;
+class Chunk;
 
 class VoxelRenderer
 {
@@ -14,7 +14,7 @@ public:
 	VoxelRenderer(size_t capacity);
 	~VoxelRenderer();
 
-	Mesh* render(Chank* chunk);
+	Mesh* render(Chunk* chunk, const Chunk** chunks);
 };
 
 #endif // !VOXEL_RENDERER_H_

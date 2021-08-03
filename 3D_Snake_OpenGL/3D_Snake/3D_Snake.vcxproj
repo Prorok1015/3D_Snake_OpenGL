@@ -71,13 +71,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LinkIncremental>true</LinkIncremental>
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -163,7 +163,8 @@
   <ItemGroup>
     <ClCompile Include="3D_Snake.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Chank.cpp" />
+    <ClCompile Include="Chunks.cpp" />
+    <ClCompile Include="Chunk.cpp" />
     <ClCompile Include="Events.cpp" />
     <ClCompile Include="include\glad.c" />
     <ClCompile Include="Mesh.cpp" />
@@ -176,7 +177,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Chank.h" />
+    <ClInclude Include="Chunks.h" />
+    <ClInclude Include="Chunk.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="png_loader.h" />

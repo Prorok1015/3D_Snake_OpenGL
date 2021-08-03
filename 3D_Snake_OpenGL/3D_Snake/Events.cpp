@@ -89,7 +89,7 @@ void Events::pullEvents()
     glfwPollEvents();
 }
 
-bool Events::isPressed(int keycode)
+bool Events::pressed(int keycode)
 {
     if (keycode < 0 || keycode >= _MOUSE_BUTTONS)
         return false;
@@ -97,7 +97,7 @@ bool Events::isPressed(int keycode)
     return _keys[keycode];
 }
 
-bool Events::justPressed(int keycode)
+bool Events::jpressed(int keycode)
 {
     if (keycode < 0 || keycode >= _MOUSE_BUTTONS)
         return false;
@@ -110,7 +110,7 @@ bool Events::clicked(int button)
     return _keys[_MOUSE_BUTTONS + button];
 }
 
-bool Events::justCliced(int button)
+bool Events::jclicked(int button)
 {
     return _keys[_MOUSE_BUTTONS + button] && (_frames[_MOUSE_BUTTONS + button] == _current);
 }
