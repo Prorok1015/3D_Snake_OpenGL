@@ -16,7 +16,9 @@
 #include "voxel.h"
 #include "Chunk.h"
 #include "Chunks.h"
+#include "LineBatch.h"
 #include "VoxelRenderer.h"
+#include "files.h"
 
 int WIDTH = 1280;
 int HEIGHT = 720;
@@ -52,6 +54,13 @@ int main() {
 		return 1;
 	}
 
+	Shader* linesShader = load_shader("./res/lines.glslv", "./res/lines.glslf");
+	if (linesShader == nullptr) {
+		std::cerr << "failed to load lines shader" << std::endl;
+		Window::terminate();
+		return 1;
+	}
+
 	Texture* texture = load_texture("./res/block.png");
 	if (texture == nullptr) {
 		std::cerr << "failed to load texture" << std::endl;
@@ -60,11 +69,12 @@ int main() {
 		return 1;
 	}
 
-	Chunks* chunks = new Chunks(8, 1, 8);
+	Chunks* chunks = new Chunks(3, 8, 3);
 	Mesh** meshes = new Mesh * [chunks->volume];
 	for (size_t i = 0; i < chunks->volume; i++)
 		meshes[i] = nullptr;
 	VoxelRenderer renderer(1024 * 1024 * 8);
+	LineBatch* lineBatch = new LineBatch(4096);
 
 	glClearColor(0.6f, 0.62f, 0.65f, 1);
 
@@ -82,7 +92,7 @@ int main() {
 	float camX = 0.0f;
 	float camY = 0.0f;
 
-	float speed = 5;
+	float speed = 50;
 
 	while (!Window::isShouldClose()) {
 		float currentTime = glfwGetTime();
@@ -94,6 +104,19 @@ int main() {
 		}
 		if (Events::jpressed(GLFW_KEY_TAB)) {
 			Events::toogleCursor();
+		}
+		if (Events::jpressed(GLFW_KEY_F1)) {
+			unsigned char* buffer = new unsigned char[chunks->volume * CHUNK_VOL];
+			chunks->write(buffer);
+			write_binary_file("world.bin", (const char*)buffer, chunks->volume * CHUNK_VOL);
+			delete[] buffer;
+			std::cout << "world saved in " << (chunks->volume * CHUNK_VOL) << " bytes" << std::endl;
+		}
+		if (Events::jpressed(GLFW_KEY_F2)) {
+			unsigned char* buffer = new unsigned char[chunks->volume * CHUNK_VOL];
+			read_binary_file("world.bin", (char*)buffer, chunks->volume * CHUNK_VOL);
+			chunks->read(buffer);
+			delete[] buffer;
 		}
 
 		if (Events::pressed(GLFW_KEY_W)) {
@@ -123,13 +146,15 @@ int main() {
 			camera->rotation = mat4(1.0f);
 			camera->rotate(camY, camX, 0);
 		}
-		
-		 {
+
+		{
 			vec3 end;
 			vec3 norm;
 			vec3 iend;
 			voxel* vox = chunks->rayCast(camera->position, camera->front, 10.0f, end, norm, iend);
 			if (vox != nullptr) {
+				lineBatch->box(iend.x + 0.5f, iend.y + 0.5f, iend.z + 0.5f, 1.005f, 1.005f, 1.005f, 0, 0, 0, 0.5f);
+
 				if (Events::jclicked(GLFW_MOUSE_BUTTON_1)) {
 					chunks->set((int)iend.x, (int)iend.y, (int)iend.z, 0);
 				}
@@ -165,7 +190,7 @@ int main() {
 				oz += 1;
 				closes[(oy * 3 + oz) * 3 + ox] = other;
 			}
-			Mesh* mesh = renderer.render(chunk, (const Chunk**)closes);
+			Mesh* mesh = renderer.render(chunk, (const Chunk**)closes, true);
 			meshes[i] = mesh;
 		}
 
@@ -187,6 +212,11 @@ int main() {
 		crosshairShader->use();
 		crosshair->draw(GL_LINES);
 
+		linesShader->use();
+		linesShader->uniformMatrix("projview", camera->getProjection() * camera->getView());
+		glLineWidth(2.0f);
+		lineBatch->render();
+
 		Window::swapBuffers();
 		Events::pullEvents();
 	}
@@ -196,8 +226,9 @@ int main() {
 	delete chunks;
 	delete crosshair;
 	delete crosshairShader;
+	delete linesShader;
+	delete lineBatch;
 
 	Window::terminate();
 	return 0;
 }
-

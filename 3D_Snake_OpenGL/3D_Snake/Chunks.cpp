@@ -11,7 +11,7 @@
 
 Chunks::Chunks(int w, int h, int d) : w(w), h(h), d(d) {
 	volume = w * h * d;
-	chunks = new Chunk * [volume];
+	chunks = new Chunk*[volume];
 
 	int index = 0;
 	for (int y = 0; y < h; y++) {
@@ -167,4 +167,25 @@ voxel* Chunks::rayCast(glm::vec3 a, glm::vec3 dir, float maxDist, glm::vec3& end
 	end.z = pz + t * dz;
 	norm.x = norm.y = norm.z = 0.0f;
 	return nullptr;
+}
+
+void Chunks::write(unsigned char* dest) {
+	size_t index = 0;
+	for (size_t i = 0; i < volume; i++) {
+		Chunk* chunk = chunks[i];
+		for (size_t j = 0; j < CHUNK_VOL; j++, index++) {
+			dest[index] = chunk->voxels[j].id;
+		}
+	}
+}
+
+void Chunks::read(unsigned char* source) {
+	size_t index = 0;
+	for (size_t i = 0; i < volume; i++) {
+		Chunk* chunk = chunks[i];
+		for (size_t j = 0; j < CHUNK_VOL; j++, index++) {
+			chunk->voxels[j].id = source[index];
+		}
+		chunk->modified = true;
+	}
 }

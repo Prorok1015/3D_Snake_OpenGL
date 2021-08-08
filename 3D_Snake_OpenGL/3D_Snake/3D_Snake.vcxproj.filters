@@ -81,6 +81,12 @@
     <ClCompile Include="Chunks.cpp">
       <Filter>Исходные файлы\Voxels</Filter>
     </ClCompile>
+    <ClCompile Include="LineBatch.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
+    <ClCompile Include="files.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -115,6 +121,12 @@
     </ClInclude>
     <ClInclude Include="Chunks.h">
       <Filter>Файлы заголовков\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="LineBatch.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="files.h">
+      <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
