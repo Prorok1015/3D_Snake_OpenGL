@@ -40,6 +40,18 @@
     <Filter Include="Исходные файлы\Voxels">
       <UniqueIdentifier>{6c625694-0b0b-4335-bc13-57d89dc10160}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Исходные файлы\files">
+      <UniqueIdentifier>{362d1ad5-1ea8-4e1b-88c0-8c6271a15d2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\files">
+      <UniqueIdentifier>{c93ed74a-5f0e-4b42-9376-4fd9f4f0fc79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Исходные файлы\lighting">
+      <UniqueIdentifier>{2df9f238-7eb1-4863-8287-73fa37bb1579}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\lighting">
+      <UniqueIdentifier>{cbd44ba9-72f2-4787-b946-7f34f735f4f0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3D_Snake.cpp">
@@ -75,17 +87,23 @@
     <ClCompile Include="Chunk.cpp">
       <Filter>Исходные файлы\Voxels</Filter>
     </ClCompile>
-    <ClCompile Include="VoxelRenderer.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="Chunks.cpp">
       <Filter>Исходные файлы\Voxels</Filter>
     </ClCompile>
-    <ClCompile Include="LineBatch.cpp">
-      <Filter>Исходные файлы</Filter>
-    </ClCompile>
     <ClCompile Include="files.cpp">
-      <Filter>Исходные файлы</Filter>
+      <Filter>Исходные файлы\files</Filter>
+    </ClCompile>
+    <ClCompile Include="VoxelRenderer.cpp">
+      <Filter>Исходные файлы\Voxels</Filter>
+    </ClCompile>
+    <ClCompile Include="LineBatch.cpp">
+      <Filter>Исходные файлы\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Lightmap.cpp">
+      <Filter>Исходные файлы\lighting</Filter>
+    </ClCompile>
+    <ClCompile Include="LightSolver.cpp">
+      <Filter>Исходные файлы\lighting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -116,17 +134,23 @@
     <ClInclude Include="Chunk.h">
       <Filter>Файлы заголовков\Voxels</Filter>
     </ClInclude>
-    <ClInclude Include="VoxelRenderer.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="Chunks.h">
       <Filter>Файлы заголовков\Voxels</Filter>
     </ClInclude>
-    <ClInclude Include="LineBatch.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="files.h">
-      <Filter>Файлы заголовков</Filter>
+      <Filter>Файлы заголовков\files</Filter>
+    </ClInclude>
+    <ClInclude Include="VoxelRenderer.h">
+      <Filter>Файлы заголовков\Voxels</Filter>
+    </ClInclude>
+    <ClInclude Include="LineBatch.h">
+      <Filter>Файлы заголовков\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Lightmap.h">
+      <Filter>Файлы заголовков\lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="LightSolver.h">
+      <Filter>Файлы заголовков\lighting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -14,7 +14,7 @@ public:
 	VoxelRenderer(size_t capacity);
 	~VoxelRenderer();
 
-	Mesh* render(Chunk* chunk, const Chunk** chunks, bool ambientOcclusion);
+	Mesh* render(Chunk* chunk, const Chunk** chunks);
 };
 
 #endif // !VOXEL_RENDERER_H_

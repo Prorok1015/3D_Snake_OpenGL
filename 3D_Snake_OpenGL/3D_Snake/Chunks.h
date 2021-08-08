@@ -1,6 +1,8 @@
 #pragma once
 #include <glm/glm.hpp>
 
+using glm::vec3;
+
 class Chunk;
 class voxel;
 
@@ -15,9 +17,11 @@ public:
 	~Chunks();
 
 	Chunk* getChunk(int x, int y, int z);
+	Chunk* getChunkByVoxel(int x, int y, int z);
 	voxel* get(int x, int y, int z);
+	unsigned char getLight(int x, int y, int z, int channel);
 	void set(int x, int y, int z, int id);
-	voxel* rayCast(glm::vec3 start, glm::vec3 dir, float maxLength, glm::vec3& end, glm::vec3& norm, glm::vec3& iend);
+	voxel* rayCast(vec3 start, vec3 dir, float maxLength, vec3& end, vec3& norm, vec3& iend);
 
 	void write(unsigned char* dest);
 	void read(unsigned char* source);

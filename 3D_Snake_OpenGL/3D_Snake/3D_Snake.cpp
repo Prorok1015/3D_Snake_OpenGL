@@ -19,6 +19,8 @@
 #include "LineBatch.h"
 #include "VoxelRenderer.h"
 #include "files.h"
+#include "LightSolver.h"
+#include "Lightmap.h"
 
 int WIDTH = 1280;
 int HEIGHT = 720;
@@ -76,7 +78,7 @@ int main() {
 	VoxelRenderer renderer(1024 * 1024 * 8);
 	LineBatch* lineBatch = new LineBatch(4096);
 
-	glClearColor(0.6f, 0.62f, 0.65f, 1);
+	glClearColor(0.0f, 0.0f, 0.0f, 1);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -92,7 +94,66 @@ int main() {
 	float camX = 0.0f;
 	float camY = 0.0f;
 
-	float speed = 50;
+	float speed = 15;
+
+	int choosenBlock = 1;
+
+	LightSolver* solverR = new LightSolver(chunks, 0);
+	LightSolver* solverG = new LightSolver(chunks, 1);
+	LightSolver* solverB = new LightSolver(chunks, 2);
+	LightSolver* solverS = new LightSolver(chunks, 3);
+
+	for (int y = 0; y < chunks->h * CHUNK_H; y++) {
+		for (int z = 0; z < chunks->d * CHUNK_D; z++) {
+			for (int x = 0; x < chunks->w * CHUNK_W; x++) {
+				voxel* vox = chunks->get(x, y, z);
+				if (vox->id == 3) {
+					solverR->add(x, y, z, 15);
+					solverG->add(x, y, z, 15);
+					solverB->add(x, y, z, 15);
+				}
+			}
+		}
+	}
+
+	for (int z = 0; z < chunks->d * CHUNK_D; z++) {
+		for (int x = 0; x < chunks->w * CHUNK_W; x++) {
+			for (int y = chunks->h * CHUNK_H - 1; y >= 0; y--) {
+				voxel* vox = chunks->get(x, y, z);
+				if (vox->id != 0) {
+					break;
+				}
+				chunks->getChunkByVoxel(x, y, z)->lightmap->setS(x % CHUNK_W, y % CHUNK_H, z % CHUNK_D, 0xF);
+			}
+		}
+	}
+
+	for (int z = 0; z < chunks->d * CHUNK_D; z++) {
+		for (int x = 0; x < chunks->w * CHUNK_W; x++) {
+			for (int y = chunks->h * CHUNK_H - 1; y >= 0; y--) {
+				voxel* vox = chunks->get(x, y, z);
+				if (vox->id != 0) {
+					break;
+				}
+				if (
+					chunks->getLight(x - 1, y, z, 3) == 0 ||
+					chunks->getLight(x + 1, y, z, 3) == 0 ||
+					chunks->getLight(x, y - 1, z, 3) == 0 ||
+					chunks->getLight(x, y + 1, z, 3) == 0 ||
+					chunks->getLight(x, y, z - 1, 3) == 0 ||
+					chunks->getLight(x, y, z + 1, 3) == 0
+					) {
+					solverS->add(x, y, z);
+				}
+				chunks->getChunkByVoxel(x, y, z)->lightmap->setS(x % CHUNK_W, y % CHUNK_H, z % CHUNK_D, 0xF);
+			}
+		}
+	}
+
+	solverR->solve();
+	solverG->solve();
+	solverB->solve();
+	solverS->solve();
 
 	while (!Window::isShouldClose()) {
 		float currentTime = glfwGetTime();
@@ -104,6 +165,12 @@ int main() {
 		}
 		if (Events::jpressed(GLFW_KEY_TAB)) {
 			Events::toogleCursor();
+		}
+
+		for (int i = 1; i < 4; i++) {
+			if (Events::jpressed(GLFW_KEY_0 + i)) {
+				choosenBlock = i;
+			}
 		}
 		if (Events::jpressed(GLFW_KEY_F1)) {
 			unsigned char* buffer = new unsigned char[chunks->volume * CHUNK_VOL];
@@ -156,10 +223,66 @@ int main() {
 				lineBatch->box(iend.x + 0.5f, iend.y + 0.5f, iend.z + 0.5f, 1.005f, 1.005f, 1.005f, 0, 0, 0, 0.5f);
 
 				if (Events::jclicked(GLFW_MOUSE_BUTTON_1)) {
-					chunks->set((int)iend.x, (int)iend.y, (int)iend.z, 0);
+					int x = (int)iend.x;
+					int y = (int)iend.y;
+					int z = (int)iend.z;
+					chunks->set(x, y, z, 0);
+
+					solverR->remove(x, y, z);
+					solverG->remove(x, y, z);
+					solverB->remove(x, y, z);
+
+					solverR->solve();
+					solverG->solve();
+					solverB->solve();
+
+					if (chunks->getLight(x, y + 1, z, 3) == 0xF) {
+						for (int i = y; i >= 0; i--) {
+							if (chunks->get(x, i, z)->id != 0)
+								break;
+							solverS->add(x, i, z, 0xF);
+						}
+					}
+
+					solverR->add(x, y + 1, z); solverG->add(x, y + 1, z); solverB->add(x, y + 1, z); solverS->add(x, y + 1, z);
+					solverR->add(x, y - 1, z); solverG->add(x, y - 1, z); solverB->add(x, y - 1, z); solverS->add(x, y - 1, z);
+					solverR->add(x + 1, y, z); solverG->add(x + 1, y, z); solverB->add(x + 1, y, z); solverS->add(x + 1, y, z);
+					solverR->add(x - 1, y, z); solverG->add(x - 1, y, z); solverB->add(x - 1, y, z); solverS->add(x - 1, y, z);
+					solverR->add(x, y, z + 1); solverG->add(x, y, z + 1); solverB->add(x, y, z + 1); solverS->add(x, y, z + 1);
+					solverR->add(x, y, z - 1); solverG->add(x, y, z - 1); solverB->add(x, y, z - 1); solverS->add(x, y, z - 1);
+
+					solverR->solve();
+					solverG->solve();
+					solverB->solve();
+					solverS->solve();
 				}
 				if (Events::jclicked(GLFW_MOUSE_BUTTON_2)) {
-					chunks->set((int)(iend.x) + (int)(norm.x), (int)(iend.y) + (int)(norm.y), (int)(iend.z) + (int)(norm.z), 2);
+					int x = (int)(iend.x) + (int)(norm.x);
+					int y = (int)(iend.y) + (int)(norm.y);
+					int z = (int)(iend.z) + (int)(norm.z);
+					chunks->set(x, y, z, choosenBlock);
+					solverR->remove(x, y, z);
+					solverG->remove(x, y, z);
+					solverB->remove(x, y, z);
+					solverS->remove(x, y, z);
+					for (int i = y - 1; i >= 0; i--) {
+						solverS->remove(x, i, z);
+						if (i == 0 || chunks->get(x, i - 1, z)->id != 0) {
+							break;
+						}
+					}
+					solverR->solve();
+					solverG->solve();
+					solverB->solve();
+					solverS->solve();
+					if (choosenBlock == 3) {
+						solverR->add(x, y, z, 10);
+						solverG->add(x, y, z, 10);
+						solverB->add(x, y, z, 0);
+						solverR->solve();
+						solverG->solve();
+						solverB->solve();
+					}
 				}
 			}
 		}
@@ -190,7 +313,7 @@ int main() {
 				oz += 1;
 				closes[(oy * 3 + oz) * 3 + ox] = other;
 			}
-			Mesh* mesh = renderer.render(chunk, (const Chunk**)closes, true);
+			Mesh* mesh = renderer.render(chunk, (const Chunk**)closes);
 			meshes[i] = mesh;
 		}
 
@@ -220,6 +343,11 @@ int main() {
 		Window::swapBuffers();
 		Events::pullEvents();
 	}
+
+	delete solverS;
+	delete solverB;
+	delete solverG;
+	delete solverR;
 
 	delete shader;
 	delete texture;
