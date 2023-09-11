@@ -4,6 +4,8 @@
 #define MESH
 #include <glad/glad.h>
 
+enum class DrawMode;
+
 class Mesh
 {
 	GLuint VAO;
@@ -14,7 +16,7 @@ public:
 	Mesh(const float* buffer, size_t vertices, const int* attrs);
 	~Mesh();
 	void reload(const float* buffer, size_t vertices);
-	void draw(GLuint primitive);
+	void draw(DrawMode primitive);
 };
 
 #endif // !MESH

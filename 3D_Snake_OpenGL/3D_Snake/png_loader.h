@@ -1,6 +1,13 @@
 #pragma once
-#include <string>
 
-class Texture;
+struct png_result
+{
+	unsigned id;
+	int width;
+	int height;
 
-extern Texture* load_texture(std::string filename);
+	operator bool() { return !has_error(); }
+	bool has_error() { return id == 0; }
+};
+
+png_result _png_load(const char* file);

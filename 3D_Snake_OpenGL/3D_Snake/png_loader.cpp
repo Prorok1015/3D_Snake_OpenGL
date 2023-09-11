@@ -3,9 +3,8 @@
 #include "Image/Image.h"
 #include <iostream>
 #include "glad/glad.h"
-#include "Texture.h"
 
-int _png_load(const char* file, int* width, int* height) 
+png_result _png_load(const char* file)
 {
     Image img(file);
 
@@ -38,19 +37,5 @@ int _png_load(const char* file, int* width, int* height)
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    *width = t_width;
-    *height = t_height;
-
-    return texture;
-}
-
-Texture* load_texture(std::string filename) {
-    int width, height;
-
-    GLuint texture = _png_load(filename.c_str(), &width, &height);
-    if (texture == 0) {
-        std::cerr << "Could not load texture " << filename << std::endl;
-        return nullptr;
-    }    
-    return new Texture(texture, width, height);
+    return png_result{ texture, t_width, t_height };
 }

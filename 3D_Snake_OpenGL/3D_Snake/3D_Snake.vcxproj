@@ -172,9 +172,12 @@
     <ClCompile Include="LightSolver.cpp" />
     <ClCompile Include="LineBatch.cpp" />
     <ClCompile Include="Mesh.cpp" />
+    <ClCompile Include="NewMain.cpp" />
     <ClCompile Include="png_loader.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Shape.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="ui_system.cpp" />
     <ClCompile Include="voxel.cpp" />
     <ClCompile Include="VoxelRenderer.cpp" />
     <ClCompile Include="Window.cpp" />
@@ -183,6 +186,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Chunks.h" />
     <ClInclude Include="Chunk.h" />
+    <ClInclude Include="enums.h" />
     <ClInclude Include="Events.h" />
     <ClInclude Include="files.h" />
     <ClInclude Include="Lightmap.h" />
@@ -191,7 +195,9 @@
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="png_loader.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="Shape.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="ui_system.h" />
     <ClInclude Include="voxel.h" />
     <ClInclude Include="VoxelRenderer.h" />
     <ClInclude Include="Window.h" />

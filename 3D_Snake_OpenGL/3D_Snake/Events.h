@@ -1,14 +1,14 @@
 #pragma once
 
 #include "Window.h"
-
-typedef unsigned int uint;
+#include <array>
+using uint = unsigned int;
 
 class Events
 {
 public:
-	static bool* _keys;
-	static uint* _frames;
+	static std::array<bool, 1032> _keys;
+	static std::array<uint, 1032> _frames;
 	static uint _current;
 	static float deltaX;
 	static float deltaY;
@@ -18,7 +18,7 @@ public:
 	static bool _cursor_started;
 
 	static int initialize();
-	static void pullEvents();
+	static void poll_events();
 
 	static bool pressed(int keycode);
 	static bool jpressed(int keycode);
@@ -26,6 +26,6 @@ public:
 	static bool clicked(int button);
 	static bool jclicked(int button);
 
-	static void toogleCursor();
+	static void toogle_cursor();
 };
 

@@ -7,13 +7,19 @@
 #define VERTEX_SIZE (3 + 2 + 4)
 
 #define CDIV(X,A) (((X) < 0) ? ((X) / (A) - 1) : ((X) / (A)))
+
 #define LOCAL_NEG(X, SIZE) (((X) < 0) ? ((SIZE)+(X)) : (X))
+
 #define LOCAL(X, SIZE) ((X) >= (SIZE) ? ((X) - (SIZE)) : LOCAL_NEG(X, SIZE))
+
 #define IS_CHUNK(X,Y,Z) (GET_CHUNK(X,Y,Z) != nullptr)
+
 #define GET_CHUNK(X,Y,Z) (chunks[((CDIV(Y, CHUNK_H)+1) * 3 + CDIV(Z, CHUNK_D) + 1) * 3 + CDIV(X, CHUNK_W) + 1])
 
 #define LIGHT(X,Y,Z, CHANNEL) (IS_CHUNK(X,Y,Z) ? GET_CHUNK(X,Y,Z)->lightmap->get(LOCAL(X, CHUNK_W), LOCAL(Y, CHUNK_H), LOCAL(Z, CHUNK_D), (CHANNEL)) : 0)
+
 #define VOXEL(X,Y,Z) (GET_CHUNK(X,Y,Z)->voxels[(LOCAL(Y, CHUNK_H) * CHUNK_D + LOCAL(Z, CHUNK_D)) * CHUNK_W + LOCAL(X, CHUNK_W)])
+
 #define IS_BLOCKED(X,Y,Z) ((!IS_CHUNK(X, Y, Z)) || VOXEL(X, Y, Z).id)
 
 #define VERTEX(INDEX, X,Y,Z, U,V, R,G,B,S) buffer[INDEX+0] = (X);\

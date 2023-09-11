@@ -52,6 +52,12 @@
     <Filter Include="Файлы заголовков\lighting">
       <UniqueIdentifier>{cbd44ba9-72f2-4787-b946-7f34f735f4f0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Исходные файлы\UI_System">
+      <UniqueIdentifier>{40e44297-0114-4725-bdef-f30dae96788d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Файлы заголовков\UI_System">
+      <UniqueIdentifier>{8827ef35-fed6-40af-9df2-890d04c70c51}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="3D_Snake.cpp">
@@ -105,6 +111,15 @@
     <ClCompile Include="LightSolver.cpp">
       <Filter>Исходные файлы\lighting</Filter>
     </ClCompile>
+    <ClCompile Include="ui_system.cpp">
+      <Filter>Исходные файлы\UI_System</Filter>
+    </ClCompile>
+    <ClCompile Include="Shape.cpp">
+      <Filter>Исходные файлы\UI_System</Filter>
+    </ClCompile>
+    <ClCompile Include="NewMain.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -151,6 +166,15 @@
     </ClInclude>
     <ClInclude Include="LightSolver.h">
       <Filter>Файлы заголовков\lighting</Filter>
+    </ClInclude>
+    <ClInclude Include="enums.h">
+      <Filter>Файлы заголовков\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="ui_system.h">
+      <Filter>Файлы заголовков\UI_System</Filter>
+    </ClInclude>
+    <ClInclude Include="Shape.h">
+      <Filter>Файлы заголовков\UI_System</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

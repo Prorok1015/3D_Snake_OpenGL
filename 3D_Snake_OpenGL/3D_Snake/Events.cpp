@@ -1,11 +1,9 @@
 #include "Events.h"
-
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
+#include "enums.h"
 #include <string>
 
-bool* Events::_keys;
-uint* Events::_frames;
+std::array<bool, 1032>  Events::_keys;
+std::array<uint, 1032> Events::_frames;
 uint Events::_current = 0;
 float Events::deltaX = 0.0f;
 float Events::deltaY = 0.0f;
@@ -68,12 +66,6 @@ void window_size_callback(GLFWwindow* window, int width, int height) {
 int Events::initialize()
 {
     GLFWwindow* window = Window::window;
-    _keys = new bool[1032];
-    _frames = new uint[1032];
-
-    memset(_keys, false, 1032 * sizeof(bool));
-    memset(_frames, 0, 1032 * sizeof(uint));
-
     glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
@@ -81,7 +73,7 @@ int Events::initialize()
     return 0;
 }
 
-void Events::pullEvents()
+void Events::poll_events()
 {
     _current++;
     deltaX = 0.0f;
@@ -115,7 +107,7 @@ bool Events::jclicked(int button)
     return _keys[_MOUSE_BUTTONS + button] && (_frames[_MOUSE_BUTTONS + button] == _current);
 }
 
-void Events::toogleCursor() {
+void Events::toogle_cursor() {
     _cursor_locked = !_cursor_locked;
-    Window::setCursorMode(_cursor_locked ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    Window::setCursorMode(_cursor_locked ? CursorMode::Disable : CursorMode::Normal);
 }

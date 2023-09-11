@@ -1,17 +1,19 @@
 #pragma once
 #include <string>
 #include <glm/glm.hpp>
+#include <memory>
 
 class Shader {
 public:
 	unsigned int id;
 
+public:
 	Shader(unsigned int id);
 	~Shader();
 
 	void use();
 	void uniformMatrix(std::string name, glm::mat4 matrix);
-};
 
-extern Shader* load_shader(std::string vertexFile, std::string fragmentFile);
+	static std::shared_ptr<Shader> load(std::string vertexFile, std::string fragmentFile);
+};
 

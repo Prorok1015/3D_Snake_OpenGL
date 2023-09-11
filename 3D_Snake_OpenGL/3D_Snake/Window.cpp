@@ -1,6 +1,5 @@
 #include "Window.h"
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
+#include "enums.h"
 
 GLFWwindow* Window::window;
 int Window::width;
@@ -41,7 +40,7 @@ void Window::terminate()
     glfwTerminate();
 }
 
-void Window::swapBuffers()
+void Window::swap_buffers()
 {
     glfwSwapBuffers(window);
 }
@@ -56,6 +55,6 @@ void Window::setShouldClose(bool close)
     glfwSetWindowShouldClose(window, close);
 }
 
-void Window::setCursorMode(int mode) {
-    glfwSetInputMode(window, GLFW_CURSOR, mode);
+void Window::setCursorMode(CursorMode mode) {
+    glfwSetInputMode(window, GLFW_CURSOR, (int)mode);
 }

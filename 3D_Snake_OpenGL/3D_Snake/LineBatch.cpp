@@ -1,5 +1,6 @@
 #include "LineBatch.h"
 #include "Mesh.h"
+#include "enums.h"
 
 #define LB_VERTEX_SIZE (3+4)
 
@@ -64,6 +65,6 @@ void LineBatch::render() {
 	if (index == 0)
 		return;
 	mesh->reload(buffer, index / LB_VERTEX_SIZE);
-	mesh->draw(GL_LINES);
+	mesh->draw(DrawMode::Line);
 	index = 0;
 }

@@ -1,9 +1,10 @@
 #include "Mesh.h"
+#include "enums.h"
 
 Mesh::Mesh(const float* buffer, size_t vertices, const int* attrs) : vertices(vertices)
 {
     vertexSize = 0;
-    for (int i = 0; attrs[i]; i++) {
+    for (int i = 0; attrs[i]; ++i) {
         vertexSize += attrs[i];
     }
 
@@ -39,9 +40,9 @@ void Mesh::reload(const float* buffer, size_t vertices) {
     this->vertices = vertices;
 }
 
-void Mesh::draw(GLuint primrtive)
+void Mesh::draw(DrawMode primrtive)
 {
     glBindVertexArray(VAO);
-    glDrawArrays(primrtive, 0, vertices);
+    glDrawArrays((GLuint)primrtive, 0, vertices);
     glBindVertexArray(0);
 }
