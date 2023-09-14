@@ -6,106 +6,83 @@
 #include <iostream>
 #include <string>
 #include <exception>
+#include <array>
 
 #define EXCEPT(msg) std::exception(msg)
 
-class Loger {
-	std::wstring _msg;
-	std::string _func;
-	int _line;
-	std::wstring _file;
-public:
-	Loger(std::wstring m, std::string func, int line, std::wstring file)
-		: _msg(m),
-		_func(func),
-		_line(line),
-		_file(file) {};
-
-	void Trace() const
-	{
-		std::wcout	<< L"Дамп ошибки: "	<< std::endl
-					<< L"Функция: "		<< std::wstring(_func.begin(), _func.end())	<< std::endl
-					<< L"Строка: "		<< _file	<< L" (" << _line <<L")" << std::endl
-					<< _msg << std::endl;
-	}
-};
-
-Image::Image(const char* filename)
+Image::Image(const std::string_view filename)
 {
-	try
-	{
-		stbi_set_flip_vertically_on_load(true);
-		if (!read(filename))
-		{
-			throw Loger(L"Ошибка чтения файла", __func__, __LINE__, __FILEW__);
-		}		
-		
-	}
-	catch (Loger& e)
-	{
-		e.Trace();
-	}
-	catch (...) {};
-
-};
+	if (!read(filename)) {
+		throw std::exception("File read faild"); //Loger(L"Ошибка чтения файла", __func__, __LINE__, __FILEW__);
+	}			
+}
 
 Image::~Image()
 {
-	if(!isGetData)
-		stbi_image_free(data);
-};
+	stbi_image_free(data_);
+}
 
-bool Image::read(const char* filename)
+bool Image::read(const std::string_view filename)
 {
-	data = stbi_load(filename, &width, &height, &channels, 0);
-	size = width;
-	size *= height;
-	size *= channels;
+	set_image_flip(flipFlag_);
+	if (data_ = stbi_load(filename.data(), &width_, &height_, &channels_, 0))
+	{
+		size_ = width_;
+		size_ *= height_;
+		size_ *= channels_;
+		return true;
+	}
+	return false;
+}
 
-	return data != NULL;
-};
-
-Image::ImageType Image::getTypeFilename(const char* filename)
+void Image::set_image_flip(ImageFlip flag)
 {
-	std::string s(filename);
-	if (s._Equal(".png"))
+	switch (flag)
 	{
-		return ImageType::PNG;
+	case Image::ImageFlip::NONE:
+		stbi_set_flip_vertically_on_load(false);
+		break;
+	case Image::ImageFlip::VERTICAL:
+		stbi_set_flip_vertically_on_load(true);
+		break;
 	}
-	else if (s._Equal(".jpg"))
-	{
-		return ImageType::JPG;
+}
+
+Image::ImageType Image::type(const std::string_view filename)
+{
+	constexpr std::array<std::pair<const char*, ImageType>, 4> fileTypes = 
+	{ 
+		std::pair{".png", ImageType::PNG}, 
+		{".jpg", ImageType::JPG}, 
+		{".bmp", ImageType::BMP}, 
+		{".tga", ImageType::TGA}
+	};
+
+	for (const auto& [sType, rType] : fileTypes) {
+		if (filename.find_last_of(sType) != std::string::npos) {
+			return rType;
+		}
 	}
-	else if (s._Equal(".bmp"))
-	{
-		return ImageType::BMP;
-	}
-	else if (s._Equal(".tga"))
-	{
-		return ImageType::TGA;
-	}
-	return ImageType::PNG;
+	return ImageType::NONE;
 }
 ;
-bool Image::write(const char* filename)
+bool Image::write(const std::string_view filename)
 {
-	ImageType type = getTypeFilename(filename);
-	int success = 0;
-	switch (type)
+	switch (type(filename))
 	{
-	case Image::ImageType::PNG:
-		success = stbi_write_png(filename, width, height, channels, data, width * channels);
+	case ImageType::PNG:
+		return stbi_write_png(filename.data(), width_, height_, channels_, data_, width_ * channels_);
 		break;
-	case Image::ImageType::JPG:
-		success = stbi_write_jpg(filename, width, height, channels, data, 100);
+	case ImageType::JPG:
+		return stbi_write_jpg(filename.data(), width_, height_, channels_, data_, 100);
 		break;
-	case Image::ImageType::BMP:
-		success = stbi_write_bmp(filename, width, height, channels, data);
+	case ImageType::BMP:
+		return stbi_write_bmp(filename.data(), width_, height_, channels_, data_);
 		break;
-	case Image::ImageType::TGA:
-		success = stbi_write_tga(filename, width, height, channels, data);
+	case ImageType::TGA:
+		return stbi_write_tga(filename.data(), width_, height_, channels_, data_);
 		break;
 	}
 
-	return success != 0;
+	return false;
 };

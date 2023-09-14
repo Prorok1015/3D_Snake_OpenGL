@@ -4,7 +4,9 @@
 
 int main()
 {
-	Image img("test5.jpg");
+	Image img;
+	img.flip(Image::ImageFlip::VERTICAL);
+	img.open("test.jpg");
 	img.write("write.png");
 	system("pause");
 }
