@@ -1,13 +1,6 @@
 #pragma once
+#include <Image/Image.h>
+#include <memory>
 
-struct png_result
-{
-	unsigned id = 0;
-	int width = 0;
-	int height = 0;
+std::unique_ptr<Image> load_image(const char* file);
 
-	operator bool() { return !has_error(); }
-	bool has_error() { return id == 0; }
-};
-
-png_result load_image(const char* file);

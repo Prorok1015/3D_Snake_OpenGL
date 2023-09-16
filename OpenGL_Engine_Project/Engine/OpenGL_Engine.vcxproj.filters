@@ -52,26 +52,11 @@
     <Filter Include="Source files\Input">
       <UniqueIdentifier>{7edaac7a-375e-4fc0-938f-9a8f5ca5f130}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source files\Render\Legacy">
+      <UniqueIdentifier>{2777d811-eb9c-4e60-bcd0-9e6ddf583b11}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="code\render\Chunk.cpp">
-      <Filter>Source files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="code\render\Chunks.cpp">
-      <Filter>Source files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="code\render\LineBatch.cpp">
-      <Filter>Source files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="code\render\Mesh.cpp">
-      <Filter>Source files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="code\render\Voxel.cpp">
-      <Filter>Source files\Render</Filter>
-    </ClCompile>
-    <ClCompile Include="code\render\VoxelRenderer.cpp">
-      <Filter>Source files\Render</Filter>
-    </ClCompile>
     <ClCompile Include="code\render\camera\camera.cpp">
       <Filter>Source files\Render\Camera</Filter>
     </ClCompile>
@@ -114,26 +99,29 @@
     <ClCompile Include="include\glad.c">
       <Filter>Library files</Filter>
     </ClCompile>
+    <ClCompile Include="code\render\Chunk.cpp">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\Chunks.cpp">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\LineBatch.cpp">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\Mesh.cpp">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\Voxel.cpp">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\VoxelRenderer.cpp">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClCompile>
+    <ClCompile Include="code\ui\bitmap.cpp">
+      <Filter>Source files\UI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="code\render\Chunk.h">
-      <Filter>Source files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\Chunks.h">
-      <Filter>Source files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\LineBatch.h">
-      <Filter>Source files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\Mesh.h">
-      <Filter>Source files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\Voxel.h">
-      <Filter>Source files\Render</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\VoxelRenderer.h">
-      <Filter>Source files\Render</Filter>
-    </ClInclude>
     <ClInclude Include="code\render\camera\camera.h">
       <Filter>Source files\Render\Camera</Filter>
     </ClInclude>
@@ -176,14 +164,29 @@
     <ClInclude Include="code\input\events.h">
       <Filter>Source files\Input</Filter>
     </ClInclude>
+    <ClInclude Include="code\render\Chunk.h">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\Chunks.h">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\LineBatch.h">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\Mesh.h">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\Voxel.h">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\VoxelRenderer.h">
+      <Filter>Source files\Render\Legacy</Filter>
+    </ClInclude>
+    <ClInclude Include="code\ui\bitmap.h">
+      <Filter>Source files\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\fragment.glslf">
-      <Filter>Resource\Shaders</Filter>
-    </None>
-    <None Include="res\vertex.glslv">
-      <Filter>Resource\Shaders</Filter>
-    </None>
     <None Include="res\crosshair.glslf">
       <Filter>Resource\Shaders</Filter>
     </None>
@@ -202,10 +205,16 @@
     <None Include="res\main.glslv">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\screen.glslf">
+    <None Include="res\bitmap.glslf">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\screen.glslv">
+    <None Include="res\bitmap.glslv">
+      <Filter>Resource\Shaders</Filter>
+    </None>
+    <None Include="res\shape.glslf">
+      <Filter>Resource\Shaders</Filter>
+    </None>
+    <None Include="res\shape.glslv">
       <Filter>Resource\Shaders</Filter>
     </None>
   </ItemGroup>

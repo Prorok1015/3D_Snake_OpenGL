@@ -178,6 +178,7 @@
     <ClCompile Include="code\render\VoxelRenderer.cpp" />
     <ClCompile Include="code\serialize\files.cpp" />
     <ClCompile Include="code\serialize\image_loader.cpp" />
+    <ClCompile Include="code\ui\bitmap.cpp" />
     <ClCompile Include="code\ui\shape.cpp" />
     <ClCompile Include="code\ui\ui_system.cpp" />
     <ClCompile Include="code\windows\window.cpp" />
@@ -201,6 +202,7 @@
     <ClInclude Include="code\render\VoxelRenderer.h" />
     <ClInclude Include="code\serialize\files.h" />
     <ClInclude Include="code\serialize\image_loader.h" />
+    <ClInclude Include="code\ui\bitmap.h" />
     <ClInclude Include="code\ui\shape.h" />
     <ClInclude Include="code\ui\ui_system.h" />
     <ClInclude Include="code\windows\window.h" />
@@ -208,14 +210,14 @@
   <ItemGroup>
     <None Include="res\crosshair.glslf" />
     <None Include="res\crosshair.glslv" />
-    <None Include="res\fragment.glslf" />
     <None Include="res\lines.glslf" />
     <None Include="res\lines.glslv" />
     <None Include="res\main.glslf" />
     <None Include="res\main.glslv" />
-    <None Include="res\screen.glslf" />
-    <None Include="res\screen.glslv" />
-    <None Include="res\vertex.glslv" />
+    <None Include="res\bitmap.glslf" />
+    <None Include="res\bitmap.glslv" />
+    <None Include="res\shape.glslf" />
+    <None Include="res\shape.glslv" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\block.png" />

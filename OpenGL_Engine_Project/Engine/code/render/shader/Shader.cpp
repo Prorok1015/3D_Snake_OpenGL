@@ -15,13 +15,13 @@ void Shader::use() {
 	glUseProgram(id);
 }
 
-void Shader::uniformMatrix(std::string name, glm::mat4 matrix)
+void Shader::uniform_matrix(std::string name, glm::mat4 matrix)
 {
 	GLuint transformLoc = glGetUniformLocation(id, name.c_str());
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
-std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmentFile)
+std::unique_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmentFile)
 {
 	// Reading Files
 	std::string vertexCode;
@@ -100,5 +100,5 @@ std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmen
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 
-	return std::make_shared<Shader>(id);
+	return std::make_unique<Shader>(id);
 }

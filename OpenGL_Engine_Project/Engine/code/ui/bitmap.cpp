@@ -1,13 +1,12 @@
-#include "Shape.h"
+#include "bitmap.h"
 #include "../common/common.h"
-#include "../windows/Window.h"
+#include "../windows/window.h"
 
-
-Shape::Shape()
+Bitmap::Bitmap()
 {
-    shader = Shader::load("./res/shape.glslv", "./res/shape.glslf");
+    shader = Shader::load("./res/bitmap.glslv", "./res/bitmap.glslf");
     if (!shader) {
-        ASSERT_FAIL("Shape's shader not create");
+        ASSERT_FAIL("Bitmap's shader not create");
         Window::terminate();
     }
     glGenVertexArrays(1, &VAO);
@@ -15,40 +14,23 @@ Shape::Shape()
     glGenBuffers(1, &EBO);
 }
 
-Shape::~Shape()
+Bitmap::~Bitmap()
 {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
 }
 
-
-std::array<glm::fvec3, 4> Shape::bounds()
-{
-    std::array<glm::fvec3, 4> bounds{};
-
-    //lopRight
-    bounds[0] = { pos.x + size.x, pos.y, pos.z };
-    //bottomRight
-    bounds[1] = { pos.x + size.x, pos.y + size.y, pos.z };
-    //bottomLeft
-    bounds[2] = { pos.x, pos.y + size.y, pos.z };
-    //lopLeft
-    bounds[3] = { pos.x, pos.y, pos.z };
-    return bounds;
-}
-
-
-void Shape::prepare_data()
+void Bitmap::prepare_data()
 {
     auto rect = bounds();
 
     const int halfWidth = Window::width / 2;
     const int halfHeight = Window::height / 2;
 
-    constexpr int column_count = 3 + 3;
+    constexpr int column_count = 3 + 3 + 2;
     constexpr int row_count = 4;
-    float vertices[column_count * row_count] = {0};
+    float vertices[column_count * row_count] = { 0 };
 
     for (int i = 0; i < row_count; ++i) {
         int vecId = i * column_count;
@@ -58,6 +40,12 @@ void Shape::prepare_data()
         vertices[vecId + 3] = color.r;
         vertices[vecId + 4] = color.g;
         vertices[vecId + 5] = color.b;
+
+        if (!texture) {
+            continue;
+        }
+        vertices[vecId + 6] = size.x / texture->width() * textureSize[i].x;
+        vertices[vecId + 7] = size.y / texture->height() * textureSize[i].y;
     }
 
     static unsigned int indices[] = {  // note that we start from 0!
@@ -80,6 +68,9 @@ void Shape::prepare_data()
     // color attribute
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, column_count * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+    // texture attribute
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, column_count * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -92,9 +83,34 @@ void Shape::prepare_data()
     glBindVertexArray(0);
 }
 
-void Shape::draw()
+void Bitmap::draw()
 {
-    shader->use();
+    if (texture) {
+        texture->bind();
+    }
+    if (shader) {
+        shader->use();
+    }
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+std::array<glm::fvec3, 4> Bitmap::bounds()
+{
+    std::array<glm::fvec3, 4> bounds{};
+
+    //lopRight
+    bounds[0] = { pos.x + size.x, pos.y, pos.z };
+    //bottomRight
+    bounds[1] = { pos.x + size.x, pos.y + size.y, pos.z };
+    //bottomLeft
+    bounds[2] = { pos.x, pos.y + size.y, pos.z };
+    //lopLeft
+    bounds[3] = { pos.x, pos.y, pos.z };
+    return bounds;
+}
+
+void Bitmap::load_texture(std::string_view res)
+{
+	texture = Texture::load(res);
 }

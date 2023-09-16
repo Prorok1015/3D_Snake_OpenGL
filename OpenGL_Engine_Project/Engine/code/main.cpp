@@ -6,7 +6,8 @@
 #include "render/texture/texture.h"
 
 #include "render/camera/camera.h"
-#include "ui/Shape.h"
+#include "ui/shape.h"
+#include "ui/bitmap.h"
 
 #include "ui/ui_system.h"
 #include "common/enums.h"
@@ -19,13 +20,6 @@ int main()
 	Window::initialize(WIDTH, HEIGHT, "Window 3.0");
 	Events::initialize();
 	UiSystem::initialize();
-
-	std::shared_ptr<Shader> shader_ui = Shader::load("./res/screen.glslv", "./res/screen.glslf");
-	if (shader_ui == nullptr) {
-		std::cerr << "failed to load shader" << std::endl;
-		Window::terminate();
-		return 1;
-	}
 
 	glClearColor(0.0f, 0.2f, 0.2f, 1);
 
@@ -49,7 +43,11 @@ int main()
 	Shape sh;
 	sh.pos = { 0, 0, 0 };
 	sh.size = { WIDTH/2, HEIGHT/2 };
-	sh.LoadTexture("./res/block.png");
+
+	Bitmap bmp;
+	bmp.size = { 512, 512 };
+	bmp.load_texture("./res/block.png");
+
 	int speedShape = 100;
 	float moveX = 0;
 	float moveY = 0;
@@ -89,7 +87,9 @@ int main()
 			sh.pos.y = Window::height - sh.size.y;
 		}
 
-		sh.Invalidate();
+		sh.prepare_data();
+		bmp.prepare_data();
+
 		if (Events::jpressed(GLFW_KEY_ESCAPE)) {
 			Window::setShouldClose(true);
 		}
@@ -113,9 +113,9 @@ int main()
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		sh.texture->bind();
-		shader_ui->use();
-		UiSystem::render(sh);
+		
+		sh.draw();
+		bmp.draw();
 
 		Window::swap_buffers();
 		Events::poll_events();

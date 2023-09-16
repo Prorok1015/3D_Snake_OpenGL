@@ -19,9 +19,9 @@ public:
 	Image() = default;
     Image(const std::string_view filename);
 	Image(const Image&) = delete;
-	Image(Image&&) = delete;
+	Image(Image&&) noexcept;
 	Image& operator= (const Image&) = delete;
-	Image& operator= (Image&&) = delete;
+	Image& operator= (Image&&) noexcept;
 	~Image();
 
 	bool open(const std::string_view filename) { return read(filename); }

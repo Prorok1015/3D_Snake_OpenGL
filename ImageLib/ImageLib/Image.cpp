@@ -17,6 +17,22 @@ Image::Image(const std::string_view filename)
 	}			
 }
 
+Image::Image(Image&& rhs) noexcept
+{
+	*this = std::move(rhs);
+}
+
+Image& Image::operator=(Image&& rhs) noexcept
+{
+	std::swap(data_, rhs.data_);
+	width_ = rhs.width_;
+	height_ = rhs.height_;
+	channels_ = rhs.channels_;
+	size_ = rhs.size_;
+	flipFlag_ = rhs.flipFlag_;
+	return *this;
+}
+
 Image::~Image()
 {
 	stbi_image_free(data_);

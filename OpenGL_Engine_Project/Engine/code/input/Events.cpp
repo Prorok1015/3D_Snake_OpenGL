@@ -13,7 +13,7 @@ float Events::y = 0.0f;
 bool Events::_cursor_locked = false;
 bool Events::_cursor_started = false;
 
-#define _MOUSE_BUTTONS 1024
+constexpr auto _MOUSE_BUTTONS = 1024;
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
