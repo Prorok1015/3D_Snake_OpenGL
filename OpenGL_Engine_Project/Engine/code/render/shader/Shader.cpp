@@ -1,13 +1,8 @@
-#include "Shader.h"
-
-#include <exception>
+#include "shader.h"
+#include "../../common/common.h"
 #include <fstream>
-#include <iostream>
 #include <sstream>
-
 #include <glm/gtc/type_ptr.hpp>
-#include "glad/glad.h"
-#include <GLFW/glfw3.h>
 
 Shader::Shader(unsigned int id) : id(id) {
 }
@@ -50,8 +45,8 @@ std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmen
 		vertexCode = vShaderStream.str();
 		fragmentCode = fShaderStream.str();
 	}
-	catch (std::ifstream::failure& e) {
-		std::cerr << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+	catch (const std::ifstream::failure&) {
+		ASSERT_FAIL("ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ");
 		return nullptr;
 	}
 	const GLchar* vShaderCode = vertexCode.c_str();
@@ -68,8 +63,8 @@ std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmen
 	glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
 	if (!success) {
 		glGetShaderInfoLog(vertex, 512, nullptr, infoLog);
-		std::cerr << "SHADER::VERTEX: compilation failed" << std::endl;
 		std::cerr << infoLog << std::endl;
+		ASSERT_FAIL("SHADER::VERTEX: compilation failed");
 		return nullptr;
 	}
 
@@ -80,8 +75,8 @@ std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmen
 	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
 	if (!success) {
 		glGetShaderInfoLog(fragment, 512, nullptr, infoLog);
-		std::cerr << "SHADER::FRAGMENT: compilation failed" << std::endl;
 		std::cerr << infoLog << std::endl;
+		ASSERT_FAIL("SHADER::FRAGMENT: compilation failed");
 		return nullptr;
 	}
 
@@ -94,11 +89,11 @@ std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmen
 	glGetProgramiv(id, GL_LINK_STATUS, &success);
 	if (!success) {
 		glGetProgramInfoLog(id, 512, nullptr, infoLog);
-		std::cerr << "SHADER::PROGRAM: linking failed" << std::endl;
 		std::cerr << infoLog << std::endl;
 
 		glDeleteShader(vertex);
 		glDeleteShader(fragment);
+		ASSERT_FAIL("SHADER::PROGRAM: linking failed");
 		return nullptr;
 	}
 

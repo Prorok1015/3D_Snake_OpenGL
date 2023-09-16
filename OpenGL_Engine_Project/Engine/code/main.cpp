@@ -1,12 +1,11 @@
 #include "common/common.h"
 
-#include "windows/Window.h"
-#include "input/Events.h"
-#include "render/Shader/Shader.h"
-#include "render/Texture/Texture.h"
+#include "windows/window.h"
+#include "input/events.h"
+#include "render/shader/shader.h"
+#include "render/texture/texture.h"
 
-#include "render/camera/Camera.h"
-#include "render/Mesh.h"
+#include "render/camera/camera.h"
 #include "ui/Shape.h"
 
 #include "ui/ui_system.h"
@@ -14,18 +13,7 @@
 
 constexpr int WIDTH = 1280;
 constexpr int HEIGHT = 720;
-float vertices[] = {
-	// x    y
-   -0.01f,-0.01f,
-	0.01f, 0.01f,
 
-   -0.01f, 0.01f,
-	0.01f,-0.01f,
-};
-
-int attrs[] = {
-		2,  0 //null terminator
-};
 int main()
 {
 	Window::initialize(WIDTH, HEIGHT, "Window 3.0");
@@ -46,9 +34,8 @@ int main()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	Mesh* crosshair = new Mesh(vertices, 4, attrs);
 	//Camera* camera = new Camera(vec3(0, 0, 20), radians(90.0f));
-	float lastTime = glfwGetTime();
+	float lastTime = (float)glfwGetTime();
 	float delta = 0.0f;
 
 	//float camX = 0.0f;
@@ -68,7 +55,7 @@ int main()
 	float moveY = 0;
 	bool isClk = false;
 	while (!Window::isShouldClose()) {
-		float currentTime = glfwGetTime();
+		float currentTime = (float)glfwGetTime();
 		delta = currentTime - lastTime;
 		lastTime = currentTime;
 
@@ -85,11 +72,7 @@ int main()
 			isClk = !isClk;
 		}
 
-		glm::fvec2 forw;
-
-		forw.x = moveX - sh.pos.x;
-		forw.y = moveY - sh.pos.y;
-
+		glm::fvec2 forw = { moveX - sh.pos.x, moveY - sh.pos.y };
 		forw = glm::normalize(forw);
 
 		if (sh.pos.x != moveX) {
@@ -130,8 +113,6 @@ int main()
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//crosshairShader->use();
-		//crosshair->draw(DrawMode::Line);
 		sh.texture->bind();
 		shader_ui->use();
 		UiSystem::render(sh);

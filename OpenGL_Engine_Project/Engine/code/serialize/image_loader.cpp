@@ -1,8 +1,6 @@
 #include "image_loader.h"
 #include "../common/common.h"
-#include "Image/Image.h"
-#include <iostream>
-#include "glad/glad.h"
+#include <Image/Image.h>
 
 png_result load_image(const char* file)
 {

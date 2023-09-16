@@ -1,8 +1,5 @@
 #pragma once
-
-#define GLFW_INCLUDE_NONE
-
-class GLFWwindow;
+struct GLFWwindow;
 enum class CursorMode;
 
 

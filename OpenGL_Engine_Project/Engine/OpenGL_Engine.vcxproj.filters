@@ -66,13 +66,13 @@
     <ClCompile Include="code\render\Mesh.cpp">
       <Filter>Source files\Render</Filter>
     </ClCompile>
-    <ClCompile Include="code\render\voxel.cpp">
+    <ClCompile Include="code\render\Voxel.cpp">
       <Filter>Source files\Render</Filter>
     </ClCompile>
     <ClCompile Include="code\render\VoxelRenderer.cpp">
       <Filter>Source files\Render</Filter>
     </ClCompile>
-    <ClCompile Include="code\render\camera\Camera.cpp">
+    <ClCompile Include="code\render\camera\camera.cpp">
       <Filter>Source files\Render\Camera</Filter>
     </ClCompile>
     <ClCompile Include="code\render\light\Lightmap.cpp">
@@ -81,10 +81,10 @@
     <ClCompile Include="code\render\light\LightSolver.cpp">
       <Filter>Source files\Render\Light</Filter>
     </ClCompile>
-    <ClCompile Include="code\render\shader\Shader.cpp">
+    <ClCompile Include="code\render\shader\shader.cpp">
       <Filter>Source files\Render\Shader</Filter>
     </ClCompile>
-    <ClCompile Include="code\render\texture\Texture.cpp">
+    <ClCompile Include="code\render\texture\texture.cpp">
       <Filter>Source files\Render\Texture</Filter>
     </ClCompile>
     <ClCompile Include="code\common\engine_assert.cpp">
@@ -96,19 +96,19 @@
     <ClCompile Include="code\serialize\files.cpp">
       <Filter>Source files\Serialize</Filter>
     </ClCompile>
-    <ClCompile Include="code\ui\Shape.cpp">
+    <ClCompile Include="code\ui\shape.cpp">
       <Filter>Source files\UI</Filter>
     </ClCompile>
     <ClCompile Include="code\ui\ui_system.cpp">
       <Filter>Source files\UI</Filter>
     </ClCompile>
-    <ClCompile Include="code\windows\Window.cpp">
+    <ClCompile Include="code\windows\window.cpp">
       <Filter>Source files\Window</Filter>
     </ClCompile>
     <ClCompile Include="code\main.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
-    <ClCompile Include="code\input\Events.cpp">
+    <ClCompile Include="code\input\events.cpp">
       <Filter>Source files\Input</Filter>
     </ClCompile>
     <ClCompile Include="include\glad.c">
@@ -128,13 +128,13 @@
     <ClInclude Include="code\render\Mesh.h">
       <Filter>Source files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="code\render\voxel.h">
+    <ClInclude Include="code\render\Voxel.h">
       <Filter>Source files\Render</Filter>
     </ClInclude>
     <ClInclude Include="code\render\VoxelRenderer.h">
       <Filter>Source files\Render</Filter>
     </ClInclude>
-    <ClInclude Include="code\render\camera\Camera.h">
+    <ClInclude Include="code\render\camera\camera.h">
       <Filter>Source files\Render\Camera</Filter>
     </ClInclude>
     <ClInclude Include="code\render\light\Lightmap.h">
@@ -143,10 +143,10 @@
     <ClInclude Include="code\render\light\LightSolver.h">
       <Filter>Source files\Render\Light</Filter>
     </ClInclude>
-    <ClInclude Include="code\render\shader\Shader.h">
+    <ClInclude Include="code\render\shader\shader.h">
       <Filter>Source files\Render\Shader</Filter>
     </ClInclude>
-    <ClInclude Include="code\render\texture\Texture.h">
+    <ClInclude Include="code\render\texture\texture.h">
       <Filter>Source files\Render\Texture</Filter>
     </ClInclude>
     <ClInclude Include="code\common\common.h">
@@ -161,19 +161,19 @@
     <ClInclude Include="code\serialize\image_loader.h">
       <Filter>Source files\Serialize\Image</Filter>
     </ClInclude>
-    <ClInclude Include="code\ui\Shape.h">
+    <ClInclude Include="code\ui\shape.h">
       <Filter>Source files\UI</Filter>
     </ClInclude>
     <ClInclude Include="code\ui\ui_system.h">
       <Filter>Source files\UI</Filter>
     </ClInclude>
-    <ClInclude Include="code\windows\Window.h">
+    <ClInclude Include="code\windows\window.h">
       <Filter>Source files\Window</Filter>
     </ClInclude>
     <ClInclude Include="code\serialize\files.h">
       <Filter>Source files\Serialize</Filter>
     </ClInclude>
-    <ClInclude Include="code\input\Events.h">
+    <ClInclude Include="code\input\events.h">
       <Filter>Source files\Input</Filter>
     </ClInclude>
   </ItemGroup>

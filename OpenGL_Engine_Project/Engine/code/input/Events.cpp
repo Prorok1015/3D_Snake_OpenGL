@@ -1,5 +1,5 @@
-#include "Events.h"
-#include "../windows/Window.h"
+#include "events.h"
+#include "../windows/window.h"
 #include "../common/enums.h"
 #include <string>
 

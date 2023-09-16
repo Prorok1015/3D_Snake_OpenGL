@@ -1,5 +1,5 @@
 #include "ui_system.h"
-#include "Shape.h"
+#include "shape.h"
 
 void UiSystem::initialize()
 {

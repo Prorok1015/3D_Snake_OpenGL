@@ -1,4 +1,4 @@
-#include "Window.h"
+#include "window.h"
 #include "../common/enums.h"
 
 GLFWwindow* Window::window;
