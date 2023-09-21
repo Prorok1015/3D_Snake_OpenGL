@@ -55,6 +55,9 @@
     <Filter Include="Source files\Render\Legacy">
       <UniqueIdentifier>{2777d811-eb9c-4e60-bcd0-9e6ddf583b11}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source files\Scene">
+      <UniqueIdentifier>{0d4154c9-d2a3-4c64-b780-7ca10f3c2121}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\render\camera\camera.cpp">
@@ -119,6 +122,15 @@
     </ClCompile>
     <ClCompile Include="code\ui\bitmap.cpp">
       <Filter>Source files\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="code\scene\cude.cpp">
+      <Filter>Source files\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="code\common\engine_log.cpp">
+      <Filter>Source files\Common</Filter>
+    </ClCompile>
+    <ClCompile Include="code\common\open_gl_specific.cpp">
+      <Filter>Source files\Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -185,6 +197,15 @@
     <ClInclude Include="code\ui\bitmap.h">
       <Filter>Source files\UI</Filter>
     </ClInclude>
+    <ClInclude Include="code\scene\cude.h">
+      <Filter>Source files\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="code\common\engine_log.h">
+      <Filter>Source files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="code\common\open_gl_specific.h">
+      <Filter>Source files\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\crosshair.glslf">
@@ -215,6 +236,12 @@
       <Filter>Resource\Shaders</Filter>
     </None>
     <None Include="res\shape.glslv">
+      <Filter>Resource\Shaders</Filter>
+    </None>
+    <None Include="res\scene.glslf">
+      <Filter>Resource\Shaders</Filter>
+    </None>
+    <None Include="res\scene.glslv">
       <Filter>Resource\Shaders</Filter>
     </None>
   </ItemGroup>

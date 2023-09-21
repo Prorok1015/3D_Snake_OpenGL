@@ -4,8 +4,17 @@
 GLFWwindow* Window::window;
 int Window::width;
 int Window::height;
+float Window::lastTime = 0.f;
+float Window::delta = 0.f;
+unsigned Window::current_frame = 0;
 
-int Window::initialize(int width, int height, const char* title)
+void window_size_callback(GLFWwindow* window, int width, int height) {
+    glViewport(0, 0, width, height);
+    Window::width = width;
+    Window::height = height;
+}
+
+int Window::initialize(const char* title, int width, int height)
 {
     /* Initialize the library */
     glfwInit();
@@ -32,6 +41,9 @@ int Window::initialize(int width, int height, const char* title)
     glViewport(0, 0, width, height);
     Window::width = width;
     Window::height = height;
+
+    glfwSetWindowSizeCallback(window, window_size_callback);
+
     return 0;
 }
 
@@ -43,18 +55,31 @@ void Window::terminate()
 void Window::swap_buffers()
 {
     glfwSwapBuffers(window);
+    ++current_frame;
 }
 
-bool Window::isShouldClose()
+bool Window::is_should_close()
 {
     return glfwWindowShouldClose(window);
 }
 
-void Window::setShouldClose(bool close)
+void Window::set_should_close(bool close)
 {
     glfwSetWindowShouldClose(window, close);
 }
 
-void Window::setCursorMode(CursorMode mode) {
+void Window::set_cursor_mode(CursorMode mode) {
     glfwSetInputMode(window, GLFW_CURSOR, (int)mode);
+}
+
+float Window::current_time()
+{
+    return (float)glfwGetTime();
+}
+
+void Window::update_frame()
+{
+    float currentTime = Window::current_time();
+    delta = currentTime - lastTime;
+    lastTime = currentTime;
 }

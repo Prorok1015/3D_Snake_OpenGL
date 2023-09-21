@@ -8,11 +8,11 @@ class Camera {
 public:
 	Camera(glm::vec3 position, float fov);
 	void rotate(float x, float y, float z);
-	glm::mat4 getProjection();
-	glm::mat4 getView();
+	glm::mat4 projection();
+	glm::mat4 view();
 
 private:
-	void updateVectors();
+	void update_vectors();
 
 public:
 	glm::vec3 front;
@@ -22,6 +22,7 @@ public:
 	glm::vec3 position;
 	float fov;
 	glm::mat4 rotation;
+	float speed = 15;
 };
 
 #endif /* WINDOW_CAMERA_H_ */

@@ -3,9 +3,8 @@
 #include "../common/enums.h"
 #include <string>
 
-std::array<bool, 1032>  Events::_keys;
-std::array<uint, 1032> Events::_frames;
-uint Events::_current = 0;
+std::unordered_map<KeyAction, Events::KeyStruct, KeyAction::Hasher> Events::kkeys;
+std::unordered_map<KeyAction, Event, KeyAction::Hasher> Events::listeners;
 float Events::deltaX = 0.0f;
 float Events::deltaY = 0.0f;
 float Events::x = 0.0f;
@@ -13,17 +12,13 @@ float Events::y = 0.0f;
 bool Events::_cursor_locked = false;
 bool Events::_cursor_started = false;
 
-constexpr auto _MOUSE_BUTTONS = 1024;
-
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
     if (Events::_cursor_locked)
     {
         Events::deltaX += xpos - Events::x;
         Events::deltaY += ypos - Events::y;
-    }
-    else
-    {
+    } else {
         Events::_cursor_started = true;
     }
     Events::x = xpos;
@@ -32,36 +27,24 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mode)
 {
-    if (action == GLFW_PRESS)
-    {
-        Events::_keys[_MOUSE_BUTTONS + button] = true;
-        Events::_frames[_MOUSE_BUTTONS + button] = Events::_current;
+    if (action != GLFW_RELEASE && action != GLFW_PRESS) {
+        return;
     }
-    else if (action == GLFW_RELEASE)
-    {
-        Events::_keys[_MOUSE_BUTTONS + button] = false;
-        Events::_frames[_MOUSE_BUTTONS + button] = Events::_current;
-    }
+
+    auto& key = Events::kkeys[(MOUSE)button];
+    key.status = action == GLFW_PRESS ? Events::KeyStruct::PRESS : Events::KeyStruct::RELEASE;
+    key.frame_action = Window::current_frame;
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+void key_callback(GLFWwindow* window, int keycode, int scancode, int action, int mode)
 {
-    if (action == GLFW_PRESS)
-    {
-        Events::_keys[key] = true;
-        Events::_frames[key] = Events::_current;
+    if (action != GLFW_RELEASE && action != GLFW_PRESS) {
+        return;
     }
-    else if (action == GLFW_RELEASE)
-    {
-        Events::_keys[key] = false;
-        Events::_frames[key] = Events::_current;
-    }
-}
 
-void window_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-    Window::width = width;
-    Window::height = height;
+    auto& key = Events::kkeys[(KEYBOARD)keycode];
+    key.status = action == GLFW_PRESS ? Events::KeyStruct::PRESS : Events::KeyStruct::RELEASE;
+    key.frame_action = Window::current_frame;
 }
 
 int Events::initialize()
@@ -70,45 +53,51 @@ int Events::initialize()
     glfwSetKeyCallback(window, key_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
-    glfwSetWindowSizeCallback(window, window_size_callback);
     return 0;
 }
 
 void Events::poll_events()
 {
-    _current++;
     deltaX = 0.0f;
     deltaY = 0.0f;
     glfwPollEvents();
 }
 
-bool Events::pressed(int keycode)
+bool Events::pressed(KEYBOARD keycode)
 {
-    if (keycode < 0 || keycode >= _MOUSE_BUTTONS)
-        return false;
-
-    return _keys[keycode];
+    return kkeys[keycode].status == Events::KeyStruct::PRESS;
 }
 
-bool Events::jpressed(int keycode)
+bool Events::jpressed(KEYBOARD keycode)
 {
-    if (keycode < 0 || keycode >= _MOUSE_BUTTONS)
-        return false;
-
-    return _keys[keycode] && (_frames[keycode] == _current);
+    return kkeys[keycode].is_pressed() && (kkeys[keycode].frame_action == Window::current_frame);
 }
 
-bool Events::clicked(int button)
+bool Events::clicked(MOUSE button)
 {
-    return _keys[_MOUSE_BUTTONS + button];
+    return kkeys[button].is_pressed();
 }
 
-bool Events::jclicked(int button)
+bool Events::jclicked(MOUSE button)
 {
-    return _keys[_MOUSE_BUTTONS + button] && (_frames[_MOUSE_BUTTONS + button] == _current);
+    return kkeys[button].is_pressed() &&
+        kkeys[button].frame_action == Window::current_frame;
 }
 
 void Events::toogle_cursor() {
     _cursor_locked = !_cursor_locked;
-    Window::setCursorMode(_cursor_locked ? CursorMode::Disable : CursorMode::Normal);
+    Window::set_cursor_mode(_cursor_locked ? CursorMode::Disable : CursorMode::Normal);
+}
+
+void Events::poll_listeners()
+{
+    for (const auto& [key, callbacks] : listeners)
+    {
+        if (!kkeys[key].is_pressed()) {
+            continue;
+        }
+        for (const auto& cb : callbacks) {
+            cb();
+        }
+    }
 }

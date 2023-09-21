@@ -9,3 +9,10 @@
 #include <iostream>
 #include <algorithm>
 #include "engine_assert.h"
+#include "engine_log.h"
+#include "open_gl_specific.h"
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+

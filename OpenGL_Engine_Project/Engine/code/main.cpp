@@ -11,115 +11,129 @@
 
 #include "ui/ui_system.h"
 #include "common/enums.h"
+#include "scene/cude.h"
 
 constexpr int WIDTH = 1280;
 constexpr int HEIGHT = 720;
 
 int main()
 {
-	Window::initialize(WIDTH, HEIGHT, "Window 3.0");
+	Window::initialize("Window 3.0", WIDTH, HEIGHT);
 	Events::initialize();
 	UiSystem::initialize();
 
-	glClearColor(0.0f, 0.2f, 0.2f, 1);
+	std::unique_ptr<Shader> ourShader = Shader::load("./res/scene.glslv", "./res/scene.glslf");
+	if (!ourShader) {
+		Window::terminate();
+		return 1;
+	}
+
+	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//Camera* camera = new Camera(vec3(0, 0, 20), radians(90.0f));
-	float lastTime = (float)glfwGetTime();
-	float delta = 0.0f;
+	std::unique_ptr<Camera> camera = std::make_unique<Camera>(glm::vec3(0, 0, 2), glm::radians(90.0f));
 
-	//float camX = 0.0f;
-	//float camY = 0.0f;
-
-	//float speed = 15;
-
-	//mat4 model(1.0f);
-	//model = translate(model, vec3(0.5f, 0, 0));
+	float camX = 0.0f;
+	float camY = 0.0f;
 
 	Shape sh;
-	sh.pos = { 0, 0, 0 };
-	sh.size = { WIDTH/2, HEIGHT/2 };
+	sh.pos = { 0, HEIGHT - 60, 0 };
+	sh.size = { WIDTH, 60 };
+	sh.color.r = 0.5;
 
-	Bitmap bmp;
-	bmp.size = { 512, 512 };
-	bmp.load_texture("./res/block.png");
+	init_cude();
 
-	int speedShape = 100;
-	float moveX = 0;
-	float moveY = 0;
-	bool isClk = false;
-	while (!Window::isShouldClose()) {
-		float currentTime = (float)glfwGetTime();
-		delta = currentTime - lastTime;
-		lastTime = currentTime;
+	//Bitmap bmp;
+	//bmp.size = { 512, 512 };
+	//bmp.load_texture("./res/test.jpg");
 
-		if (Events::jclicked(0)) {
-			moveX = Events::x;
-			moveY = Events::y;
-			if (isClk) {
-				sh.color.r = 0.f;
-				sh.color.g = 1.f;
-			} else {
-				sh.color.r = 1.f;
-				sh.color.g = 0.f;
-			}
-			isClk = !isClk;
-		}
+	//int speedShape = 100;
+	//float moveX = 0;
+	//float moveY = 0;
+	//bool isClk = false;
 
-		glm::fvec2 forw = { moveX - sh.pos.x, moveY - sh.pos.y };
-		forw = glm::normalize(forw);
+	Events::listeners[KEYBOARD::ESCAPE] += [] { if (!Events::jpressed(KEYBOARD::ESCAPE)) return; Window::set_should_close(true); };
+	Events::listeners[KEYBOARD::TAB] += [] { if (!Events::jpressed(KEYBOARD::TAB)) return; Events::toogle_cursor(); };
 
-		if (sh.pos.x != moveX) {
-			sh.pos.x += speedShape * delta * forw.x;
-		}
-		if (sh.pos.y != moveY) {
-			sh.pos.y += speedShape * delta * forw.y;
-		}
+	while (!Window::is_should_close()) {
+		Window::update_frame();
+		Events::poll_listeners();
+		//if (Events::jclicked(0)) {
+		//	moveX = Events::x;
+		//	moveY = Events::y;
+		//	if (isClk) {
+		//		sh.color.r = 0.f;
+		//		sh.color.g = 1.f;
+		//	} else {
+		//		sh.color.r = 1.f;
+		//		sh.color.g = 0.f;
+		//	}
+		//	isClk = !isClk;
+		//}
 
-		if (sh.pos.x + sh.size.x > Window::width) {
-			sh.pos.x = Window::width - sh.size.x;
-		}
-		if (sh.pos.y + sh.size.y > Window::height) {
-			sh.pos.y = Window::height - sh.size.y;
-		}
+		//glm::fvec2 forw = { moveX - sh.pos.x, moveY - sh.pos.y };
+		//forw = glm::normalize(forw);
 
-		sh.prepare_data();
-		bmp.prepare_data();
+		//if (sh.pos.x != moveX) {
+		//	sh.pos.x += speedShape * delta * forw.x;
+		//}
+		//if (sh.pos.y != moveY) {
+		//	sh.pos.y += speedShape * delta * forw.y;
+		//}
 
-		if (Events::jpressed(GLFW_KEY_ESCAPE)) {
-			Window::setShouldClose(true);
-		}
-		if (Events::jpressed(GLFW_KEY_TAB)) {
-			//Events::toogle_cursor();
-		}
+		//if (sh.pos.x + sh.size.x > Window::width) {
+		//	sh.pos.x = Window::width - sh.size.x;
+		//}
+		//if (sh.pos.y + sh.size.y > Window::height) {
+		//	sh.pos.y = Window::height - sh.size.y;
+		//}
+
+		//bmp.prepare_data();
+
 		if (Events::_cursor_locked) {
-			//camY += -Events::deltaY / Window::height * 2;
-			//camX += -Events::deltaX / Window::height * 2;
+			camY += -Events::deltaY / Window::height * 2;
+			camX += -Events::deltaX / Window::width * 2;
 
-			//if (camY < -radians(89.0f)) {
-			//	camY = -radians(89.0f);
-			//}
-			//if (camY > radians(89.0f)) {
-			//	camY = radians(89.0f);
-			//}
+			float delta = Window::delta;
 
-			//camera->rotation = mat4(1.0f);
-			//camera->rotate(camY, camX, 0);
-			//std::cout << "{ " << camX << ", " << camY << " }\n";
+			if (camY < -glm::radians(89.0f)) {
+				camY = -glm::radians(89.0f);
+			}
+			if (camY > glm::radians(89.0f)) {
+				camY = glm::radians(89.0f);
+			}
+
+			camera->rotation = glm::mat4(1.0f);
+			camera->rotate(camY, camX, 0);
+			std::cout << "{ " << camX << ", " << camY << " }; \t";
+			std::cout << "[ " << camera->position.x << ", " << camera->position.y << " ]\n";
 		}
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+		// activate shader
+		ourShader->use();
+
+		// pass projection matrix to shader (note that in this case it could change every frame)
+		glm::mat4 projection = camera->projection();
+		ourShader->uniform_matrix("projection", projection);
+
+		// camera/view transformation
+		glm::mat4 view = camera->view();
+		ourShader->uniform_matrix("view", view);
+		draw_cude(ourShader);
+
+		sh.prepare_data();
 		sh.draw();
-		bmp.draw();
+		//bmp.draw();
 
 		Window::swap_buffers();
 		Events::poll_events();
 	}
+	delete_cude();
 
 	Window::terminate();
 	return 0;
