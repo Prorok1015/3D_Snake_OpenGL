@@ -74,6 +74,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -85,7 +87,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;GLFW_INCLUDE_NONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(THIRD_PARTY_LIBRARY_PATH)\glm-master;D:\Program Files %28x86%29\VSLibrary\assimp3dloader\build\include;$(THIRD_PARTY_LIBRARY_PATH)\assimp\include;$(THIRD_PARTY_LIBRARY_PATH)\glfw\include;..\..\include;.\include;$(THIRD_PARTY_LIBRARY_PATH)\glm-master;$(THIRD_PARTY_LIBRARY_PATH)\glfw\include;..\..\include;.\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(THIRD_PARTY_LIBRARY_PATH)\glm-master;D:\Program Files %28x86%29\VSLibrary\assimp3dloader\build\include;$(THIRD_PARTY_LIBRARY_PATH)\assimp\include;..\..\include;.\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <CallingConvention>FastCall</CallingConvention>
@@ -95,7 +97,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;Image.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\include\$(Platform)\$(Configuration)\bin;$(THIRD_PARTY_LIBRARY_PATH)\glfw\lib-vc2019;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\bin\Debug;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../bin/$(Platform)/$(Configuration)/;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\bin\Debug;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -109,7 +111,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(THIRD_PARTY_LIBRARY_PATH)\glm-master;D:\Program Files %28x86%29\VSLibrary\assimp3dloader\build\include;$(THIRD_PARTY_LIBRARY_PATH)\assimp\include;$(THIRD_PARTY_LIBRARY_PATH)\glfw\include;..\..\include;.\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(THIRD_PARTY_LIBRARY_PATH)\glm-master;D:\Program Files %28x86%29\VSLibrary\assimp3dloader\build\include;$(THIRD_PARTY_LIBRARY_PATH)\assimp\include;..\..\include;.\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>FastCall</CallingConvention>
     </ClCompile>
     <Link>
@@ -117,7 +119,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\include\$(Platform)\$(Configuration)\bin;$(THIRD_PARTY_LIBRARY_PATH)\glfw\lib-vc2019;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\bin\Debug;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../bin/$(Platform)/$(Configuration)/;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\bin\Debug;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;Image.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
@@ -128,7 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;GLFW_INCLUDE_NONE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(THIRD_PARTY_LIBRARY_PATH)\glm-master;D:\Program Files %28x86%29\VSLibrary\assimp3dloader\build\include;$(THIRD_PARTY_LIBRARY_PATH)\assimp\include;$(THIRD_PARTY_LIBRARY_PATH)\glfw\include;..\..\include;.\include;$(THIRD_PARTY_LIBRARY_PATH)\glm-master;$(THIRD_PARTY_LIBRARY_PATH)\glfw\include;..\..\include;.\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(THIRD_PARTY_LIBRARY_PATH)\glm-master;D:\Program Files %28x86%29\VSLibrary\assimp3dloader\build\include;$(THIRD_PARTY_LIBRARY_PATH)\assimp\include;..\..\include;.\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <CallingConvention>FastCall</CallingConvention>
@@ -138,7 +140,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;Image.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>..\..\include\$(Platform)\$(Configuration)\bin;$(THIRD_PARTY_LIBRARY_PATH)\glfw\lib-vc2019;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\bin\Debug;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../bin/$(Platform)/$(Configuration)/;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\bin\Debug;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -152,15 +154,17 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(THIRD_PARTY_LIBRARY_PATH)\glm-master;D:\Program Files %28x86%29\VSLibrary\assimp3dloader\build\include;$(THIRD_PARTY_LIBRARY_PATH)\assimp\include;$(THIRD_PARTY_LIBRARY_PATH)\glfw\include;..\..\include;.\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(THIRD_PARTY_LIBRARY_PATH)\glm-master;D:\Program Files %28x86%29\VSLibrary\assimp3dloader\build\include;$(THIRD_PARTY_LIBRARY_PATH)\assimp\include;..\..\include;.\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CallingConvention>FastCall</CallingConvention>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>..\..\include\$(Platform)\$(Configuration)\bin;$(THIRD_PARTY_LIBRARY_PATH)\glfw\lib-vc2019;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\bin\Debug;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>../../bin/$(Platform)/$(Configuration)/;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\bin\Debug;$(THIRD_PARTY_LIBRARY_PATH)\assimp3dloader\build\lib\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;Image.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificDefaultLibraries>MSVCRT;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
     </Link>

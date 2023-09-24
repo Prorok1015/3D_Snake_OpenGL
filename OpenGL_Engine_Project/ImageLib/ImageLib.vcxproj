@@ -89,19 +89,29 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>../../include/$(Platform)/$(Configuration)/bin/</OutDir>
+    <OutDir>../../bin/$(Platform)/$(Configuration)/</OutDir>
+    <IntDir>../../tmp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>../../include/$(Platform)/$(Configuration)/bin/</OutDir>
+    <OutDir>../../bin/$(Platform)/$(Configuration)/</OutDir>
+    <IntDir>../../tmp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>../../include/$(Platform)/$(Configuration)/bin/</OutDir>
+    <OutDir>../../bin/$(Platform)/$(Configuration)/</OutDir>
+    <IntDir>../../tmp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>../../include/$(Platform)/$(Configuration)/bin/</OutDir>
+    <OutDir>../../bin/$(Platform)/$(Configuration)/</OutDir>
+    <IntDir>../../tmp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestLib|x64'">
+    <IntDir>../../tmp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestLib|Win32'">
+    <IntDir>../../tmp/$(Platform)/$(Configuration)/$(ProjectName)</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -121,7 +131,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(LocalDebuggerWorkingDirectory)Image.h" "../../Include/Image"</Command>
+      <Command>xcopy /H /Y /C /R /S /I "$(LocalDebuggerWorkingDirectory)*.h" "../../Include/Image" </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -144,7 +154,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(LocalDebuggerWorkingDirectory)Image.h" "../../Include/Image"</Command>
+      <Command>xcopy /H /Y /C /R /S /I "$(LocalDebuggerWorkingDirectory)*.h" "../../Include/Image" </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -165,7 +175,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(LocalDebuggerWorkingDirectory)Image.h" "../../Include/Image"</Command>
+      <Command>xcopy /H /Y /C /R /S /I "$(LocalDebuggerWorkingDirectory)*.h" "../../Include/Image" </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -180,6 +190,8 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <TreatWarningAsError>true</TreatWarningAsError>
       <CallingConvention>FastCall</CallingConvention>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -188,7 +200,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y "$(LocalDebuggerWorkingDirectory)Image.h" "../../Include/Image"</Command>
+      <Command>xcopy /H /Y /C /R /S /I "$(LocalDebuggerWorkingDirectory)*.h" "../../Include/Image" </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='TestLib|Win32'">
