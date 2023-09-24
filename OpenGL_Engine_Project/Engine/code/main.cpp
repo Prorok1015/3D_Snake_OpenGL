@@ -12,7 +12,7 @@
 #include "ui/ui_system.h"
 #include "common/enums.h"
 #include "scene/cude.h"
-
+#include <assimp/Importer.hpp>
 constexpr int WIDTH = 1280;
 constexpr int HEIGHT = 720;
 

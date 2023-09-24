@@ -1,6 +1,9 @@
 #не включать вложенные папки в инклюд.
 #Создается вспомогательными проектами
-/include
+/include/contrib
+/include/assimp
+/include/glfw
+/include/Image
 
 #Не включать папки временных объектов
 #и папки IDE
