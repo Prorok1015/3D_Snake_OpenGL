@@ -9,5 +9,5 @@ namespace opengl {
 }
 namespace gl = opengl;
 
-#define CHECK_GL_ERROR() glCheckError_(__FILE__, __LINE__)
+#define CHECK_GL_ERROR() gl::glCheckError_(__FILE__, __LINE__)
 #endif

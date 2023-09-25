@@ -11,6 +11,7 @@ public:
 	Shader(unsigned int id);
 	~Shader();
 
+	unsigned ID() const { return id; }
 	void use();
 	void uniform_matrix(std::string name, glm::mat4 matrix);
 

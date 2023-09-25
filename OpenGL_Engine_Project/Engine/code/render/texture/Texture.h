@@ -8,7 +8,8 @@ public:
 	enum class FILTERING
 	{
 		NEAREST = GL_NEAREST,
-		LINEAR = GL_LINEAR
+		LINEAR = GL_LINEAR,
+		LINEAR_MIPMAP = GL_LINEAR_MIPMAP_LINEAR
 	};
 
 	enum class WRAPPING
@@ -26,10 +27,13 @@ public:
 
 	static std::unique_ptr<Texture> load(std::string_view filename);
 	static std::unique_ptr<Texture> load(std::string_view filename, FILTERING filtering, WRAPPING wrapping);
+	static Texture loadClean(std::string_view filename, FILTERING minfiltering, FILTERING magfiltering, WRAPPING wrapping);
 public:
 	int width() const { return width_; }
 	int height() const { return height_; }
 
+	std::string type;
+	std::string path;
 private:
 	unsigned int id;
 	int width_;

@@ -12,7 +12,8 @@
 #include "ui/ui_system.h"
 #include "common/enums.h"
 #include "scene/cude.h"
-#include <assimp/Importer.hpp>
+#include "scene/model.h"
+
 constexpr int WIDTH = 1280;
 constexpr int HEIGHT = 720;
 
@@ -40,12 +41,12 @@ int main()
 	float camX = 0.0f;
 	float camY = 0.0f;
 
-	Shape sh;
-	sh.pos = { 0, HEIGHT - 60, 0 };
-	sh.size = { WIDTH, 60 };
-	sh.color.r = 0.5;
+	//Shape sh;
+	//sh.pos = { 0, HEIGHT - 60, 0 };
+	//sh.size = { WIDTH, 60 };
+	//sh.color.r = 0.5;
 
-	init_cude();
+	//init_cude();
 
 	//Bitmap bmp;
 	//bmp.size = { 512, 512 };
@@ -55,6 +56,7 @@ int main()
 	//float moveX = 0;
 	//float moveY = 0;
 	//bool isClk = false;
+	scene::Model ourModel("D:/MyProject/SnakeProject/OpenGL_Engine_Project/Engine/res/objects/backpack/backpack.obj");
 
 	Events::listeners[KEYBOARD::ESCAPE] += [] { if (!Events::jpressed(KEYBOARD::ESCAPE)) return; Window::set_should_close(true); };
 	Events::listeners[KEYBOARD::TAB] += [] { if (!Events::jpressed(KEYBOARD::TAB)) return; Events::toogle_cursor(); };
@@ -117,23 +119,27 @@ int main()
 		// activate shader
 		ourShader->use();
 
-		// pass projection matrix to shader (note that in this case it could change every frame)
-		glm::mat4 projection = camera->projection();
-		ourShader->uniform_matrix("projection", projection);
-
-		// camera/view transformation
+		glm::mat4 projection = glm::perspective(glm::radians(45.f), (float)Window::width / (float)Window::height, 0.1f, 100.0f);
 		glm::mat4 view = camera->view();
+		ourShader->uniform_matrix("projection", projection);
 		ourShader->uniform_matrix("view", view);
-		draw_cude(ourShader);
 
-		sh.prepare_data();
-		sh.draw();
+		// render the loaded model
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+		ourShader->uniform_matrix("model", model);
+		ourModel.Draw(*ourShader.get());
+
+
+		//sh.prepare_data();
+		//sh.draw();
 		//bmp.draw();
 
 		Window::swap_buffers();
 		Events::poll_events();
 	}
-	delete_cude();
+	//delete_cude();
 
 	Window::terminate();
 	return 0;

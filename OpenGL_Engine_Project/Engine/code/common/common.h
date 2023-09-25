@@ -8,6 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <iostream>
 #include <algorithm>
+#include <vector>
 #include "engine_assert.h"
 #include "engine_log.h"
 #include "open_gl_specific.h"
