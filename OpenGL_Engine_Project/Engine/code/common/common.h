@@ -1,4 +1,9 @@
 #pragma once
+
+#include "../code/imgui/imgui.h"
+#include "../code/imgui/imgui_impl_glfw.h"
+#include "../code/imgui/imgui_impl_opengl3.h"
+
 // need define GLFW_INCLUDE_NONE for build
 #include <GLFW/glfw3.h>
 

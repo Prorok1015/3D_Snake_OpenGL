@@ -22,6 +22,7 @@ public:
 
 public:
 	Texture(unsigned int id, int width, int height);
+	Texture(const Texture&) = default;//delete;
 	~Texture();
 	void bind();
 

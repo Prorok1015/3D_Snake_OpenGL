@@ -25,6 +25,8 @@ int Window::initialize(const char* title, int width, int height)
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(width, height, title, NULL, NULL);
+
+    glfwSwapInterval(1); // Enable vsync
     if (!window)
     {
         glfwTerminate();
