@@ -61,6 +61,12 @@
     <Filter Include="Library files\imgui">
       <UniqueIdentifier>{c25b809b-750b-4740-9e37-524797293abd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source files\GameSystem">
+      <UniqueIdentifier>{8fbf73dc-ba9c-4719-84ea-08d14910d13e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source files\DebugUI">
+      <UniqueIdentifier>{1f855322-edfb-46ad-8eee-9da1553aaa68}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\render\camera\camera.cpp">
@@ -135,26 +141,38 @@
     <ClCompile Include="code\common\open_gl_specific.cpp">
       <Filter>Source files\Common</Filter>
     </ClCompile>
-    <ClCompile Include="code\imgui\imgui.cpp">
+    <ClCompile Include="include\imgui\imgui.cpp">
       <Filter>Library files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="code\imgui\imgui_impl_glfw.cpp">
+    <ClCompile Include="include\imgui\imgui_demo.cpp">
       <Filter>Library files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="code\imgui\imgui_impl_opengl3.cpp">
+    <ClCompile Include="include\imgui\imgui_draw.cpp">
       <Filter>Library files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="code\imgui\imgui_demo.cpp">
+    <ClCompile Include="include\imgui\imgui_impl_glfw.cpp">
       <Filter>Library files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="code\imgui\imgui_draw.cpp">
+    <ClCompile Include="include\imgui\imgui_impl_opengl3.cpp">
       <Filter>Library files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="code\imgui\imgui_tables.cpp">
+    <ClCompile Include="include\imgui\imgui_tables.cpp">
       <Filter>Library files\imgui</Filter>
     </ClCompile>
-    <ClCompile Include="code\imgui\imgui_widgets.cpp">
+    <ClCompile Include="include\imgui\imgui_widgets.cpp">
       <Filter>Library files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="code\game_system\game_system.cpp">
+      <Filter>Source files\GameSystem</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debug_ui\debug_ui_init.cpp">
+      <Filter>Source files\DebugUI</Filter>
+    </ClCompile>
+    <ClCompile Include="code\application.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="code\windows\display.cpp">
+      <Filter>Source files\Window</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -236,32 +254,47 @@
     <ClInclude Include="code\scene\model.h">
       <Filter>Source files\Scene</Filter>
     </ClInclude>
-    <ClInclude Include="code\imgui\imconfig.h">
+    <ClInclude Include="include\imgui\imconfig.h">
       <Filter>Library files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="code\imgui\imgui.h">
+    <ClInclude Include="include\imgui\imgui.h">
       <Filter>Library files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="code\imgui\imgui_impl_glfw.h">
+    <ClInclude Include="include\imgui\imgui_impl_glfw.h">
       <Filter>Library files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="code\imgui\imgui_impl_opengl3.h">
+    <ClInclude Include="include\imgui\imgui_impl_opengl3.h">
       <Filter>Library files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="code\imgui\imgui_impl_opengl3_loader.h">
+    <ClInclude Include="include\imgui\imgui_impl_opengl3_loader.h">
       <Filter>Library files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="code\imgui\imgui_internal.h">
+    <ClInclude Include="include\imgui\imgui_internal.h">
       <Filter>Library files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="code\imgui\imstb_rectpack.h">
+    <ClInclude Include="include\imgui\imstb_rectpack.h">
       <Filter>Library files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="code\imgui\imstb_textedit.h">
+    <ClInclude Include="include\imgui\imstb_textedit.h">
       <Filter>Library files\imgui</Filter>
     </ClInclude>
-    <ClInclude Include="code\imgui\imstb_truetype.h">
+    <ClInclude Include="include\imgui\imstb_truetype.h">
       <Filter>Library files\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="code\game_system\game_system.h">
+      <Filter>Source files\GameSystem</Filter>
+    </ClInclude>
+    <ClInclude Include="code\components_init.hpp">
+      <Filter>Source files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\debug_ui\debug_ui_init.h">
+      <Filter>Source files\DebugUI</Filter>
+    </ClInclude>
+    <ClInclude Include="code\application.h">
+      <Filter>Source files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\windows\display.h">
+      <Filter>Source files\Window</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

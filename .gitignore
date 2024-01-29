@@ -4,6 +4,8 @@
 /include/assimp
 /include/glfw
 /include/Image
+/tmp
+imgui.ini
 
 #Не включать папки временных объектов
 #и папки IDE

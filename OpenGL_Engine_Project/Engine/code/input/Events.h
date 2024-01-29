@@ -151,49 +151,82 @@ struct KeyAction
 	KeyAction(MOUSE k) : key(_MOUSE_BUTTONS + (size_t)k) {}
 
 	bool operator== (const KeyAction& action) const { return key == action.key; }
-	struct Hasher
-	{
+	struct Hasher {
 		size_t operator() (const KeyAction& k) const { return k.key; }
 	};
 };
 
-struct Event
-{
-	std::vector<std::function<void()>> listeners;
-	auto begin() const { return std::begin(listeners); }
-	auto end() const { return std::end(listeners); }
-	void operator += (std::function<void()>&& f) { listeners.push_back(std::move(f)); }
-};
+//class Events
+//{
+//public:
+//	struct KeyStruct
+//	{
+//		enum { NONE, PRESS, RELEASE } status = NONE;
+//		uint frame_action = 0;
+//
+//		bool is_pressed() const { return status == PRESS; }
+//	};
+//	static std::unordered_map<KeyAction, KeyStruct, KeyAction::Hasher> kkeys;
+//	static std::unordered_map<KeyAction, Event<std::function<void()>>, KeyAction::Hasher> listeners;
+//	static float deltaX;
+//	static float deltaY;
+//	static float x;
+//	static float y;
+//	static bool _cursor_locked;
+//	static bool _cursor_started;
+//
+//	static int initialize();
+//	static void poll_events();
+//
+//	static bool pressed(KEYBOARD keycode);
+//	static bool jpressed(KEYBOARD keycode);
+//
+//	static bool clicked(MOUSE button);
+//	static bool jclicked(MOUSE button);
+//
+//	static void toogle_cursor();
+//	static void poll_listeners();
+//};
 
-class Events
+namespace application
 {
-public:
-	struct KeyStruct
+	class Window;
+
+	class Input
 	{
-		enum { NONE, PRESS, RELEASE } status = NONE;
-		uint frame_action = 0;
+		struct KeyStruct
+		{
+			enum { NONE, PRESS, RELEASE } status = NONE;
+			uint frame_action = 0;
 
-		bool is_pressed() const { return status == PRESS; }
+			bool is_pressed() const { return status == PRESS; }
+		};
+	public:
+		std::unordered_map<KeyAction, KeyStruct, KeyAction::Hasher> kkeys;
+		std::unordered_map<KeyAction, Event<std::function<void()>>, KeyAction::Hasher> listeners;
+		float deltaX;
+		float deltaY;
+		float x;
+		float y;
+		bool _cursor_locked;
+		bool _cursor_started;
+		std::weak_ptr<Window> window;
+	public:
+		int initialize(std::weak_ptr<Window> win);
+		void poll_events();
+
+		bool pressed(KEYBOARD keycode);
+		bool jpressed(KEYBOARD keycode);
+
+		bool clicked(MOUSE button);
+		bool jclicked(MOUSE button);
+
+		void toogle_cursor();
+		void poll_listeners();
+
+		void cursor_position(double xpos, double ypos);
+		void mouse_button_callback(int button, int action, int mode);
+		void key_callback(int keycode, int scancode, int action, int mode);
+
 	};
-	static std::unordered_map<KeyAction, KeyStruct, KeyAction::Hasher> kkeys;
-	static std::unordered_map<KeyAction, Event, KeyAction::Hasher> listeners;
-	static float deltaX;
-	static float deltaY;
-	static float x;
-	static float y;
-	static bool _cursor_locked;
-	static bool _cursor_started;
-
-	static int initialize();
-	static void poll_events();
-
-	static bool pressed(KEYBOARD keycode);
-	static bool jpressed(KEYBOARD keycode);
-
-	static bool clicked(MOUSE button);
-	static bool jclicked(MOUSE button);
-
-	static void toogle_cursor();
-	static void poll_listeners();
-};
-
+}

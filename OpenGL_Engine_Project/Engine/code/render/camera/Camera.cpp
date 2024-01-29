@@ -3,12 +3,12 @@
 #include "../../input/events.h"
 #include <glm/ext.hpp>
 
-Camera::Camera(glm::vec3 pos, float fov) : position(pos), fov(fov), rotation(1.0f) {
+Camera::Camera(application::Display& dis, glm::vec3 pos, float fov) : display(dis), position(pos), fov(fov), rotation(1.0f) {
 	update_vectors();
-	Events::listeners[KEYBOARD::W] += [this] { position += front * Window::delta * speed; };
-	Events::listeners[KEYBOARD::A] += [this] { position -= right * Window::delta * speed; };
-	Events::listeners[KEYBOARD::S] += [this] { position -= front * Window::delta * speed; };
-	Events::listeners[KEYBOARD::D] += [this] { position += right * Window::delta * speed; };
+	display.input->listeners[KEYBOARD::W] += [this] { position += front * display.window->delta * speed; };
+	display.input->listeners[KEYBOARD::A] += [this] { position -= right * display.window->delta * speed; };
+	display.input->listeners[KEYBOARD::S] += [this] { position -= front * display.window->delta * speed; };
+	display.input->listeners[KEYBOARD::D] += [this] { position += right * display.window->delta * speed; };
 }
 
 void Camera::update_vectors() {
@@ -26,7 +26,7 @@ void Camera::rotate(float x, float y, float z) {
 }
 
 glm::mat4 Camera::projection() {
-	float aspect = (float)Window::width / (float)Window::height;
+	float aspect = (float)display.window->width / (float)display.window->height;
 	return glm::perspective(fov, aspect, 0.1f, 100.0f);
 }
 

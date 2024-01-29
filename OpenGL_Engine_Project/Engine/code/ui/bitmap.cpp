@@ -7,7 +7,7 @@ Bitmap::Bitmap()
     shader = Shader::load("./res/bitmap.glslv", "./res/bitmap.glslf");
     if (!shader) {
         ASSERT_FAIL("Bitmap's shader not create");
-        Window::terminate();
+        //Window::terminate();
     }
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -23,64 +23,64 @@ Bitmap::~Bitmap()
 
 void Bitmap::prepare_data()
 {
-    auto rect = bounds();
+    //auto rect = bounds();
 
-    const int halfWidth = Window::width / 2;
-    const int halfHeight = Window::height / 2;
+    //const int halfWidth = Window::width / 2;
+    //const int halfHeight = Window::height / 2;
 
-    constexpr int column_count = 3 + 3 + 2;
-    constexpr int row_count = 4;
-    float vertices[column_count * row_count] = { 0 };
+    //constexpr int column_count = 3 + 3 + 2;
+    //constexpr int row_count = 4;
+    //float vertices[column_count * row_count] = { 0 };
 
-    for (int i = 0; i < row_count; ++i) {
-        int vecId = i * column_count;
-        vertices[vecId] = (rect[i].x - halfWidth) / halfWidth;
-        vertices[vecId + 1] = -(rect[i].y - halfHeight) / halfHeight;
-        vertices[vecId + 2] = rect[i].z;
-        vertices[vecId + 3] = color.r;
-        vertices[vecId + 4] = color.g;
-        vertices[vecId + 5] = color.b;
+    //for (int i = 0; i < row_count; ++i) {
+    //    int vecId = i * column_count;
+    //    vertices[vecId] = (rect[i].x - halfWidth) / halfWidth;
+    //    vertices[vecId + 1] = -(rect[i].y - halfHeight) / halfHeight;
+    //    vertices[vecId + 2] = rect[i].z;
+    //    vertices[vecId + 3] = color.r;
+    //    vertices[vecId + 4] = color.g;
+    //    vertices[vecId + 5] = color.b;
 
-        if (!texture) {
-            continue;
-        }
-        vertices[vecId + 6] = size.x / texture->width() * textureSize[i].x;
-        vertices[vecId + 7] = size.y / texture->height() * textureSize[i].y;
-    }
+    //    if (!texture) {
+    //        continue;
+    //    }
+    //    vertices[vecId + 6] = size.x / texture->width() * textureSize[i].x;
+    //    vertices[vecId + 7] = size.y / texture->height() * textureSize[i].y;
+    //}
 
-    static unsigned int indices[] = {  // note that we start from 0!
-        0, 1, 3,   // first triangle
-        1, 2, 3    // second triangle
-    };
+    //static unsigned int indices[] = {  // note that we start from 0!
+    //    0, 1, 3,   // first triangle
+    //    1, 2, 3    // second triangle
+    //};
 
-    // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
-    glBindVertexArray(VAO);
+    //// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+    //glBindVertexArray(VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    //glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    //glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, column_count * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, column_count * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    // texture attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, column_count * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    //// position attribute
+    //glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, column_count * sizeof(float), (void*)0);
+    //glEnableVertexAttribArray(0);
+    //// color attribute
+    //glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, column_count * sizeof(float), (void*)(3 * sizeof(float)));
+    //glEnableVertexAttribArray(1);
+    //// texture attribute
+    //glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, column_count * sizeof(float), (void*)(6 * sizeof(float)));
+    //glEnableVertexAttribArray(2);
 
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //// note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    //// remember: do NOT unbind the EBO while a VAO is active as the bound element buffer object IS stored in the VAO; keep the EBO bound.
+    ////glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
-    // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0);
+    //// You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
+    //// VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
+    //glBindVertexArray(0);
 }
 
 void Bitmap::draw()
