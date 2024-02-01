@@ -23,8 +23,7 @@ namespace application
 		Application(Application&&) = default;
 
 	public:
-		static int init_libraris();
-		virtual int Run();
+		virtual int run();
 
 	private:
 		std::unique_ptr<scene::Model> ourModel;

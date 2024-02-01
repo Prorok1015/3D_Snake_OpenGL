@@ -28,16 +28,9 @@ application::Application::~Application()
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();
-	Window::terminate();
 }
 
-int application::Application::init_libraris()
-{
-	Window::init_libraris();
-	return 0;
-}
-
-int application::Application::Run()
+int application::Application::run()
 {
 	// Our state
 	bool show_demo_window = true;

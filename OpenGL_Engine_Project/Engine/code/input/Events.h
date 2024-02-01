@@ -156,38 +156,6 @@ struct KeyAction
 	};
 };
 
-//class Events
-//{
-//public:
-//	struct KeyStruct
-//	{
-//		enum { NONE, PRESS, RELEASE } status = NONE;
-//		uint frame_action = 0;
-//
-//		bool is_pressed() const { return status == PRESS; }
-//	};
-//	static std::unordered_map<KeyAction, KeyStruct, KeyAction::Hasher> kkeys;
-//	static std::unordered_map<KeyAction, Event<std::function<void()>>, KeyAction::Hasher> listeners;
-//	static float deltaX;
-//	static float deltaY;
-//	static float x;
-//	static float y;
-//	static bool _cursor_locked;
-//	static bool _cursor_started;
-//
-//	static int initialize();
-//	static void poll_events();
-//
-//	static bool pressed(KEYBOARD keycode);
-//	static bool jpressed(KEYBOARD keycode);
-//
-//	static bool clicked(MOUSE button);
-//	static bool jclicked(MOUSE button);
-//
-//	static void toogle_cursor();
-//	static void poll_listeners();
-//};
-
 namespace application
 {
 	class Window;
