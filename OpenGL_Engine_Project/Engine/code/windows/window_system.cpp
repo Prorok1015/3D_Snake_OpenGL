@@ -68,3 +68,15 @@ std::weak_ptr<Window> application::WindowSystem::find_window(GLFWwindow* win)
 {
     return windowList[win];
 }
+
+bool application::WindowSystem::is_all_windows_close()
+{
+    bool isClose = false;
+    for (auto [_, win] : windowList)
+    {
+        if (auto swin = win.lock()) {
+            isClose |= swin->is_should_close();
+        }
+    }
+    return isClose;
+}

@@ -23,22 +23,24 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-template<class T = std::function<void()> >
+template<class T = void()>
 struct Event
 {
-	std::vector<T> listeners;
+	using EVENT_SIGATURE_T = T;
+	using EVENT_LISTENER_T = std::function<EVENT_SIGATURE_T>;
+
 	auto begin() const { return std::begin(listeners); }
 	auto end() const { return std::end(listeners); }
-	void operator += (T&& f) { listeners.push_back(std::move(f)); }
-	//void operator() () {
-	//	for (const auto& cb : listeners) {
-	//		cb();
-	//	}
-	//}
-	template<class... TT>
-	void operator() (TT&&... args) {
+	template<class DELEGATE>
+	void operator += (DELEGATE&& f) { listeners.emplace_back(f); }
+
+	template<class ...ARGS>
+	void operator() (ARGS&&... args) {
 		for (const auto& cb : listeners) {
 			cb(args...);
 		}
 	}
+private:
+	std::vector<EVENT_LISTENER_T> listeners;
+
 };

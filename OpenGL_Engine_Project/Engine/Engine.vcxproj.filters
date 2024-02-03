@@ -111,24 +111,6 @@
     <ClCompile Include="include\glad.c">
       <Filter>Library files</Filter>
     </ClCompile>
-    <ClCompile Include="code\render\Chunk.cpp">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClCompile>
-    <ClCompile Include="code\render\Chunks.cpp">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClCompile>
-    <ClCompile Include="code\render\LineBatch.cpp">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClCompile>
-    <ClCompile Include="code\render\Mesh.cpp">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClCompile>
-    <ClCompile Include="code\render\Voxel.cpp">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClCompile>
-    <ClCompile Include="code\render\VoxelRenderer.cpp">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClCompile>
     <ClCompile Include="code\ui\bitmap.cpp">
       <Filter>Source files\UI</Filter>
     </ClCompile>
@@ -177,6 +159,15 @@
     <ClCompile Include="code\windows\window_system.cpp">
       <Filter>Source files\Window</Filter>
     </ClCompile>
+    <ClCompile Include="code\scene\model.cpp">
+      <Filter>Source files\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="code\scene\mesh.cpp">
+      <Filter>Source files\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="code\debug_ui\debug_ui_system.cpp">
+      <Filter>Source files\DebugUI</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\render\camera\camera.h">
@@ -220,24 +211,6 @@
     </ClInclude>
     <ClInclude Include="code\input\events.h">
       <Filter>Source files\Input</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\Chunk.h">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\Chunks.h">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\LineBatch.h">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\Mesh.h">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\Voxel.h">
-      <Filter>Source files\Render\Legacy</Filter>
-    </ClInclude>
-    <ClInclude Include="code\render\VoxelRenderer.h">
-      <Filter>Source files\Render\Legacy</Filter>
     </ClInclude>
     <ClInclude Include="code\ui\bitmap.h">
       <Filter>Source files\UI</Filter>
@@ -307,6 +280,9 @@
     </ClInclude>
     <ClInclude Include="code\windows\window_system.h">
       <Filter>Source files\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="code\debug_ui\debug_ui_system.h">
+      <Filter>Source files\DebugUI</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

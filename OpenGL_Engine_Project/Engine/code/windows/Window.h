@@ -30,9 +30,9 @@ namespace application
 		float lastTime = 0.f;
 		std::size_t current_frame = 0;
 
-		Event<std::function<void(GLFWwindow* window, int width, int height)>> eventResizeWindow;
-		Event<std::function<void(GLFWwindow* window, double xpos, double ypos)>> eventMouseMove;
-		Event<std::function<void(GLFWwindow* window, int button, int action, int mode)>> eventMouseAction;
-		Event<std::function<void(GLFWwindow* window, int keycode, int scancode, int action, int mode)>> eventKeyboardAction;
+		Event<void(GLFWwindow* window, int width, int height)> eventResizeWindow;
+		Event<void(GLFWwindow* window, double xpos, double ypos)> eventMouseMove;
+		Event<void(GLFWwindow* window, int button, int action, int mode)> eventMouseAction;
+		Event<void(GLFWwindow* window, int keycode, int scancode, int action, int mode)> eventKeyboardAction;
 	};
 }

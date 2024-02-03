@@ -171,7 +171,7 @@ namespace application
 		};
 	public:
 		std::unordered_map<KeyAction, KeyStruct, KeyAction::Hasher> kkeys;
-		std::unordered_map<KeyAction, Event<std::function<void()>>, KeyAction::Hasher> listeners;
+		std::unordered_map<KeyAction, Event<>, KeyAction::Hasher> listeners;
 		float deltaX;
 		float deltaY;
 		float x;
