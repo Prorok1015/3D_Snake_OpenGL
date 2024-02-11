@@ -1,6 +1,6 @@
 #pragma once
 #ifndef _DEBUG
-#define enLOG(format, ...)
+#define egLOG(format, ...)
 #else
 #include <format>
 #include <string_view>
@@ -15,8 +15,8 @@ namespace engine
 	}
 
 } // namespace engine
-namespace en = engine;
+namespace eg = engine;
 
-#define enLOG(path, format, ...) en::logger(__FILE__, __LINE__, format, __VA_ARGS__)
+#define egLOG(path, format, ...) eg::logger(__FILE__, __LINE__, format, __VA_ARGS__)
 
 #endif

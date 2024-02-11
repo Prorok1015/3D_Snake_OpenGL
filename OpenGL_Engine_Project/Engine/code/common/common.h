@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
+#include <array>
+#include <queue>
 #include "engine_assert.h"
 #include "engine_log.h"
 #include "open_gl_specific.h"

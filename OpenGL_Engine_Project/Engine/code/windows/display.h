@@ -8,7 +8,7 @@ namespace application
 	class Display
 	{
 	public:
-		void initialize(const char* title, int width, int height);
+		void initialize(std::string_view title, int width, int height);
 
 		std::shared_ptr<Window> window;
 		std::shared_ptr<Input> input;

@@ -18,13 +18,13 @@ namespace application {
 		GameSystem();
 		~GameSystem();
 
-		void Capture();
-		void Render();
+		void capture();
+		void render();
 
-		void BeginFrame();
-		void EndFrame();
+		void begin_frame();
+		void end_frame();
 
-		std::shared_ptr<Window> GetWindow() { return display.window; };
+		std::shared_ptr<Window> get_window() { return display.window; };
 	private:
 		std::unique_ptr<scene::Model> ourModel;
 		std::unique_ptr<Shader> ourShader;

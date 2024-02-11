@@ -7,6 +7,8 @@
 #include "../scene/cude.h"
 #include "../scene/model.h"
 
+#include "../input/inp_input_actions.h"
+
 using namespace application;
 
 GameSystem::GameSystem()
@@ -17,19 +19,22 @@ GameSystem::GameSystem()
 	camera = std::make_unique<Camera>(display, glm::vec3(0, 0, 2), glm::radians(90.0f));
 	ourModel = std::make_unique<scene::Model>("D:/MyProject/SnakeProject/OpenGL_Engine_Project/Engine/res/objects/backpack/backpack.obj");
 
-	display.input->listeners[KEYBOARD::ESCAPE] += [this] { if (!display.input->jpressed(KEYBOARD::ESCAPE)) return; display.window->set_should_close(true); };
-	display.input->listeners[KEYBOARD::TAB] += [this] { if (!display.input->jpressed(KEYBOARD::TAB)) return; display.input->toogle_cursor(); };
+	auto Escape = inp::InputActionClick::create(inp::KEYBOARD_BUTTONS::ESCAPE, [this] { display.window->set_should_close(true); });
+	display.input->registrate(Escape);
+
+	auto Tab = inp::InputActionClick::create(inp::KEYBOARD_BUTTONS::TAB, [this] { display.input->toogle_cursor(); });
+	display.input->registrate(Tab);
 }
 
 GameSystem::~GameSystem()
 {
 }
 
-void GameSystem::Capture()
+void GameSystem::capture()
 {
 	if (display.input->_cursor_locked) {
-		camY += -display.input->deltaY / display.window->height * 2;
-		camX += -display.input->deltaX / display.window->width * 2;
+		camY += -display.input->deltaY / display.window->height_ * 2;
+		camX += -display.input->deltaX / display.window->width_ * 2;
 
 		float delta = display.window->delta;
 
@@ -47,12 +52,12 @@ void GameSystem::Capture()
 	}
 }
 
-void GameSystem::Render()
+void GameSystem::render()
 {
 	// activate shader
 	ourShader->use();
 
-	glm::mat4 projection = glm::perspective(glm::radians(45.f), (float)display.window->width / (float)display.window->height, 0.1f, 100.0f);
+	glm::mat4 projection = glm::perspective(glm::radians(45.f), (float)display.window->width_ / (float)display.window->height_, 0.1f, 100.0f);
 	glm::mat4 view = camera->view();
 	ourShader->uniform_matrix("projection", projection);
 	ourShader->uniform_matrix("view", view);
@@ -65,14 +70,14 @@ void GameSystem::Render()
 	ourModel->Draw(*ourShader.get());
 }
 
-void GameSystem::BeginFrame()
+void GameSystem::begin_frame()
 {
 	display.window->update_frame();
-	display.input->poll_listeners();
-
+	float dt = display.window->delta;
+	display.input->poll_listeners(dt);
 }
 
-void GameSystem::EndFrame()
+void GameSystem::end_frame()
 {
 	display.window->swap_buffers();
 	display.input->poll_events();

@@ -14,10 +14,10 @@ namespace debug_ui
 		DebugUiSystem& operator= (const DebugUiSystem&) = default;
 		DebugUiSystem& operator= (DebugUiSystem&&) = default;
 
-		void Render();
-		void BeginFrame();
-		void EndFrame();
-		void Capture();
+		void render();
+		void begin_frame();
+		void end_frame();
+		void capture();
 
 	private:
 		// Our state

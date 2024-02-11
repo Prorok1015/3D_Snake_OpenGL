@@ -5,7 +5,7 @@
 debug_ui::DebugUiSystem::DebugUiSystem()
 {
 	auto game = ds::DataStorage::instance().require<app::GameSystem>();
-	auto win = game->GetWindow();
+	auto win = game->get_window();
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
@@ -15,10 +15,9 @@ debug_ui::DebugUiSystem::DebugUiSystem()
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsLight();
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(win->window, true);
+	ImGui_ImplGlfw_InitForOpenGL(win->id_, true);
 	ImGui_ImplOpenGL3_Init("#version 130");
 }
 
@@ -29,14 +28,14 @@ debug_ui::DebugUiSystem::~DebugUiSystem()
 	ImGui::DestroyContext();
 }
 
-void debug_ui::DebugUiSystem::Render()
+void debug_ui::DebugUiSystem::render()
 {
 	// Rendering
 	ImGui::Render();
 }
 
 
-void debug_ui::DebugUiSystem::BeginFrame()
+void debug_ui::DebugUiSystem::begin_frame()
 {
 	// Start the Dear ImGui frame
 	ImGui_ImplOpenGL3_NewFrame();
@@ -44,12 +43,12 @@ void debug_ui::DebugUiSystem::BeginFrame()
 	ImGui::NewFrame();
 }
 
-void debug_ui::DebugUiSystem::EndFrame()
+void debug_ui::DebugUiSystem::end_frame()
 {
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void debug_ui::DebugUiSystem::Capture()
+void debug_ui::DebugUiSystem::capture()
 {
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 	if (show_demo_window)

@@ -4,26 +4,19 @@
 
 using namespace application;
 
-application::Window::Window(std::string_view title, int width_, int height_)
-    : width(width_), height(height_)
+application::Window::Window(std::string_view title, int width, int height)
+    : width_(width), height_(height)
 {   
-    eventResizeWindow += [this](GLFWwindow* window, int width_, int height_)
-    {
-        glViewport(0, 0, width, height);
-        width = width_;
-        height = height_;
-    };
-
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(width, height, title.data(), NULL, NULL);
+    id_.id_ = glfwCreateWindow(width_, height_, title.data(), NULL, NULL);
 
-    if (!window)
+    if (!id_)
     {
         //glfwTerminate();
     }
 
     /* Make the window's context current */
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(id_);
     glfwSwapInterval(1); // Enable vsync
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -31,27 +24,32 @@ application::Window::Window(std::string_view title, int width_, int height_)
         //glfwTerminate();
     }
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, width_, height_);
+}
+
+application::Window::~Window()
+{
+    //glfwDestroyWindow
 }
 
 void Window::swap_buffers()
 {
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(id_);
     ++current_frame;
 }
 
 bool Window::is_should_close()
 {
-    return glfwWindowShouldClose(window);
+    return glfwWindowShouldClose(id_);
 }
 
 void Window::set_should_close(bool close)
 {
-    glfwSetWindowShouldClose(window, close);
+    glfwSetWindowShouldClose(id_, close);
 }
 
 void Window::set_cursor_mode(CursorMode mode) {
-    glfwSetInputMode(window, GLFW_CURSOR, (int)mode);
+    glfwSetInputMode(id_, GLFW_CURSOR, (int)mode);
 }
 
 float Window::current_time()
@@ -68,20 +66,23 @@ void Window::update_frame()
 
 void application::Window::on_resize_window(int width, int height)
 {
-    eventResizeWindow(window, width, height);
+    glViewport(0, 0, width, height);
+    width_ = width;
+    height_ = height;
+    eventResizeWindow(*this, width, height);
 }
 
 void application::Window::on_mouse_move(double xpos, double ypos)
 {
-    eventMouseMove(window, xpos, ypos);
+    eventMouseMove(*this, xpos, ypos);
 }
 
 void application::Window::on_mouse_button_action(int button, int action, int mode)
 {
-    eventMouseAction(window, button, action, mode);
+    eventMouseAction(*this, button, action, mode);
 }
 
 void application::Window::on_keyboard_action(int keycode, int scancode, int action, int mode)
 {
-    eventKeyboardAction(window, keycode, scancode, action, mode);
+    eventKeyboardAction(*this, keycode, scancode, action, mode);
 }

@@ -5,10 +5,17 @@
 
 Camera::Camera(application::Display& dis, glm::vec3 pos, float fov) : display(dis), position(pos), fov(fov), rotation(1.0f) {
 	update_vectors();
-	display.input->listeners[KEYBOARD::W] += [this] { position += front * display.window->delta * speed; };
-	display.input->listeners[KEYBOARD::A] += [this] { position -= right * display.window->delta * speed; };
-	display.input->listeners[KEYBOARD::S] += [this] { position -= front * display.window->delta * speed; };
-	display.input->listeners[KEYBOARD::D] += [this] { position += right * display.window->delta * speed; };
+	auto w = inp::InputActionHold::create(inp::KEYBOARD_BUTTONS::W, [this] { position += front * display.window->delta * speed; });
+	display.input->registrate(w);
+
+	auto a = inp::InputActionHold::create(inp::KEYBOARD_BUTTONS::A, [this] { position -= right * display.window->delta * speed; });
+	display.input->registrate(a);
+
+	auto s = inp::InputActionHold::create(inp::KEYBOARD_BUTTONS::S, [this] { position -= front * display.window->delta * speed; });
+	display.input->registrate(s);
+
+	auto d = inp::InputActionHold::create(inp::KEYBOARD_BUTTONS::D, [this] { position += right * display.window->delta * speed; });
+	display.input->registrate(d);
 }
 
 void Camera::update_vectors() {
@@ -26,7 +33,7 @@ void Camera::rotate(float x, float y, float z) {
 }
 
 glm::mat4 Camera::projection() {
-	float aspect = (float)display.window->width / (float)display.window->height;
+	float aspect = (float)display.window->width_ / (float)display.window->height_;
 	return glm::perspective(fov, aspect, 0.1f, 100.0f);
 }
 

@@ -168,6 +168,18 @@
     <ClCompile Include="code\debug_ui\debug_ui_system.cpp">
       <Filter>Source files\DebugUI</Filter>
     </ClCompile>
+    <ClCompile Include="code\input\inp_mouse_device.cpp">
+      <Filter>Source files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="code\input\inp_keyboard_device.cpp">
+      <Filter>Source files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="code\input\inp_input_system.cpp">
+      <Filter>Source files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="code\input\inp_input_actions.cpp">
+      <Filter>Source files\Input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\render\camera\camera.h">
@@ -283,6 +295,18 @@
     </ClInclude>
     <ClInclude Include="code\debug_ui\debug_ui_system.h">
       <Filter>Source files\DebugUI</Filter>
+    </ClInclude>
+    <ClInclude Include="code\input\inp_input_system.h">
+      <Filter>Source files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="code\input\inp_mouse_device.h">
+      <Filter>Source files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="code\input\inp_keyboard_device.h">
+      <Filter>Source files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="code\input\inp_input_actions.h">
+      <Filter>Source files\Input</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

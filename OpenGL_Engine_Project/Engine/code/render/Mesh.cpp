@@ -1,3 +1,4 @@
+//#include "..\scene\mesh.h"
 //#include "Mesh.h"
 //#include "../common/enums.h"
 //
@@ -46,3 +47,4 @@
 //    glDrawArrays((GLuint)primrtive, 0, vertices);
 //    glBindVertexArray(0);
 //}
+
