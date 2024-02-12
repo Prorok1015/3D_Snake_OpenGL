@@ -105,7 +105,7 @@
     <ClCompile Include="code\main.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
-    <ClCompile Include="code\input\events.cpp">
+    <ClCompile Include="code\input\inp_input_manager.cpp">
       <Filter>Source files\Input</Filter>
     </ClCompile>
     <ClCompile Include="include\glad.c">
@@ -221,7 +221,7 @@
     <ClInclude Include="code\serialize\files.h">
       <Filter>Source files\Serialize</Filter>
     </ClInclude>
-    <ClInclude Include="code\input\events.h">
+    <ClInclude Include="code\input\inp_input_manager.h">
       <Filter>Source files\Input</Filter>
     </ClInclude>
     <ClInclude Include="code\ui\bitmap.h">
@@ -306,6 +306,9 @@
       <Filter>Source files\Input</Filter>
     </ClInclude>
     <ClInclude Include="code\input\inp_input_actions.h">
+      <Filter>Source files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="code\input\inp_key_enums.hpp">
       <Filter>Source files\Input</Filter>
     </ClInclude>
   </ItemGroup>

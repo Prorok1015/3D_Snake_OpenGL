@@ -19,6 +19,10 @@ static void cursor_position_callback(GLFWwindow* window, double xpos, double ypo
     if (auto swnd = wnd.lock()) {
         swnd->on_mouse_move(xpos, ypos);
     }
+    if (inp::InputSystem* inpSys = ds::DataStorage::instance().require<inp::InputSystem>())
+    {
+        inpSys->mouse.on_mouse_move(xpos, ypos);
+    }
 }
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mode) {
@@ -26,6 +30,10 @@ static void mouse_button_callback(GLFWwindow* window, int button, int action, in
     auto wnd = wndCreator->find_window({ window });
     if (auto swnd = wnd.lock()) {
         swnd->on_mouse_button_action(button, action, mode);
+    }
+    if (inp::InputSystem* inpSys = ds::DataStorage::instance().require<inp::InputSystem>())
+    {
+        inpSys->mouse.on_mouse_button_action(button, action, mode);
     }
 }
 

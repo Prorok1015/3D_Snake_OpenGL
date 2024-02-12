@@ -1,6 +1,6 @@
 #include "game_system.h"
 #include "../debug_ui/debug_ui_init.h"
-#include "../input/events.h"
+#include "../input/inp_input_manager.h"
 
 #include "../common/enums.h"
 
@@ -22,7 +22,7 @@ GameSystem::GameSystem()
 	auto Escape = inp::InputActionClick::create(inp::KEYBOARD_BUTTONS::ESCAPE, [this] { display.window->set_should_close(true); });
 	display.input->registrate(Escape);
 
-	auto Tab = inp::InputActionClick::create(inp::KEYBOARD_BUTTONS::TAB, [this] { display.input->toogle_cursor(); });
+	auto Tab = inp::InputActionClick::create(inp::KEYBOARD_BUTTONS::TAB, [this] { camera->set_enable(!camera->is_enable()); display.window->set_cursor_mode(camera->is_enable() ? CursorMode::Disable : CursorMode::Normal); });
 	display.input->registrate(Tab);
 }
 
@@ -32,24 +32,7 @@ GameSystem::~GameSystem()
 
 void GameSystem::capture()
 {
-	if (display.input->_cursor_locked) {
-		camY += -display.input->deltaY / display.window->height_ * 2;
-		camX += -display.input->deltaX / display.window->width_ * 2;
-
-		float delta = display.window->delta;
-
-		if (camY < -glm::radians(89.0f)) {
-			camY = -glm::radians(89.0f);
-		}
-		if (camY > glm::radians(89.0f)) {
-			camY = glm::radians(89.0f);
-		}
-
-		camera->rotation = glm::mat4(1.0f);
-		camera->rotate(camY, camX, 0);
-		std::cout << "{ " << camX << ", " << camY << " }; \t";
-		std::cout << "[ " << camera->position.x << ", " << camera->position.y << " ]\n";
-	}
+	camera->update();
 }
 
 void GameSystem::render()
@@ -57,7 +40,7 @@ void GameSystem::render()
 	// activate shader
 	ourShader->use();
 
-	glm::mat4 projection = glm::perspective(glm::radians(45.f), (float)display.window->width_ / (float)display.window->height_, 0.1f, 100.0f);
+	glm::mat4 projection = camera->projection(glm::radians(45.f));//glm::perspective(glm::radians(45.f), display.window->get_aspect_ratio(), 0.1f, 100.0f);
 	glm::mat4 view = camera->view();
 	ourShader->uniform_matrix("projection", projection);
 	ourShader->uniform_matrix("view", view);
@@ -80,5 +63,4 @@ void GameSystem::begin_frame()
 void GameSystem::end_frame()
 {
 	display.window->swap_buffers();
-	display.input->poll_events();
 }

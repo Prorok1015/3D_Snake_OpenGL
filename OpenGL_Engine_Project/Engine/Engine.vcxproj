@@ -182,7 +182,7 @@
     <ClCompile Include="code\debug_ui\debug_ui_init.cpp" />
     <ClCompile Include="code\debug_ui\debug_ui_system.cpp" />
     <ClCompile Include="code\game_system\game_system.cpp" />
-    <ClCompile Include="code\input\events.cpp" />
+    <ClCompile Include="code\input\inp_input_manager.cpp" />
     <ClCompile Include="code\input\inp_input_actions.cpp" />
     <ClCompile Include="code\input\inp_input_system.cpp" />
     <ClCompile Include="code\input\inp_keyboard_device.cpp" />
@@ -226,10 +226,11 @@
     <ClInclude Include="code\debug_ui\debug_ui_init.h" />
     <ClInclude Include="code\debug_ui\debug_ui_system.h" />
     <ClInclude Include="code\game_system\game_system.h" />
-    <ClInclude Include="code\input\events.h" />
+    <ClInclude Include="code\input\inp_input_manager.h" />
     <ClInclude Include="code\input\inp_input_actions.h" />
     <ClInclude Include="code\input\inp_input_system.h" />
     <ClInclude Include="code\input\inp_keyboard_device.h" />
+    <ClInclude Include="code\input\inp_key_enums.hpp" />
     <ClInclude Include="code\input\inp_mouse_device.h" />
     <ClInclude Include="code\render\camera\camera.h" />
     <ClInclude Include="code\render\light\Lightmap.h" />

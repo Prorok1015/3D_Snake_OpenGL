@@ -6,7 +6,12 @@
 #include <string_view>
 namespace engine
 {
+	struct Worrning {};
+	struct Error {};
+	struct Message {};
+
 	void logger(const std::string_view file, int line, const std::string_view msg);
+	void logger(const std::string_view file, int line, const std::string_view msg, Error policy);
 	template<typename ...ARGS>
 	void logger(const std::string_view file, int line, const std::string_view format, ARGS&&... args)
 	{

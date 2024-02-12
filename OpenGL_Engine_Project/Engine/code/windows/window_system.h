@@ -19,6 +19,6 @@ namespace application
 		bool is_all_windows_close();
 		static float now_time();
 	private:
-		std::unordered_map < Window::Id, std::weak_ptr<Window>, Window::Id::hasher > windowList;
+		std::unordered_map<Window::Id, std::weak_ptr<Window>, Window::Id::Hasher> windowList;
 	};
 }

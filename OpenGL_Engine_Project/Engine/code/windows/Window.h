@@ -15,13 +15,14 @@ namespace application
 			auto operator<=>(const Id&) const = default;
 			std::size_t get_id() const { return std::size_t(id_); }
 			operator GLFWwindow* () const { return id_; }
-			struct hasher {
+			struct Hasher {
 				std::size_t operator() (const Id& id) const { return id.get_id(); }
 			};
 		};
 
 		Window(std::string_view title, int width, int height);
 		~Window();
+		float get_aspect_ratio() const { return (float)width_ / (float)height_; }
 		bool is_should_close();
 		void swap_buffers();
 		void set_should_close(bool close = true);

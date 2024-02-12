@@ -2,5 +2,7 @@
 
 void input::InputSystem::end_frame()
 {
+	glfwPollEvents();
+
 	keyboard.visit_keys(onKeyAction);
 }
