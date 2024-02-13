@@ -3,7 +3,7 @@
 
 namespace components {
 
-	void debug_ui_init(ds::DataStorage& data);
+	void game_init(ds::DataStorage& data);
 }
 
 namespace com = components;

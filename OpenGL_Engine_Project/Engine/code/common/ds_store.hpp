@@ -13,18 +13,27 @@ namespace data_struct {
 		}
 
 		template<class T>
+		bool has_value() const {
+			auto it = data.find(Type::value<T>());
+			if (it != data.end()) {
+				return it->second.has_value();
+			}
+			return false;
+		}
+
+		template<class T>
+		std::shared_ptr<T> require_shared()
+		{
+			ASSERT_MSG(has_value<T>(), "Missing the required type");
+
+			using cast_type = std::shared_ptr<T>;
+			return std::any_cast<cast_type>(data[Type::value<T>()]);
+		}
+
+		template<class T>
 		T& require() 
 		{
-			try
-			{
-				return *std::any_cast<std::shared_ptr<T>&>(data[Type::value<T>()]);
-			}
-			catch (const std::bad_any_cast& e)
-			{
-				ASSERT_FAIL("bad require()");
-				static T obj{};
-				return obj;
-			}
+			return *require_shared<T>();
 		}
 
 		template<class T, class ...ARGS>

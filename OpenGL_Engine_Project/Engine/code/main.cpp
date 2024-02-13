@@ -4,19 +4,13 @@
 #include "game_system/game_system.h"
 #include "debug_ui/debug_ui_system.h"
 #include "input/inp_input_system.h"
+#include "components_init.h"
 
 int main()
 {
-	auto& inpSys = ds::DataStorage::instance().construct<inp::InputSystem>();
-	auto& winSys = ds::DataStorage::instance().construct<app::WindowSystem>();
-	auto& game = ds::DataStorage::instance().construct<app::GameSystem>();
-	auto& dbgUi = ds::DataStorage::instance().construct<dbg_ui::DebugUiSystem>();
+	com::component_init(ds::DataStorage::instance());
 
-	app::Application myApp;
-	myApp.beginFrame += [&] { dbgUi.begin_frame(); game.begin_frame(); };
-	myApp.capture += [&] { dbgUi.capture(); game.capture(); };
-	myApp.render += [&] { dbgUi.render(); game.render(); };
-	myApp.endFrame += [&] { dbgUi.end_frame(); game.end_frame(); inpSys.end_frame(); };
+	app::Application& myApp = ds::DataStorage::instance().require<app::Application>();
 
 	return myApp.run();
 }

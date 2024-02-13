@@ -180,6 +180,18 @@
     <ClCompile Include="code\input\inp_input_actions.cpp">
       <Filter>Source files\Input</Filter>
     </ClCompile>
+    <ClCompile Include="code\components_init.cpp">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="code\input\inp_input_init.cpp">
+      <Filter>Source files\Input</Filter>
+    </ClCompile>
+    <ClCompile Include="code\windows\wnd_windows_init.cpp">
+      <Filter>Source files\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="code\game_system\gs_game_init.cpp">
+      <Filter>Source files\GameSystem</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\render\camera\camera.h">
@@ -272,7 +284,7 @@
     <ClInclude Include="code\game_system\game_system.h">
       <Filter>Source files\GameSystem</Filter>
     </ClInclude>
-    <ClInclude Include="code\components_init.hpp">
+    <ClInclude Include="code\components_init.h">
       <Filter>Source files</Filter>
     </ClInclude>
     <ClInclude Include="code\debug_ui\debug_ui_init.h">
@@ -310,6 +322,15 @@
     </ClInclude>
     <ClInclude Include="code\input\inp_key_enums.hpp">
       <Filter>Source files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="code\input\inp_input_init.h">
+      <Filter>Source files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="code\windows\wnd_windows_init.h">
+      <Filter>Source files\Window</Filter>
+    </ClInclude>
+    <ClInclude Include="code\game_system\gs_game_init.h">
+      <Filter>Source files\GameSystem</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,11 +1,14 @@
 #include "debug_ui_init.h"
-#include "../common/common.h"
+#include "debug_ui_system.h"
+#include "../application.h"
 
-namespace debug_ui
+void components::debug_ui_init(ds::DataStorage& data)
 {
-	void initialize(std::shared_ptr<application::Window> win)
-	{
-
-	}
+	auto& dbgUi = data.construct<dbg_ui::DebugUiSystem>();
+	auto& myApp = data.require<app::Application>();
+	myApp.beginFrame += [&] { dbgUi.begin_frame(); };
+	myApp.capture += [&] { dbgUi.capture(); };
+	myApp.render += [&] { dbgUi.render(); };
+	myApp.endFrame += [&] { dbgUi.end_frame(); };
 
 }

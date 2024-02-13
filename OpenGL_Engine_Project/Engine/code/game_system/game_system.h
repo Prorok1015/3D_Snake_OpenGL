@@ -5,8 +5,6 @@
 #include "../render/shader/shader.h"
 #include "../render/camera/camera.h"
 
-#include "../debug_ui/debug_ui_init.h"
-
 namespace scene {
 	class Model;
 }
