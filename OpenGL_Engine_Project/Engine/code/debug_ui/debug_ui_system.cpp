@@ -4,8 +4,8 @@
 
 debug_ui::DebugUiSystem::DebugUiSystem()
 {
-	auto game = ds::DataStorage::instance().require<app::GameSystem>();
-	auto win = game->get_window();
+	auto& game = ds::DataStorage::instance().require<app::GameSystem>();
+	auto win = game.get_window();
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();

@@ -26,8 +26,8 @@ public:
 	~Texture();
 	void bind();
 
-	static std::unique_ptr<Texture> load(std::string_view filename);
-	static std::unique_ptr<Texture> load(std::string_view filename, FILTERING filtering, WRAPPING wrapping);
+	static std::shared_ptr<Texture> load(std::string_view filename);
+	static std::shared_ptr<Texture> load(std::string_view filename, FILTERING filtering, WRAPPING wrapping);
 	static Texture loadClean(std::string_view filename, FILTERING minfiltering, FILTERING magfiltering, WRAPPING wrapping);
 public:
 	int width() const { return width_; }

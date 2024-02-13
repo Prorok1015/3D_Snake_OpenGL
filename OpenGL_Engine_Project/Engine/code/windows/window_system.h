@@ -9,10 +9,10 @@ namespace application
 	public:
 		WindowSystem();
 		~WindowSystem();
-		WindowSystem(const WindowSystem&) = delete;
-		WindowSystem(WindowSystem&&) = delete;
-		WindowSystem& operator= (const WindowSystem&) = delete;
-		WindowSystem& operator= (WindowSystem&&) = delete;
+		WindowSystem(const WindowSystem&) = default;
+		WindowSystem(WindowSystem&&) = default;
+		WindowSystem& operator= (const WindowSystem&) = default;
+		WindowSystem& operator= (WindowSystem&&) = default;
 
 		std::shared_ptr<Window> make_window(std::string_view title, int width, int height);
 		std::weak_ptr<Window> find_window(Window::Id win);

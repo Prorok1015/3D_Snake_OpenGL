@@ -147,6 +147,14 @@ namespace input
 	};
 
 	constexpr std::size_t MOUSE_BUTTONS_COUNT = (std::size_t)MOUSE_BUTTONS::COUNT;
+
+	struct Key
+	{
+		KEY_ACTION action = KEY_ACTION::NONE;
+		float time_stamp_down = 0.f;
+		float time_stamp_up = 0.f;
+	};
+
 }
 
 namespace inp = input;

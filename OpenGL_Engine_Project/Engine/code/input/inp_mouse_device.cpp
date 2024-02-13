@@ -30,3 +30,9 @@ void input::MouseDevice::on_mouse_button_action(int button, int action, int mode
 
     keys_[button] = act;
 }
+
+const input::Key& input::MouseDevice::get_key(MOUSE_BUTTONS key) const
+{
+	KEY_ACTION action = keys_[std::size_t(key)];
+	return { action };
+}

@@ -16,14 +16,10 @@ GameSystem::GameSystem()
 	display.initialize("Window 3.0", WIDTH, HEIGHT);
 
 	ourShader = Shader::load("./res/scene.glslv", "./res/scene.glslf");
-	camera = std::make_unique<Camera>(display, glm::vec3(0, 0, 2), glm::radians(90.0f));
-	ourModel = std::make_unique<scene::Model>("D:/MyProject/SnakeProject/OpenGL_Engine_Project/Engine/res/objects/backpack/backpack.obj");
-
-	auto Escape = inp::InputActionClick::create(inp::KEYBOARD_BUTTONS::ESCAPE, [this] { display.window->set_should_close(true); });
-	display.input->registrate(Escape);
-
-	auto Tab = inp::InputActionClick::create(inp::KEYBOARD_BUTTONS::TAB, [this] { camera->set_enable(!camera->is_enable()); display.window->set_cursor_mode(camera->is_enable() ? CursorMode::Disable : CursorMode::Normal); });
-	display.input->registrate(Tab);
+	camera = std::make_shared<Camera>(display, glm::vec3(0, 0, 2), glm::radians(90.0f));
+	ourModel = std::make_shared<scene::Model>("D:/MyProject/SnakeProject/OpenGL_Engine_Project/Engine/res/objects/backpack/backpack.obj");
+	display.input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this] { display.window->set_should_close(true); });
+	display.input->create_click_action(inp::KEYBOARD_BUTTONS::TAB, [this] { camera->set_enabled(!camera->is_enabled()); display.window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal); });
 }
 
 GameSystem::~GameSystem()
@@ -57,7 +53,7 @@ void GameSystem::begin_frame()
 {
 	display.window->update_frame();
 	float dt = display.window->delta;
-	display.input->poll_listeners(dt);
+	display.input->notify_listeners(dt);
 }
 
 void GameSystem::end_frame()

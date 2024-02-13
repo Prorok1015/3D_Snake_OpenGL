@@ -21,7 +21,7 @@ void Shader::uniform_matrix(std::string name, glm::mat4 matrix)
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
-std::unique_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmentFile)
+std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmentFile)
 {
 	// Reading Files
 	std::string vertexCode;
@@ -100,5 +100,5 @@ std::unique_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmen
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 
-	return std::make_unique<Shader>(id);
+	return std::make_shared<Shader>(id);
 }

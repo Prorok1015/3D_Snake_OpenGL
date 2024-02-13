@@ -3,20 +3,12 @@
 
 Camera::Camera(application::Display& dis, glm::vec3 pos, float fov) : display(dis), position_(pos), fov_(fov), rotation_(1.0f) {
 	update_vectors();
-	auto w = inp::InputActionHold::create(inp::KEYBOARD_BUTTONS::W, [this] { position_ += front_ * display.window->delta * speed_; });
-	display.input->registrate(w);
+	display.input->create_hold_action(inp::KEYBOARD_BUTTONS::W, [this] { position_ += front_ * display.window->delta * speed_; });
+	display.input->create_hold_action(inp::KEYBOARD_BUTTONS::A, [this] { position_ -= right_ * display.window->delta * speed_; });
+	display.input->create_hold_action(inp::KEYBOARD_BUTTONS::S, [this] { position_ -= front_ * display.window->delta * speed_; });
+	display.input->create_hold_action(inp::KEYBOARD_BUTTONS::D, [this] { position_ += right_ * display.window->delta * speed_; });
 
-	auto a = inp::InputActionHold::create(inp::KEYBOARD_BUTTONS::A, [this] { position_ -= right_ * display.window->delta * speed_; });
-	display.input->registrate(a);
-
-	auto s = inp::InputActionHold::create(inp::KEYBOARD_BUTTONS::S, [this] { position_ -= front_ * display.window->delta * speed_; });
-	display.input->registrate(s);
-
-	auto d = inp::InputActionHold::create(inp::KEYBOARD_BUTTONS::D, [this] { position_ += right_ * display.window->delta * speed_; });
-	display.input->registrate(d);
-
-	auto m_m = inp::InputActionMouseMove::create([this](glm::vec2 c, glm::vec2 p) {	if (is_enable()) mouse_move(c, p); });
-	display.input->registrate(m_m);
+	display.input->create_mouse_move_action([this](glm::vec2 c, glm::vec2 p) {	mouse_move(c, p); });
 }
 
 void Camera::update_vectors() {
@@ -44,7 +36,7 @@ glm::mat4 Camera::view() {
 
 void Camera::update()
 {
-	if (is_enable()) {
+	if (is_enabled()) {
 		rotation_ = glm::mat4(1.0f);
 		rotate(camY, camX, 0);
 	}
@@ -52,8 +44,12 @@ void Camera::update()
 
 void Camera::mouse_move(glm::vec2 pos, glm::vec2 prev)
 {
+	if (!is_enabled()) {
+		return;
+	}
+
 	glm::vec2 delta = pos - prev;
 	camY += -delta.y / display.window->height_ * 2;
 	camX += -delta.x / display.window->width_ * 2;
-	std::clamp(camY, -glm::radians(89.0f), glm::radians(89.0f));
+	camY = std::clamp(camY, -glm::radians(89.0f), glm::radians(89.0f));
 }

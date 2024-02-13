@@ -17,6 +17,10 @@ namespace application {
 	public:
 		GameSystem();
 		~GameSystem();
+		GameSystem(const GameSystem&) = default;
+		GameSystem(GameSystem&&) = default;
+		GameSystem& operator= (const GameSystem&) = default;
+		GameSystem& operator= (GameSystem&&) = default;
 
 		void capture();
 		void render();
@@ -26,9 +30,9 @@ namespace application {
 
 		std::shared_ptr<Window> get_window() { return display.window; };
 	private:
-		std::unique_ptr<scene::Model> ourModel;
-		std::unique_ptr<Shader> ourShader;
-		std::unique_ptr<Camera> camera;
+		std::shared_ptr<scene::Model> ourModel;
+		std::shared_ptr<Shader> ourShader;
+		std::shared_ptr<Camera> camera;
 
 		static constexpr int WIDTH = 1280;
 		static constexpr int HEIGHT = 720;

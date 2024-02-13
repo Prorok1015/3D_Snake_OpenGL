@@ -5,9 +5,9 @@
 
 void application::Display::initialize(std::string_view title, int width, int height)
 {
-	WindowSystem* wndCreator = ds::DataStorage::instance().require<WindowSystem>();
-	inp::InputSystem* inputSys = ds::DataStorage::instance().require<inp::InputSystem>();
+	WindowSystem& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+	inp::InputSystem& inputSys = ds::DataStorage::instance().require<inp::InputSystem>();
 
-	window = wndCreator->make_window(title, width, height);//
+	window = wndCreator.make_window(title, width, height);//
 	input = std::make_shared<inp::InputManager>();
 }

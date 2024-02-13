@@ -9,12 +9,15 @@ namespace input
 	public:
 		InputSystem() = default;
 		~InputSystem() = default;
-		InputSystem(const InputSystem&) = delete;
-		InputSystem(InputSystem&&) = delete;
-		InputSystem& operator= (const InputSystem&) = delete;
-		InputSystem& operator= (InputSystem&&) = delete;
+		InputSystem(const InputSystem&) = default;
+		InputSystem(InputSystem&&) = default;
+		InputSystem& operator= (const InputSystem&) = default;
+		InputSystem& operator= (InputSystem&&) = default;
 
 		void end_frame();
+
+		const Key& get_key_state(KEYBOARD_BUTTONS) const;
+		const Key& get_key_state(MOUSE_BUTTONS) const;
 
 	public:
 		Event<void(KEYBOARD_BUTTONS, const Key& state)> onKeyAction;

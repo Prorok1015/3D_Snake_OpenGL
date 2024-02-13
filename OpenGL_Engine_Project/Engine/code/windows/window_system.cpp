@@ -6,48 +6,41 @@
 using namespace application;
 
 static void window_size_callback(GLFWwindow* window, int width, int height) {
-    auto wndCreator = ds::DataStorage::instance().require<WindowSystem>();
-    auto wnd = wndCreator->find_window({ window });
+    auto& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+    auto wnd = wndCreator.find_window({ window });
     if (auto swnd = wnd.lock()) {
         swnd->on_resize_window(width, height);
     }
 }
 
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
-    auto wndCreator = ds::DataStorage::instance().require<WindowSystem>();
-    auto wnd = wndCreator->find_window({ window });
+    auto& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+    auto wnd = wndCreator.find_window({ window });
     if (auto swnd = wnd.lock()) {
         swnd->on_mouse_move(xpos, ypos);
     }
-    if (inp::InputSystem* inpSys = ds::DataStorage::instance().require<inp::InputSystem>())
-    {
-        inpSys->mouse.on_mouse_move(xpos, ypos);
-    }
+    inp::InputSystem& inpSys = ds::DataStorage::instance().require<inp::InputSystem>();
+    inpSys.mouse.on_mouse_move(xpos, ypos);
 }
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mode) {
-    auto wndCreator = ds::DataStorage::instance().require<WindowSystem>();
-    auto wnd = wndCreator->find_window({ window });
+    auto& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+    auto wnd = wndCreator.find_window({ window });
     if (auto swnd = wnd.lock()) {
         swnd->on_mouse_button_action(button, action, mode);
     }
-    if (inp::InputSystem* inpSys = ds::DataStorage::instance().require<inp::InputSystem>())
-    {
-        inpSys->mouse.on_mouse_button_action(button, action, mode);
-    }
+    inp::InputSystem& inpSys = ds::DataStorage::instance().require<inp::InputSystem>();
+    inpSys.mouse.on_mouse_button_action(button, action, mode);
 }
 
 static void key_callback(GLFWwindow* window, int keycode, int scancode, int action, int mode) {
-    auto wndCreator = ds::DataStorage::instance().require<WindowSystem>();
-    auto wnd = wndCreator->find_window({ window });
+    auto& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+    auto wnd = wndCreator.find_window({ window });
     if (auto swnd = wnd.lock()) {
         swnd->on_keyboard_action(keycode, scancode, action, mode);
     }
-    if (inp::InputSystem* inpSys = ds::DataStorage::instance().require<inp::InputSystem>())
-    {
-        inpSys->keyboard.on_key_action(keycode, scancode, action, mode);
-    }
-
+    inp::InputSystem& inpSys = ds::DataStorage::instance().require<inp::InputSystem>();
+    inpSys.keyboard.on_key_action(keycode, scancode, action, mode);
 }
 
 application::WindowSystem::WindowSystem()

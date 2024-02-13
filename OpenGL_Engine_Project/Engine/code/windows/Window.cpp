@@ -12,7 +12,7 @@ application::Window::Window(std::string_view title, int width, int height)
 
     if (!id_)
     {
-        //glfwTerminate();
+        ASSERT_FAIL("window didnt create!");
     }
 
     /* Make the window's context current */

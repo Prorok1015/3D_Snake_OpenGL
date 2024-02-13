@@ -16,7 +16,7 @@ public:
 	glm::fvec3 pos { 0.f, 0.f, 0.f };
 	glm::fvec2 size { 0.f, 0.f };
 	glm::fvec3 color { 1.f, 1.f, 1.f };
-	std::unique_ptr<Shader> shader = nullptr;
+	std::shared_ptr<Shader> shader = nullptr;
 
 private:
 	unsigned int EBO = 0;

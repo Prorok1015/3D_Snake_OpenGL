@@ -4,13 +4,6 @@
 
 namespace input
 {
-	struct Key
-	{
-		KEY_ACTION action = KEY_ACTION::NONE;
-		float time_stamp_down = 0.f;
-		float time_stamp_up = 0.f;
-	};
-
 	class KeyboardDevice
 	{
 		struct Hasher {

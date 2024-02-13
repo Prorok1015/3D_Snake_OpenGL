@@ -15,6 +15,6 @@ public:
 	void use();
 	void uniform_matrix(std::string name, glm::mat4 matrix);
 
-	static std::unique_ptr<Shader> load(std::string vertexFile, std::string fragmentFile);
+	static std::shared_ptr<Shader> load(std::string vertexFile, std::string fragmentFile);
 };
 

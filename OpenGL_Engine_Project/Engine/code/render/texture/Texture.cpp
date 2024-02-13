@@ -13,12 +13,12 @@ void Texture::bind() {
 	glBindTexture(GL_TEXTURE_2D, id);
 }
 
-std::unique_ptr<Texture> Texture::load(std::string_view filename)
+std::shared_ptr<Texture> Texture::load(std::string_view filename)
 {
     return Texture::load(filename, FILTERING::NEAREST, WRAPPING::REPEAT);
 }
 
-std::unique_ptr<Texture> Texture::load(std::string_view filename, FILTERING filtering, WRAPPING wrapping)
+std::shared_ptr<Texture> Texture::load(std::string_view filename, FILTERING filtering, WRAPPING wrapping)
 {   
     if (std::unique_ptr<Image> img = load_image(filename.data())) {
         GLsizei t_width = img->width();
@@ -40,7 +40,7 @@ std::unique_ptr<Texture> Texture::load(std::string_view filename, FILTERING filt
         glGenerateMipmap(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        return std::make_unique<Texture>(texture, t_width, t_height);
+        return std::make_shared<Texture>(texture, t_width, t_height);
     }
 
     std::cerr << "Could not load texture " << filename << std::endl;

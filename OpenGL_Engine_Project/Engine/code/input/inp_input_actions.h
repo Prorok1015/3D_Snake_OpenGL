@@ -2,6 +2,9 @@
 #include "../common/common.h"
 #include "inp_key_enums.hpp"
 
+#include "inp_input_system.h"
+#include "../common/ds_store.hpp"
+
 namespace input
 {
 	class InputActionBase
@@ -11,58 +14,94 @@ namespace input
 		virtual void update(float dt) = 0;
 	};
 
-	class InputActionClick : public InputActionBase
+	template<typename KEY_BUTTON>
+	class InputActionClickT : public InputActionBase
 	{
 	public:
-		~InputActionClick();
-		template <typename HANDLER>
-		static std::shared_ptr<InputActionClick> create(KEYBOARD_BUTTONS tag, HANDLER&& callback)
+		~InputActionClickT() = default;
+		template <typename KB, typename HANDLER>
+		static auto create(KB tag, HANDLER&& callback)
 		{
-			return std::shared_ptr<InputActionClick>(new InputActionClick(tag, callback));
+			return std::shared_ptr<InputActionClickT<KB>>(new InputActionClickT<KB>(tag, std::move(callback)));
 		}
 
-		virtual void update(float dt);
+		virtual void update(float dt)
+		{
+			InputSystem& inpSys = ds::DataStorage::instance().require<InputSystem>();
+			const auto& action = inpSys.get_key_state(tag_);
+
+			if (action.action == inp::KEY_ACTION::DOWN) {
+				actual_time += dt;
+			}
+
+			if (action.action == inp::KEY_ACTION::UP) {
+				if (actual_time > 0.f && actual_time < activate_time) {
+					onAction();
+				}
+				actual_time = 0.f;
+			}
+		}
 
 	private:
 		template <typename HANDLER>
-		InputActionClick(KEYBOARD_BUTTONS tag, HANDLER&& callback)
+		InputActionClickT(KEY_BUTTON tag, HANDLER&& callback)
 			: tag_(tag)
 		{
-			onClick += callback;
+			onAction += callback;
 		}
 
 
 	public:
-		Event<void()> onClick;
-		KEYBOARD_BUTTONS tag_;
+		Event<void()> onAction;
+		KEY_BUTTON tag_;
 		float actual_time = 0.f;
 
 		static constexpr float activate_time = 0.2f;
 	};
 
-	class InputActionHold : public InputActionBase
+	template<typename KEY_BUTTON>
+	class InputActionHoldT : public InputActionBase
 	{
 	public:
-		~InputActionHold();
-		template <typename HANDLER>
-		static std::shared_ptr<InputActionHold> create(KEYBOARD_BUTTONS tag, HANDLER&& callback)
+		~InputActionHoldT() = default;
+		template <typename KB, typename HANDLER>
+		static auto create(KB tag, HANDLER&& callback)
 		{
-			return std::shared_ptr<InputActionHold>(new InputActionHold(tag, callback));
+			return std::shared_ptr<InputActionHoldT<KB>>(new InputActionHoldT<KB>(tag, callback));
 		}
 
-		virtual void update(float dt);
+		virtual void update(float dt)
+		{
+			InputSystem& inpSys = ds::DataStorage::instance().require<InputSystem>();
+			const auto& action = inpSys.keyboard.get_key(tag_);
+			if (action.action == inp::KEY_ACTION::DOWN) {
+				actual_time += dt;
+				actual_step_time += dt;
+
+				if (actual_time > activate_time && actual_step_time > step_time) {
+					onAction();
+					actual_step_time = 0.f;
+				}
+			}
+
+			if (action.action == inp::KEY_ACTION::UP) {
+				actual_time = 0.f;
+				actual_step_time = -activate_time;
+			}
+		}
 
 	private:
 		template <typename HANDLER>
-		InputActionHold(KEYBOARD_BUTTONS tag, HANDLER&& callback)
+		InputActionHoldT(KEY_BUTTON tag, HANDLER&& callback)
 			: tag_(tag)
 		{
-			onClick += callback;
+			onAction += callback;
 		}
 
+
 	public:
-		Event<void()> onClick;
-		KEYBOARD_BUTTONS tag_;
+		Event<void()> onAction;
+		KEY_BUTTON tag_;
 		float actual_time = 0.f;
 		float actual_step_time = -activate_time;
 		static constexpr float step_time = 0.f;
@@ -76,7 +115,7 @@ namespace input
 		template <typename HANDLER>
 		static std::shared_ptr<InputActionMouseMove> create(HANDLER&& callback)
 		{
-			return std::shared_ptr<InputActionMouseMove>(new InputActionMouseMove(callback));
+			return std::shared_ptr<InputActionMouseMove>(new InputActionMouseMove(std::move(callback)));
 		}
 
 		virtual void update(float dt);
@@ -89,7 +128,7 @@ namespace input
 
 	private:
 		Event<void(glm::vec2, glm::vec2)> onAction;
-		glm::vec2 position {0.f};
+		glm::vec2 position{ 0.f };
 	};
 }
 

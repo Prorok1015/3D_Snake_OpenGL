@@ -22,8 +22,8 @@ public:
 	std::array<glm::fvec2, 4> textureSize{ glm::fvec2{1.f, 1.f}, {1.f, 0.f}, {0.f, 0.f}, {0.f, 1.f} };
 
 private:
-	std::unique_ptr<Texture> texture = nullptr;
-	std::unique_ptr<Shader> shader = nullptr;
+	std::shared_ptr<Texture> texture = nullptr;
+	std::shared_ptr<Shader> shader = nullptr;
 
 private:
 	unsigned int EBO = 0;

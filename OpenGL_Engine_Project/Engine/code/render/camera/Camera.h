@@ -15,8 +15,8 @@ public:
 	void update();
 	void mouse_move(glm::vec2, glm::vec2);
 
-	void set_enable(bool enable) { enabled_ = enable; }
-	bool is_enable() const { return enabled_; }
+	void set_enabled(bool enable) { enabled_ = enable; }
+	bool is_enabled() const { return enabled_; }
 
 private:
 	void update_vectors();

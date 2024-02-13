@@ -7,20 +7,16 @@
 
 int main()
 {
-	std::unique_ptr<inp::InputSystem> inpSys = std::make_unique<inp::InputSystem>();
-	ds::DataStorage::instance().store(inpSys.get());
-	std::unique_ptr<app::WindowSystem> winSys = std::make_unique<app::WindowSystem>();
-	ds::DataStorage::instance().store(winSys.get());
-	std::unique_ptr<app::GameSystem> game = std::make_unique<app::GameSystem>();
-	ds::DataStorage::instance().store(game.get());
-	std::unique_ptr<dbg_ui::DebugUiSystem> dbgUi = std::make_unique<dbg_ui::DebugUiSystem>();
-	ds::DataStorage::instance().store(dbgUi.get());
+	auto& inpSys = ds::DataStorage::instance().construct<inp::InputSystem>();
+	auto& winSys = ds::DataStorage::instance().construct<app::WindowSystem>();
+	auto& game = ds::DataStorage::instance().construct<app::GameSystem>();
+	auto& dbgUi = ds::DataStorage::instance().construct<dbg_ui::DebugUiSystem>();
 
 	app::Application myApp;
-	myApp.beginFrame += [&] { dbgUi->begin_frame(); game->begin_frame(); };
-	myApp.capture += [&] { dbgUi->capture(); game->capture(); };
-	myApp.render += [&] { dbgUi->render(); game->render(); };
-	myApp.endFrame += [&] { dbgUi->end_frame(); game->end_frame(); inpSys->end_frame(); };
+	myApp.beginFrame += [&] { dbgUi.begin_frame(); game.begin_frame(); };
+	myApp.capture += [&] { dbgUi.capture(); game.capture(); };
+	myApp.render += [&] { dbgUi.render(); game.render(); };
+	myApp.endFrame += [&] { dbgUi.end_frame(); game.end_frame(); inpSys.end_frame(); };
 
 	return myApp.run();
 }
