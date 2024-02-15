@@ -3,11 +3,15 @@
 #define WINDOW_CAMERA_H_
 
 #include <glm/glm.hpp>
-#include "../../windows/display.h"
+#include "../../windows/window.h"
+#include "../../input/inp_input_manager.h"
 
 class Camera {
 public:
-	Camera(application::Display& dis, glm::vec3 position, float fov);
+	Camera(std::shared_ptr<inp::InputManager> inp_manager, glm::vec3 position, float fov);
+
+	void attath_to_window(std::shared_ptr<app::Window> wnd);
+
 	void rotate(float x, float y, float z);
 	glm::mat4 projection(float fov);
 	glm::mat4 view();
@@ -20,9 +24,11 @@ public:
 
 private:
 	void update_vectors();
+	void wasd_move(inp::KEYBOARD_BUTTONS key);
 
 public:
-	application::Display& display;
+	std::shared_ptr<inp::InputManager> input_;
+	std::shared_ptr<app::Window> window_;
 	glm::vec3 front_;
 	glm::vec3 up_;
 	glm::vec3 right_;

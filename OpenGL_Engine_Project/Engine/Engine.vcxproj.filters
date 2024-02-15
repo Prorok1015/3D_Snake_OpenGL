@@ -332,6 +332,9 @@
     <ClInclude Include="code\game_system\gs_game_init.h">
       <Filter>Source files\GameSystem</Filter>
     </ClInclude>
+    <ClInclude Include="code\common\ds_event.hpp">
+      <Filter>Source files\Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\crosshair.glslf">

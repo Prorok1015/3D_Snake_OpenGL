@@ -1,20 +1,46 @@
 #include "camera.h"
 #include <glm/ext.hpp>
 
-Camera::Camera(application::Display& dis, glm::vec3 pos, float fov) : display(dis), position_(pos), fov_(fov), rotation_(1.0f) {
+Camera::Camera(std::shared_ptr<inp::InputManager> inp_m, glm::vec3 pos, float fov) 
+	: input_(inp_m), position_(pos), fov_(fov), rotation_(1.0f) 
+{
 	update_vectors();
-	display.input->create_hold_action(inp::KEYBOARD_BUTTONS::W, [this] { position_ += front_ * display.window->delta * speed_; });
-	display.input->create_hold_action(inp::KEYBOARD_BUTTONS::A, [this] { position_ -= right_ * display.window->delta * speed_; });
-	display.input->create_hold_action(inp::KEYBOARD_BUTTONS::S, [this] { position_ -= front_ * display.window->delta * speed_; });
-	display.input->create_hold_action(inp::KEYBOARD_BUTTONS::D, [this] { position_ += right_ * display.window->delta * speed_; });
+}
 
-	display.input->create_mouse_move_action([this](glm::vec2 c, glm::vec2 p) {	mouse_move(c, p); });
+void Camera::attath_to_window(std::shared_ptr<app::Window> wnd)
+{
+	if (wnd == nullptr) {
+		return;
+	}
+
+	window_ = wnd;
+	input_->create_hold_action(inp::KEYBOARD_BUTTONS::W, [this] { wasd_move(inp::KEYBOARD_BUTTONS::W); });
+	input_->create_hold_action(inp::KEYBOARD_BUTTONS::A, [this] { wasd_move(inp::KEYBOARD_BUTTONS::A); });
+	input_->create_hold_action(inp::KEYBOARD_BUTTONS::S, [this] { wasd_move(inp::KEYBOARD_BUTTONS::S); });
+	input_->create_hold_action(inp::KEYBOARD_BUTTONS::D, [this] { wasd_move(inp::KEYBOARD_BUTTONS::D); });
+
+	input_->create_mouse_move_action([this](glm::vec2 c, glm::vec2 p) {	mouse_move(c, p); });
 }
 
 void Camera::update_vectors() {
 	front_ = glm::vec3(rotation_ * glm::vec4(0, 0, -1, 1));
 	right_ = glm::vec3(rotation_ * glm::vec4(1, 0, 0, 1));
 	up_ = glm::vec3(rotation_ * glm::vec4(0, 1, 0, 1));
+}
+
+void Camera::wasd_move(inp::KEYBOARD_BUTTONS key)
+{
+	if (!is_enabled()) {
+		return;
+	}
+
+	switch (key)
+	{
+	case inp::KEYBOARD_BUTTONS::W: position_ += front_ * window_->delta * speed_; break;
+	case inp::KEYBOARD_BUTTONS::A: position_ -= right_ * window_->delta * speed_; break;
+	case inp::KEYBOARD_BUTTONS::S: position_ -= front_ * window_->delta * speed_; break;
+	case inp::KEYBOARD_BUTTONS::D: position_ += right_ * window_->delta * speed_; break;
+	}
 }
 
 void Camera::rotate(float x, float y, float z) {
@@ -26,7 +52,7 @@ void Camera::rotate(float x, float y, float z) {
 }
 
 glm::mat4 Camera::projection(float fov) {
-	float aspect = display.window->get_aspect_ratio();
+	float aspect = window_->get_aspect_ratio();
 	return glm::perspective(fov, aspect, 0.1f, 100.0f);
 }
 
@@ -49,7 +75,7 @@ void Camera::mouse_move(glm::vec2 pos, glm::vec2 prev)
 	}
 
 	glm::vec2 delta = pos - prev;
-	camY += -delta.y / display.window->height_ * 2;
-	camX += -delta.x / display.window->width_ * 2;
+	camY += -delta.y / window_->height_ * 2;
+	camX += -delta.x / window_->width_ * 2;
 	camY = std::clamp(camY, -glm::radians(89.0f), glm::radians(89.0f));
 }

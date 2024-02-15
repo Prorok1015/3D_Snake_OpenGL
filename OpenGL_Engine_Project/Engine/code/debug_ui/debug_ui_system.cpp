@@ -1,10 +1,32 @@
 #include "debug_ui_system.h"
 #include "../common/ds_store.hpp"
 #include "../game_system/game_system.h"
+#include "../common/enums.h"
+
 
 debug_ui::DebugUiSystem::DebugUiSystem()
 {
 	auto& game = ds::DataStorage::instance().require<app::GameSystem>();
+	inp::InputSystem& inpSystem = ds::DataStorage::instance().require<inp::InputSystem>();
+
+	inpSystem.SubscribeKeyboardByType<DebugUiSystem>(
+		[this, &game](inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action) 
+		{ 
+			game.switch_input(code, action); 
+			if (code == inp::KEYBOARD_BUTTONS::F5)
+			{
+				if (action == inp::KEY_ACTION::UP) {
+					enable_input = !enable_input;
+					if (enable_input) {
+						ImGui_ImplGlfw_InstallCallbacks(game.get_window()->id_);
+						game.get_window()->set_cursor_mode(CursorMode::Normal);
+					} else {
+						ImGui_ImplGlfw_RestoreCallbacks(game.get_window()->id_);
+					}
+				}
+			}
+		});
+
 	auto win = game.get_window();
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -17,7 +39,7 @@ debug_ui::DebugUiSystem::DebugUiSystem()
 	ImGui::StyleColorsDark();
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(win->id_, true);
+	ImGui_ImplGlfw_InitForOpenGL(win->id_, enable_input);
 	ImGui_ImplOpenGL3_Init("#version 130");
 }
 

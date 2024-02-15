@@ -219,6 +219,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\application.h" />
+    <ClInclude Include="code\common\ds_event.hpp" />
     <ClInclude Include="code\common\ds_store.hpp" />
     <ClInclude Include="code\common\common.h" />
     <ClInclude Include="code\common\ds_type_id.hpp" />

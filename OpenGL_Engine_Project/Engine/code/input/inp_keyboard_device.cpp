@@ -24,7 +24,7 @@ void input::KeyboardDevice::on_key_action(int keycode, int scancode, int action,
     KEYBOARD_BUTTONS keyboard_keycode = (KEYBOARD_BUTTONS)keycode;
     on_key_keyboard_action(keyboard_keycode, act, application::WindowSystem::now_time());
 
-    //onKeyAction(keyboard_keycode, key);
+    onKeyStateChanged(keyboard_keycode, act);
 
     egLOG("input/keyboard", "Key {}: action {}", keycode, action);
 }

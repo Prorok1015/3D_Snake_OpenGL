@@ -1,25 +1,30 @@
 #include "game_system.h"
-#include "../debug_ui/debug_ui_init.h"
+#include "../common/ds_store.hpp"
+
 #include "../input/inp_input_manager.h"
+#include "../input/inp_input_system.h"
 
 #include "../common/enums.h"
-
 #include "../scene/cude.h"
 #include "../scene/model.h"
 
-#include "../input/inp_input_actions.h"
+#include "../windows/window_system.h"
 
 using namespace application;
 
 GameSystem::GameSystem()
 {
-	display.initialize("Window 3.0", WIDTH, HEIGHT);
+	WindowSystem& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+
+	window = wndCreator.make_window("Window 3.0", WIDTH, HEIGHT);
+	input = std::make_shared<inp::InputManager>();
 
 	ourShader = Shader::load("./res/scene.glslv", "./res/scene.glslf");
-	camera = std::make_shared<Camera>(display, glm::vec3(0, 0, 2), glm::radians(90.0f));
+	camera = std::make_shared<Camera>(input, glm::vec3(0, 0, 2), glm::radians(45.0f));
+	camera->attath_to_window(window);
 	ourModel = std::make_shared<scene::Model>("D:/MyProject/SnakeProject/OpenGL_Engine_Project/Engine/res/objects/backpack/backpack.obj");
-	display.input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this] { display.window->set_should_close(true); });
-	display.input->create_click_action(inp::KEYBOARD_BUTTONS::TAB, [this] { camera->set_enabled(!camera->is_enabled()); display.window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal); });
+	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this] { window->set_should_close(true); });
+	input->create_click_action(inp::KEYBOARD_BUTTONS::TAB, [this] { camera->set_enabled(!camera->is_enabled()); window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal); });
 }
 
 GameSystem::~GameSystem()
@@ -51,12 +56,23 @@ void GameSystem::render()
 
 void GameSystem::begin_frame()
 {
-	display.window->update_frame();
-	float dt = display.window->delta;
-	display.input->notify_listeners(dt);
+	window->update_frame();
+	float dt = window->delta;
+	input->notify_listeners(dt);
 }
 
 void GameSystem::end_frame()
 {
-	display.window->swap_buffers();
+	window->swap_buffers();
+}
+
+void application::GameSystem::switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action)
+{
+	if (code == inp::KEYBOARD_BUTTONS::F5)
+	{
+		if (action == inp::KEY_ACTION::UP) {
+			input->set_enabled(!input->is_enabled());
+			window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal);
+		}
+	}
 }

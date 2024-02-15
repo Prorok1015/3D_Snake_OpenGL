@@ -28,7 +28,7 @@ namespace input
 		static const Key& get_some_key(KEYBOARD_BUTTONS keycode, const KeyContainer& keys);
 
 	public:
-		Event<void(KEYBOARD_BUTTONS, Key& state)> onKeyStateChanged;
+		Event<void(KEYBOARD_BUTTONS, KEY_ACTION state)> onKeyStateChanged;
 
 	private:
 		KeyContainer keys_;

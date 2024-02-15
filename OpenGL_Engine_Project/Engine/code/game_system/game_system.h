@@ -26,11 +26,16 @@ namespace application {
 		void begin_frame();
 		void end_frame();
 
-		std::shared_ptr<Window> get_window() { return display.window; };
+		void switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action);
+
+		std::shared_ptr<Window> get_window() { return window; };
 	private:
 		std::shared_ptr<scene::Model> ourModel;
 		std::shared_ptr<Shader> ourShader;
 		std::shared_ptr<Camera> camera;
+
+		std::shared_ptr<Window> window;
+		std::shared_ptr<inp::InputManager> input;
 
 		static constexpr int WIDTH = 1280;
 		static constexpr int HEIGHT = 720;

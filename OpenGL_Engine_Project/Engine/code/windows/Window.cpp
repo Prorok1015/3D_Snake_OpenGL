@@ -17,11 +17,13 @@ application::Window::Window(std::string_view title, int width, int height)
 
     /* Make the window's context current */
     glfwMakeContextCurrent(id_);
-    glfwSwapInterval(1); // Enable vsync
+
+    // Enable vsync
+    glfwSwapInterval(1); 
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
-        //glfwTerminate();
+        ASSERT_FAIL("glad didnt loaded in this process!");
     }
 
     glViewport(0, 0, width_, height_);

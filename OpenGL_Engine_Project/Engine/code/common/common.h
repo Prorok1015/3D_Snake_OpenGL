@@ -25,24 +25,10 @@
 #include "imgui/imgui_impl_glfw.h"
 #include "imgui/imgui_impl_opengl3.h"
 
-template<class T = void()>
-struct Event
-{
-	using EVENT_SIGATURE_T = T;
-	using EVENT_LISTENER_T = std::function<EVENT_SIGATURE_T>;
+#include "ds_event.hpp"
 
-	auto begin() const { return std::begin(listeners); }
-	auto end() const { return std::end(listeners); }
-	template<class DELEGATE>
-	void operator += (DELEGATE&& f) { listeners.emplace_back(f); }
 
-	template<class ...ARGS>
-	void operator() (ARGS&&... args) {
-		for (const auto& cb : listeners) {
-			cb(args...);
-		}
-	}
-private:
-	std::vector<EVENT_LISTENER_T> listeners;
-
-};
+template <typename SIGNATURE>
+using EVENT_MANAGED = ds::Event<SIGNATURE, ds::EventPolicyManagedContainer<ds::EventStoragePopicyVector>>;
+template <typename SIGNATURE = void()>
+using Event = ds::Event<SIGNATURE, ds::EventPolicyManagedContainer<ds::EventStoragePopicyVector>>;

@@ -10,8 +10,5 @@ namespace application
 	public:
 		void initialize(std::string_view title, int width, int height);
 
-		std::shared_ptr<Window> window;
-	//private:
-		std::shared_ptr<inp::InputManager> input;
 	};
 }
