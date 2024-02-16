@@ -1,5 +1,7 @@
 #pragma once
 #include "../common/common.h"
+#include "../common/enums.h"
+#include "../input/inp_key_enums.hpp"
 
 namespace debug_ui
 {
@@ -19,6 +21,11 @@ namespace debug_ui
 		void begin_frame();
 		void end_frame();
 		void capture();
+
+		bool is_hiden() const { return !enable_input; }
+
+		void switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action);
+		void set_enable_input(bool enable);
 
 	private:
 		// Our state

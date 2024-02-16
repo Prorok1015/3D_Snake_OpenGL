@@ -1,6 +1,5 @@
 #include "debug_ui_system.h"
 #include "../game_system/game_system.h"
-#include "../common/enums.h"
 
 debug_ui::DebugUiSystem* p_dbgui_system = nullptr;
 
@@ -15,24 +14,7 @@ debug_ui::DebugUiSystem::DebugUiSystem()
 	auto& game = gm::get_system();
 	inp::InputSystem& inpSystem = inp::get_system();
 
-	inpSystem.sub_keyboard_by_tag<DebugUiSystem>(
-		[this](inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action) 
-		{ 
-			auto& game = gm::get_system();
-			game.switch_input(code, action); 
-			if (code == inp::KEYBOARD_BUTTONS::F5)
-			{
-				if (action == inp::KEY_ACTION::UP) {
-					enable_input = !enable_input;
-					if (enable_input) {
-						ImGui_ImplGlfw_InstallCallbacks(game.get_window()->id_);
-						game.get_window()->set_cursor_mode(CursorMode::Normal);
-					} else {
-						ImGui_ImplGlfw_RestoreCallbacks(game.get_window()->id_);
-					}
-				}
-			}
-		});
+	inpSystem.sub_keyboard_by_tag<DebugUiSystem>([this](auto code, auto action) { switch_input(code, action); });
 
 	auto win = game.get_window();
 	// Setup Dear ImGui context
@@ -79,6 +61,10 @@ void debug_ui::DebugUiSystem::end_frame()
 
 void debug_ui::DebugUiSystem::capture()
 {
+	if (is_hiden()) {
+		return;
+	}
+
 	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
 	if (show_demo_window)
 		ImGui::ShowDemoWindow(&show_demo_window);
@@ -115,5 +101,29 @@ void debug_ui::DebugUiSystem::capture()
 		if (ImGui::Button("Close Me"))
 			show_another_window = false;
 		ImGui::End();
+	}
+}
+
+void debug_ui::DebugUiSystem::switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action)
+{
+	if (code == inp::KEYBOARD_BUTTONS::F5 && action == inp::KEY_ACTION::UP)
+	{
+		bool inv_enable_input = !enable_input;
+		auto& game = gm::get_system();
+		game.set_enable_input(!inv_enable_input);
+		set_enable_input(inv_enable_input);
+	}
+}
+
+void debug_ui::DebugUiSystem::set_enable_input(bool enable)
+{
+	enable_input = enable;
+	auto& game = gm::get_system();
+
+	if (enable_input) {
+		ImGui_ImplGlfw_InstallCallbacks(game.get_window()->id_);
+		game.get_window()->set_cursor_mode(CursorMode::Normal);
+	} else {
+		ImGui_ImplGlfw_RestoreCallbacks(game.get_window()->id_);
 	}
 }

@@ -27,6 +27,7 @@ namespace game
 		void end_frame();
 
 		void switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action);
+		void set_enable_input(bool enable);
 
 		std::shared_ptr<wnd::Window> get_window() { return window; };
 	private:

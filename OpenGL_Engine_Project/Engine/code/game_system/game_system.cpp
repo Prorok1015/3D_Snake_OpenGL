@@ -74,11 +74,11 @@ void game::GameSystem::end_frame()
 
 void game::GameSystem::switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action)
 {
-	if (code == inp::KEYBOARD_BUTTONS::F5)
-	{
-		if (action == inp::KEY_ACTION::UP) {
-			input->set_enabled(!input->is_enabled());
-			window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal);
-		}
-	}
+
+}
+
+void game::GameSystem::set_enable_input(bool enable)
+{
+	input->set_enabled(enable);
+	window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal);
 }
