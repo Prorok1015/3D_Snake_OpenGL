@@ -18,6 +18,22 @@ namespace data_struct {
 		}
 
 	};
+
+	//template<class T>
+	//struct TypeId
+	//{
+	//	static TypeId<T> get()
+	//	{
+	//		return { Type::value<T>() };
+	//	}
+
+	//	auto operator <=> (const TypeId<T>&) const = default;
+
+	//	Type::unique_id value() const { return id_; }
+
+	//	Type::unique_id id_ = NULL_ID;
+	//	static constexpr Type::unique_id NULL_ID = -1;
+	//};
 }
 
 namespace ds = data_struct;

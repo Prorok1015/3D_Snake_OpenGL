@@ -1,12 +1,20 @@
 #include "window_system.h"
 #include "window.h"
 #include "../input/inp_input_system.h"
-#include "../common/ds_store.hpp"
 
-using namespace application;
+
+windows::WindowSystem* p_wnd_system = nullptr;
+
+windows::WindowSystem& windows::get_system()
+{
+    ASSERT_MSG(p_wnd_system, "Window system is nullptr!");
+    return *p_wnd_system;
+}
+
+using namespace windows;
 
 static void window_size_callback(GLFWwindow* window, int width, int height) {
-    auto& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+    auto& wndCreator = wnd::get_system();
     auto wnd = wndCreator.find_window({ window });
     if (auto swnd = wnd.lock()) {
         swnd->on_resize_window(width, height);
@@ -14,36 +22,36 @@ static void window_size_callback(GLFWwindow* window, int width, int height) {
 }
 
 static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
-    auto& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+    auto& wndCreator = wnd::get_system();
     auto wnd = wndCreator.find_window({ window });
     if (auto swnd = wnd.lock()) {
         swnd->on_mouse_move(xpos, ypos);
     }
-    inp::InputSystem& inpSys = ds::DataStorage::instance().require<inp::InputSystem>();
+    inp::InputSystem& inpSys = inp::get_system();
     inpSys.mouse.on_mouse_move(xpos, ypos);
 }
 
 static void mouse_button_callback(GLFWwindow* window, int button, int action, int mode) {
-    auto& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+    auto& wndCreator = wnd::get_system();
     auto wnd = wndCreator.find_window({ window });
     if (auto swnd = wnd.lock()) {
         swnd->on_mouse_button_action(button, action, mode);
     }
-    inp::InputSystem& inpSys = ds::DataStorage::instance().require<inp::InputSystem>();
+    inp::InputSystem& inpSys = inp::get_system();
     inpSys.mouse.on_mouse_button_action(button, action, mode);
 }
 
 static void key_callback(GLFWwindow* window, int keycode, int scancode, int action, int mode) {
-    auto& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+    auto& wndCreator = wnd::get_system();
     auto wnd = wndCreator.find_window({ window });
     if (auto swnd = wnd.lock()) {
         swnd->on_keyboard_action(keycode, scancode, action, mode);
     }
-    inp::InputSystem& inpSys = ds::DataStorage::instance().require<inp::InputSystem>();
+    inp::InputSystem& inpSys = inp::get_system();
     inpSys.keyboard.on_key_action(keycode, scancode, action, mode);
 }
 
-application::WindowSystem::WindowSystem()
+windows::WindowSystem::WindowSystem()
 {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -52,16 +60,16 @@ application::WindowSystem::WindowSystem()
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
 }
 
-application::WindowSystem::~WindowSystem()
+windows::WindowSystem::~WindowSystem()
 {
     glfwTerminate();
 }
 
-std::shared_ptr<Window> application::WindowSystem::make_window(std::string_view title, int width, int height)
+std::shared_ptr<Window> windows::WindowSystem::make_window(std::string_view title, int width, int height)
 {
     auto shared_window = std::make_shared<Window>(title, width, height);
     auto window = shared_window->id_;
-    windowList[window] = shared_window;
+    windows_[window] = shared_window;
 
     glfwSetKeyCallback(window, key_callback);
     glfwSetWindowSizeCallback(window, window_size_callback);
@@ -71,15 +79,15 @@ std::shared_ptr<Window> application::WindowSystem::make_window(std::string_view 
     return shared_window;
 }
 
-std::weak_ptr<Window> application::WindowSystem::find_window(Window::Id win)
+std::weak_ptr<Window> windows::WindowSystem::find_window(Window::Id win)
 {
-    return windowList[win];
+    return windows_[win];
 }
 
-bool application::WindowSystem::is_all_windows_close()
+bool windows::WindowSystem::is_all_windows_close()
 {
     bool isClose = false;
-    for (auto [_, win] : windowList)
+    for (auto [_, win] : windows_)
     {
         if (auto swin = win.lock()) {
             isClose |= swin->is_should_close();
@@ -88,7 +96,7 @@ bool application::WindowSystem::is_all_windows_close()
     return isClose;
 }
 
-float application::WindowSystem::now_time()
+float windows::WindowSystem::now_time()
 {
     return (float)glfwGetTime();
 }

@@ -1,6 +1,13 @@
 #include "application.h"
-#include "common/ds_store.hpp"
 #include "windows/window_system.h"
+
+app::Application* p_app_system = nullptr;
+
+application::Application& application::get_app_system()
+{
+	ASSERT_MSG(p_app_system, "Application system is nullptr!");
+	return *p_app_system;
+}
 
 application::Application::Application()
 {
@@ -12,7 +19,7 @@ application::Application::~Application()
 
 int application::Application::run()
 {
-	auto& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+	auto& wndCreator = wnd::get_system();
 
 	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 

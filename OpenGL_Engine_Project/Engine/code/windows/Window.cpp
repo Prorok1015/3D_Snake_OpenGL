@@ -2,9 +2,9 @@
 #include "../common/common.h"
 #include "../common/enums.h"
 
-using namespace application;
+using namespace windows;
 
-application::Window::Window(std::string_view title, int width, int height)
+windows::Window::Window(std::string_view title, int width, int height)
     : width_(width), height_(height)
 {   
     /* Create a windowed mode window and its OpenGL context */
@@ -29,7 +29,7 @@ application::Window::Window(std::string_view title, int width, int height)
     glViewport(0, 0, width_, height_);
 }
 
-application::Window::~Window()
+windows::Window::~Window()
 {
     //glfwDestroyWindow
 }
@@ -66,7 +66,7 @@ void Window::update_frame()
     lastTime = currentTime;
 }
 
-void application::Window::on_resize_window(int width, int height)
+void windows::Window::on_resize_window(int width, int height)
 {
     glViewport(0, 0, width, height);
     width_ = width;
@@ -74,17 +74,17 @@ void application::Window::on_resize_window(int width, int height)
     eventResizeWindow(*this, width, height);
 }
 
-void application::Window::on_mouse_move(double xpos, double ypos)
+void windows::Window::on_mouse_move(double xpos, double ypos)
 {
     eventMouseMove(*this, xpos, ypos);
 }
 
-void application::Window::on_mouse_button_action(int button, int action, int mode)
+void windows::Window::on_mouse_button_action(int button, int action, int mode)
 {
     eventMouseAction(*this, button, action, mode);
 }
 
-void application::Window::on_keyboard_action(int keycode, int scancode, int action, int mode)
+void windows::Window::on_keyboard_action(int keycode, int scancode, int action, int mode)
 {
     eventKeyboardAction(*this, keycode, scancode, action, mode);
 }

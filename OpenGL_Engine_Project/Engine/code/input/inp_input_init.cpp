@@ -3,11 +3,20 @@
 #include "../application.h"
 #include "../windows/wnd_windows_init.h"
 
-void components::input_init(ds::DataStorage& data)
+extern inp::InputSystem* p_inp_system;
+
+void components::input_init(ds::AppDataStorage& data)
 {
-	auto& inp = data.construct<inp::InputSystem>();
+	p_inp_system = &data.construct<inp::InputSystem>();
 	auto& myApp = data.require<app::Application>();
 
-	myApp.endFrame += [&] { inp.end_frame(); };
+	myApp.endFrame += [] { inp::get_system().end_frame(); };
 	windows_init(data);
+}
+
+void components::input_term(ds::AppDataStorage& data)
+{
+	windows_term(data);
+	data.destruct<inp::InputSystem>();
+	p_inp_system = nullptr;
 }

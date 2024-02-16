@@ -15,7 +15,7 @@ namespace input
 		void on_mouse_move(double xpos, double ypos);
 		void on_mouse_button_action(int button, int action, int mode);
 
-		const Key& get_key(MOUSE_BUTTONS key) const;
+		Key get_key(MOUSE_BUTTONS key) const;
 
 	private:
 		glm::vec2 position_;

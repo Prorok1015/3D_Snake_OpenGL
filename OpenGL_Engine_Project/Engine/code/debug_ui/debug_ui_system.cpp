@@ -1,17 +1,24 @@
 #include "debug_ui_system.h"
-#include "../common/ds_store.hpp"
 #include "../game_system/game_system.h"
 #include "../common/enums.h"
 
+debug_ui::DebugUiSystem* p_dbgui_system = nullptr;
+
+debug_ui::DebugUiSystem& debug_ui::get_system()
+{
+	ASSERT_MSG(p_dbgui_system, "DebugUi system is nullptr!");
+	return *p_dbgui_system;
+}
 
 debug_ui::DebugUiSystem::DebugUiSystem()
 {
-	auto& game = ds::DataStorage::instance().require<app::GameSystem>();
-	inp::InputSystem& inpSystem = ds::DataStorage::instance().require<inp::InputSystem>();
+	auto& game = gm::get_system();
+	inp::InputSystem& inpSystem = inp::get_system();
 
-	inpSystem.SubscribeKeyboardByType<DebugUiSystem>(
-		[this, &game](inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action) 
+	inpSystem.sub_keyboard_by_tag<DebugUiSystem>(
+		[this](inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action) 
 		{ 
+			auto& game = gm::get_system();
 			game.switch_input(code, action); 
 			if (code == inp::KEYBOARD_BUTTONS::F5)
 			{

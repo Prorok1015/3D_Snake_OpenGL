@@ -1,5 +1,4 @@
 #include "game_system.h"
-#include "../common/ds_store.hpp"
 
 #include "../input/inp_input_manager.h"
 #include "../input/inp_input_system.h"
@@ -10,11 +9,18 @@
 
 #include "../windows/window_system.h"
 
-using namespace application;
+game::GameSystem* p_game_system = nullptr;
 
-GameSystem::GameSystem()
+game::GameSystem& game::get_system()
 {
-	WindowSystem& wndCreator = ds::DataStorage::instance().require<WindowSystem>();
+	ASSERT_MSG(p_game_system, "Game system is nullptr!");
+	return *p_game_system;
+}
+
+
+game::GameSystem::GameSystem()
+{
+	wnd::WindowSystem& wndCreator = wnd::get_system();
 
 	window = wndCreator.make_window("Window 3.0", WIDTH, HEIGHT);
 	input = std::make_shared<inp::InputManager>();
@@ -27,16 +33,16 @@ GameSystem::GameSystem()
 	input->create_click_action(inp::KEYBOARD_BUTTONS::TAB, [this] { camera->set_enabled(!camera->is_enabled()); window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal); });
 }
 
-GameSystem::~GameSystem()
+game::GameSystem::~GameSystem()
 {
 }
 
-void GameSystem::capture()
+void game::GameSystem::capture()
 {
 	camera->update();
 }
 
-void GameSystem::render()
+void game::GameSystem::render()
 {
 	// activate shader
 	ourShader->use();
@@ -54,19 +60,19 @@ void GameSystem::render()
 	ourModel->Draw(*ourShader.get());
 }
 
-void GameSystem::begin_frame()
+void game::GameSystem::begin_frame()
 {
 	window->update_frame();
 	float dt = window->delta;
 	input->notify_listeners(dt);
 }
 
-void GameSystem::end_frame()
+void game::GameSystem::end_frame()
 {
 	window->swap_buffers();
 }
 
-void application::GameSystem::switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action)
+void game::GameSystem::switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action)
 {
 	if (code == inp::KEYBOARD_BUTTONS::F5)
 	{

@@ -27,8 +27,8 @@
 
 #include "ds_event.hpp"
 
-
 template <typename SIGNATURE>
-using EVENT_MANAGED = ds::Event<SIGNATURE, ds::EventPolicyManagedContainer<ds::EventStoragePopicyVector>>;
+using EventManaged = ds::Event<SIGNATURE, ds::EventPolicyManagedContainer<ds::EventStoragePopicyVector>>;
+
 template <typename SIGNATURE = void()>
-using Event = ds::Event<SIGNATURE, ds::EventPolicyManagedContainer<ds::EventStoragePopicyVector>>;
+using Event = ds::Event<SIGNATURE, ds::EventPolicySimpleContainer<ds::EventStoragePopicyVector>>;

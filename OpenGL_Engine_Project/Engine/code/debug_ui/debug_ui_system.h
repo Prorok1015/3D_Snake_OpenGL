@@ -9,10 +9,11 @@ namespace debug_ui
 		DebugUiSystem();
 		~DebugUiSystem();
 
-		DebugUiSystem(const DebugUiSystem&) = default;
 		DebugUiSystem(DebugUiSystem&&) = default;
-		DebugUiSystem& operator= (const DebugUiSystem&) = default;
 		DebugUiSystem& operator= (DebugUiSystem&&) = default;
+
+		DebugUiSystem(const DebugUiSystem&) = delete;
+		DebugUiSystem& operator= (const DebugUiSystem&) = delete;
 
 		void render();
 		void begin_frame();
@@ -26,6 +27,8 @@ namespace debug_ui
 		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 		bool enable_input = false;
 	};
+
+	DebugUiSystem& get_system();
 }
 
 namespace dbg_ui = debug_ui;

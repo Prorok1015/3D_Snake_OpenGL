@@ -11,25 +11,25 @@ namespace input
 	public:
 		InputSystem();
 		~InputSystem() = default;
-		InputSystem(const InputSystem&) = default;
 		InputSystem(InputSystem&&) = default;
-		InputSystem& operator= (const InputSystem&) = default;
 		InputSystem& operator= (InputSystem&&) = default;
+
+		InputSystem(const InputSystem&) = delete;
+		InputSystem& operator= (const InputSystem&) = delete;
 
 		void end_frame();
 
-		const Key& get_key_state(KEYBOARD_BUTTONS) const;
-		const Key& get_key_state(MOUSE_BUTTONS) const;
+		Key get_key_state(KEYBOARD_BUTTONS) const;
+		Key get_key_state(MOUSE_BUTTONS) const;
 
 		template<class T, class HANDLER>
-		void SubscribeKeyboardByType(HANDLER&& callback)
+		void sub_keyboard_by_tag(HANDLER&& callback)
 		{
-			//onKeyAction.Subscribe(ds::Type::value<T>(), std::forward<HANDLER>(callback));
 			onKeyAction += callback;
 		}
 
 		template<class T>
-		void UnsubscribeKeyboardByType()
+		void unsub_keyboard_by_tag()
 		{
 			//onKeyAction.Unsubscribe(ds::Type::value<T>());
 		}
@@ -40,6 +40,8 @@ namespace input
 		Event<void(KEYBOARD_BUTTONS keycode, KEY_ACTION action)> onKeyAction;
 
 	};
+
+	InputSystem& get_system();
 }
 
 namespace inp = input;

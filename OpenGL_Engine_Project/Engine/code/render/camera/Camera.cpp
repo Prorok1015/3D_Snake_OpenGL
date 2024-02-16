@@ -7,7 +7,7 @@ Camera::Camera(std::shared_ptr<inp::InputManager> inp_m, glm::vec3 pos, float fo
 	update_vectors();
 }
 
-void Camera::attath_to_window(std::shared_ptr<app::Window> wnd)
+void Camera::attath_to_window(std::shared_ptr<wnd::Window> wnd)
 {
 	if (wnd == nullptr) {
 		return;

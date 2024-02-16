@@ -3,7 +3,7 @@
 
 void input::InputActionMouseMove::update(float dt)
 {
-	InputSystem& inpSys = ds::DataStorage::instance().require<InputSystem>();
+	InputSystem& inpSys = inp::get_system();
 	glm::vec2 cur_pos = inpSys.mouse.get_pos();
 
 	if (position != cur_pos) {

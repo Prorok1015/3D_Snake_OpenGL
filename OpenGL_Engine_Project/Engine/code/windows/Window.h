@@ -3,7 +3,7 @@
 struct GLFWwindow;
 enum class CursorMode;
 
-namespace application
+namespace windows
 {
 
 	class Window
@@ -51,4 +51,4 @@ namespace application
 	};
 }
 
-namespace app = application;
+namespace wnd = windows;

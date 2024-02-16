@@ -22,7 +22,7 @@ void input::KeyboardDevice::on_key_action(int keycode, int scancode, int action,
     }
 
     KEYBOARD_BUTTONS keyboard_keycode = (KEYBOARD_BUTTONS)keycode;
-    on_key_keyboard_action(keyboard_keycode, act, application::WindowSystem::now_time());
+    on_key_keyboard_action(keyboard_keycode, act, wnd::WindowSystem::now_time());
 
     onKeyStateChanged(keyboard_keycode, act);
 
@@ -39,7 +39,7 @@ void input::KeyboardDevice::on_key_keyboard_action(KEYBOARD_BUTTONS keycode, KEY
     state.time_stamp_up = action == KEY_ACTION::UP ? time : state.time_stamp_up;
 }
 
-const inp::Key& input::KeyboardDevice::get_some_key(KEYBOARD_BUTTONS keycode, const KeyContainer& keys)
+inp::Key input::KeyboardDevice::get_some_key(KEYBOARD_BUTTONS keycode, const KeyContainer& keys)
 {
     auto it = keys.find(keycode);
     if (it != keys.end())

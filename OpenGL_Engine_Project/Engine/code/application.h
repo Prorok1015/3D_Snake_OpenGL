@@ -9,10 +9,10 @@ namespace application
 	public:
 		Application();
 		virtual ~Application();
-		Application& operator= (const Application&) = default;
-		Application& operator= (Application&&) = default;
-		Application(const Application&) = default;
 		Application(Application&&) = default;
+		Application& operator= (Application&&) = default;
+		Application(const Application&) = delete;
+		Application& operator= (const Application&) = delete;
 
 		virtual int run();
 	public:
@@ -21,6 +21,8 @@ namespace application
 		Event<> render;
 		Event<> endFrame;
 	};
+
+	Application& get_app_system();
 }
 
 namespace app = application;

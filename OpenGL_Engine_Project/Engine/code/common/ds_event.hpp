@@ -6,19 +6,6 @@
 
 namespace data_struct
 {
-	template <typename SIGNATURE, typename IMPL_POLICY>
-	class EventBase : public IMPL_POLICY::template IMPL<SIGNATURE>::TYPE{
-	public:
-	   using IMPL_T = typename IMPL_POLICY::template IMPL<SIGNATURE>::TYPE;
-	   using SLOT = typename IMPL_T::SLOT;
-
-	   template <class K>
-	   void operator+=(K&& slot)
-	   {
-		  IMPL_T::subscribe(std::forward<K>(slot));
-	   }
-	};
-
 	struct EventSlotPolicyCopy
 	{
 		template <typename T>
@@ -56,6 +43,40 @@ namespace data_struct
 
 		template<class T>
 		using STORAGE = Storage<T>;
+	};
+
+	template <typename SIGNATURE, typename STORAGE_POLICY, typename SLOT_POLICY>
+	class EventImplSimpleContainer {
+	public:
+		using SLOT = typename SLOT_POLICY::template SLOT<SIGNATURE>;
+		using HANDLE = void;
+
+	public:
+		void subscribe(SLOT slot)
+		{
+			storage.add(std::move(slot));
+		}
+
+		void unsubscribe_all() { storage.clear(); }
+		void clear() { unsubscribe_all(); }
+		bool empty() const { return storage.empty(); }
+
+	private:
+		using CONNECTION = SLOT;
+		using STORAGE_T = typename STORAGE_POLICY::template STORAGE<CONNECTION>;
+
+	protected:
+		using ITERATOR = typename STORAGE_T::ITERATOR;
+		using CONST_ITERATOR = typename STORAGE_T::CONST_ITERATOR;
+
+	protected:
+		ITERATOR begin() { return storage.begin(); }
+		ITERATOR end() { return storage.end(); }
+		CONST_ITERATOR begin() const { return storage.begin(); }
+		CONST_ITERATOR end() const { return storage.end(); }
+
+	private:
+		STORAGE_T storage;
 	};
 
 	template<class SIGNATURE, class STORAGE_POLICY, class POLICY_SLOT>
@@ -114,7 +135,6 @@ namespace data_struct
 		return handle;
 	}
 
-
 	template <typename SIGNATURE, typename STORAGE_POLICY, typename SLOT_POLICY>
 	template <typename TAG>
 	void EventImplManagedContainer<SIGNATURE, STORAGE_POLICY, SLOT_POLICY>::subscribe_by_tag(const SLOT& slot)
@@ -127,7 +147,6 @@ namespace data_struct
 		handles.add(handle);
 	}
 
-
 	template <typename SIGNATURE, typename STORAGE_POLICY, typename SLOT_POLICY>
 	template <typename TAG>
 	void EventImplManagedContainer<SIGNATURE, STORAGE_POLICY, SLOT_POLICY>::subscribe_by_tag(SLOT&& slot)
@@ -139,7 +158,6 @@ namespace data_struct
 		ASSERT_MSG(handles.contains(handle), "Only one subscription for the same TAG is allowed");
 		handles.add(handle);
 	}
-
 
 	template <typename SIGNATURE, typename STORAGE_POLICY, typename SLOT_POLICY>
 	bool EventImplManagedContainer<SIGNATURE, STORAGE_POLICY, SLOT_POLICY>::unsubscribe(HANDLE handle)
@@ -164,7 +182,6 @@ namespace data_struct
 		return true;
 	}
 
-
 	template <typename SIGNATURE, typename STORAGE_POLICY, typename SLOT_POLICY>
 	template <typename TAG>
 	bool EventImplManagedContainer<SIGNATURE, STORAGE_POLICY, SLOT_POLICY>::unsubscribe_by_tag()
@@ -174,15 +191,12 @@ namespace data_struct
 		return unsubscribe(handle);
 	}
 
-
 	template <typename SIGNATURE, typename STORAGE_POLICY, typename SLOT_POLICY>
 	void EventImplManagedContainer<SIGNATURE, STORAGE_POLICY, SLOT_POLICY>::unsubscribe_all()
 	{
 		storage.clear();
 		handles.clear();
 	}
-
-
 
 	template <typename STORAGE_POLICY, typename SLOT_POLICY = EventSlotPolicyCopy>
 	struct EventPolicyManagedContainer {
@@ -192,10 +206,31 @@ namespace data_struct
 		};
 	};
 
+	template <typename STORAGE_POLICY, typename SLOT_POLICY = EventSlotPolicyCopy>
+	struct EventPolicySimpleContainer {
+		template <typename SIGNATURE>
+		struct IMPL {
+			using TYPE = EventImplSimpleContainer<SIGNATURE, STORAGE_POLICY, SLOT_POLICY>;
+		};
+	};
+
+	template <typename SIGNATURE, typename IMPL_POLICY>
+	class EventBase : public IMPL_POLICY::template IMPL<SIGNATURE>::TYPE{
+	public:
+	   using IMPL_T = typename IMPL_POLICY::template IMPL<SIGNATURE>::TYPE;
+	   using SLOT = typename IMPL_T::SLOT;
+
+	   template <class K>
+	   void operator+=(K&& slot)
+	   {
+		  IMPL_T::subscribe(std::forward<K>(slot));
+	   }
+	};
+
 	template<class T, class IMPL_POLICY>
-	class Event : public ds::EventBase<T, IMPL_POLICY>
+	class Event : public EventBase<T, IMPL_POLICY>
 	{
-		using PARENT_TYPE = ds::EventBase<T, IMPL_POLICY>;
+		using PARENT_TYPE = EventBase<T, IMPL_POLICY>;
 
 	public:
 		template<class ...ARGS>

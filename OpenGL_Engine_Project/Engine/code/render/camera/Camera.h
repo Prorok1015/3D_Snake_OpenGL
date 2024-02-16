@@ -10,7 +10,7 @@ class Camera {
 public:
 	Camera(std::shared_ptr<inp::InputManager> inp_manager, glm::vec3 position, float fov);
 
-	void attath_to_window(std::shared_ptr<app::Window> wnd);
+	void attath_to_window(std::shared_ptr<wnd::Window> wnd);
 
 	void rotate(float x, float y, float z);
 	glm::mat4 projection(float fov);
@@ -28,7 +28,7 @@ private:
 
 public:
 	std::shared_ptr<inp::InputManager> input_;
-	std::shared_ptr<app::Window> window_;
+	std::shared_ptr<wnd::Window> window_;
 	glm::vec3 front_;
 	glm::vec3 up_;
 	glm::vec3 right_;

@@ -1,6 +1,5 @@
 #pragma once
 #include "../common/common.h"
-#include "../windows/display.h"
 
 #include "../render/shader/shader.h"
 #include "../render/camera/camera.h"
@@ -9,15 +8,16 @@ namespace scene {
 	class Model;
 }
 
-namespace application {
+namespace game 
+{
 	class GameSystem
 	{
 	public:
 		GameSystem();
 		~GameSystem();
-		GameSystem(const GameSystem&) = default;
+		GameSystem(const GameSystem&) = delete;
+		GameSystem& operator= (const GameSystem&) = delete;
 		GameSystem(GameSystem&&) = default;
-		GameSystem& operator= (const GameSystem&) = default;
 		GameSystem& operator= (GameSystem&&) = default;
 
 		void capture();
@@ -28,22 +28,23 @@ namespace application {
 
 		void switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action);
 
-		std::shared_ptr<Window> get_window() { return window; };
+		std::shared_ptr<wnd::Window> get_window() { return window; };
 	private:
 		std::shared_ptr<scene::Model> ourModel;
 		std::shared_ptr<Shader> ourShader;
 		std::shared_ptr<Camera> camera;
 
-		std::shared_ptr<Window> window;
+		std::shared_ptr<wnd::Window> window;
 		std::shared_ptr<inp::InputManager> input;
 
 		static constexpr int WIDTH = 1280;
 		static constexpr int HEIGHT = 720;
-		Display display;
 
 		float camX = 0.0f;
 		float camY = 0.0f;
 	};
+
+	GameSystem& get_system();
 }
 
-namespace app = application;
+namespace gm = game;

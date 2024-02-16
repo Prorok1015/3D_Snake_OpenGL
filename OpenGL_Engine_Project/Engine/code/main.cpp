@@ -1,12 +1,15 @@
 #include "application.h"
-#include "common/ds_store.hpp"
 #include "components_init.h"
 
 int main()
 {
-	com::component_init(ds::DataStorage::instance());
+	ds::AppDataStorage app_storage;
+	com::component_init(app_storage);
 
-	app::Application& myApp = ds::DataStorage::instance().require<app::Application>();
+	app::Application& myApp = app::get_app_system();
+	int result = myApp.run();
 
-	return myApp.run();
+	com::component_term(app_storage);
+
+	return result;
 }

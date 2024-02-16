@@ -1,9 +1,7 @@
 #pragma once
 #include "../common/common.h"
 #include "inp_key_enums.hpp"
-
 #include "inp_input_system.h"
-#include "../common/ds_store.hpp"
 
 namespace input
 {
@@ -27,7 +25,7 @@ namespace input
 
 		virtual void update(float dt)
 		{
-			InputSystem& inpSys = ds::DataStorage::instance().require<InputSystem>();
+			InputSystem& inpSys = inp::get_system();
 			const auto& action = inpSys.get_key_state(tag_);
 
 			if (action.action == inp::KEY_ACTION::DOWN) {
@@ -72,7 +70,7 @@ namespace input
 
 		virtual void update(float dt)
 		{
-			InputSystem& inpSys = ds::DataStorage::instance().require<InputSystem>();
+			InputSystem& inpSys = inp::get_system();
 			const auto& action = inpSys.keyboard.get_key(tag_);
 			if (action.action == inp::KEY_ACTION::DOWN) {
 				actual_time += dt;
