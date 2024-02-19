@@ -30,6 +30,9 @@ debug_ui::DebugUiSystem::DebugUiSystem()
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(win->id_, enable_input);
 	ImGui_ImplOpenGL3_Init("#version 130");
+
+	registrate_menu("DEMO/SHOW DEMO WINDOW", [this] { return show_demo(); });
+	registrate_menu("MENU/STATISTIC WINDOW", [this] {  return show_stats(); });
 }
 
 debug_ui::DebugUiSystem::~DebugUiSystem()
@@ -65,53 +68,16 @@ void debug_ui::DebugUiSystem::capture()
 		return;
 	}
 
-	// 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-	if (show_demo_window)
-		ImGui::ShowDemoWindow(&show_demo_window);
-
-	// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-	{
-		static float f = 0.0f;
-		static int counter = 0;
-
-		ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-		ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-		ImGui::Checkbox("Demo Window", &show_demo_window);      // Edit bools storing our window open/close state
-		ImGui::Checkbox("Another Window", &show_another_window);
-
-		ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-		ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-		if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-			counter++;
-		ImGui::SameLine();
-		ImGui::Text("counter = %d", counter);
-
-		ImGuiIO& io = ImGui::GetIO();
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-		ImGui::End();
-	}
-
-	// 3. Show another simple window.
-	if (show_another_window)
-	{
-		ImGui::Begin("Another Window", &show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-		ImGui::Text("Hello from another window!");
-		if (ImGui::Button("Close Me"))
-			show_another_window = false;
-		ImGui::End();
-	}
+	menu.process();
 }
 
 void debug_ui::DebugUiSystem::switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action)
 {
 	if (code == inp::KEYBOARD_BUTTONS::F5 && action == inp::KEY_ACTION::UP)
 	{
-		bool inv_enable_input = !enable_input;
 		auto& game = gm::get_system();
-		game.set_enable_input(!inv_enable_input);
-		set_enable_input(inv_enable_input);
+		game.set_enable_input(menu.is_show_main_menu());
+		menu.set_show_main_menu(!menu.is_show_main_menu());
 	}
 }
 
@@ -126,4 +92,58 @@ void debug_ui::DebugUiSystem::set_enable_input(bool enable)
 	} else {
 		ImGui_ImplGlfw_RestoreCallbacks(game.get_window()->id_);
 	}
+}
+
+void debug_ui::DebugUiSystem::registrate_menu(std::string_view path, DebugUiMainMenu::UI_CALLBACK callback)
+{
+	menu.registrate(path, callback);
+}
+
+void debug_ui::DebugUiSystem::unregistrate_menu(std::string_view path)
+{
+	menu.unregistrate(path);
+}
+
+void debug_ui::DebugUiSystem::register_implicit(const std::string_view id, DebugUiMainMenu::UI_CALLBACK callback)
+{
+	menu.register_implicit(id, callback);
+}
+
+void debug_ui::DebugUiSystem::unregister_implicit(const std::string_view id)
+{
+	menu.unregister_implicit(id);
+}
+
+void debug_ui::DebugUiSystem::set_menu_checked(const std::string_view path, bool checked)
+{
+	menu.set_menu_checked(path, checked);
+}
+
+bool debug_ui::DebugUiSystem::is_item_checked(const std::string_view path) const
+{
+	return menu.is_item_checked(path);
+}
+
+void debug_ui::DebugUiSystem::set_check_callback(const std::string_view path, DebugUiMainMenu::UI_SWITCH_CALLBACK callback)
+{
+	menu.set_check_callback(path, callback);
+}
+
+bool debug_ui::DebugUiSystem::show_stats()
+{
+	bool is_open = true;
+	if (ImGui::Begin("Hello, world!", &is_open))                      
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+		ImGui::End();
+	}
+	return is_open;
+}
+
+bool debug_ui::DebugUiSystem::show_demo()
+{
+	bool show_demo_window = true;
+	ImGui::ShowDemoWindow(&show_demo_window);
+	return show_demo_window;
 }

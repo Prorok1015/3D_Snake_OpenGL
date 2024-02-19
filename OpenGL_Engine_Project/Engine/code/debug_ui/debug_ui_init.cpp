@@ -1,6 +1,7 @@
 #include "debug_ui_init.h"
 #include "debug_ui_system.h"
 #include "../application.h"
+#include "../editor/edt_editor_init.h"
 
 extern dbg_ui::DebugUiSystem* p_dbgui_system;
 
@@ -13,10 +14,12 @@ void components::debug_ui_init(ds::AppDataStorage& data)
 	myApp.render += [] { dbg_ui::get_system().render(); };
 	myApp.endFrame += [] { dbg_ui::get_system().end_frame(); };
 
+	editor_init(data);
 }
 
 void components::debug_ui_term(ds::AppDataStorage& data)
 {
+	editor_term(data);
 	data.destruct<dbg_ui::DebugUiSystem>();
 	p_dbgui_system = nullptr;
 }

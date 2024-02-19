@@ -181,7 +181,10 @@
     <ClCompile Include="code\common\open_gl_specific.cpp" />
     <ClCompile Include="code\components_init.cpp" />
     <ClCompile Include="code\debug_ui\debug_ui_init.cpp" />
+    <ClCompile Include="code\debug_ui\debug_ui_menu_layer.cpp" />
     <ClCompile Include="code\debug_ui\debug_ui_system.cpp" />
+    <ClCompile Include="code\editor\edt_editor_init.cpp" />
+    <ClCompile Include="code\editor\edt_editor_system.cpp" />
     <ClCompile Include="code\game_system\game_system.cpp" />
     <ClCompile Include="code\game_system\gs_game_init.cpp" />
     <ClCompile Include="code\input\inp_input_init.cpp" />
@@ -228,8 +231,12 @@
     <ClInclude Include="code\common\enums.h" />
     <ClInclude Include="code\common\open_gl_specific.h" />
     <ClInclude Include="code\components_init.h" />
+    <ClInclude Include="code\debug_ui\debug_ui_api.h" />
     <ClInclude Include="code\debug_ui\debug_ui_init.h" />
+    <ClInclude Include="code\debug_ui\debug_ui_menu_layer.h" />
     <ClInclude Include="code\debug_ui\debug_ui_system.h" />
+    <ClInclude Include="code\editor\edt_editor_init.h" />
+    <ClInclude Include="code\editor\edt_editor_system.h" />
     <ClInclude Include="code\game_system\game_system.h" />
     <ClInclude Include="code\game_system\gs_game_init.h" />
     <ClInclude Include="code\input\inp_input_init.h" />

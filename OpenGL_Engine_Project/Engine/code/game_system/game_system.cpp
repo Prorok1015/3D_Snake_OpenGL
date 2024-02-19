@@ -47,7 +47,7 @@ void game::GameSystem::render()
 	// activate shader
 	ourShader->use();
 
-	glm::mat4 projection = camera->projection(glm::radians(45.f));//glm::perspective(glm::radians(45.f), display.window->get_aspect_ratio(), 0.1f, 100.0f);
+	glm::mat4 projection = camera->projection(glm::radians(45.f));
 	glm::mat4 view = camera->view();
 	ourShader->uniform_matrix("projection", projection);
 	ourShader->uniform_matrix("view", view);
@@ -82,3 +82,4 @@ void game::GameSystem::set_enable_input(bool enable)
 	input->set_enabled(enable);
 	window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal);
 }
+

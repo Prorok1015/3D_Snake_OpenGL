@@ -2,12 +2,19 @@
 #include "../common/common.h"
 #include "../common/enums.h"
 #include "../input/inp_key_enums.hpp"
+#include "debug_ui_menu_layer.h"
 
 namespace debug_ui
 {
 	class DebugUiSystem 
 	{
 	public:
+		struct Menu
+		{
+			std::string name_;
+			std::vector<Menu> items_;
+		};
+
 		DebugUiSystem();
 		~DebugUiSystem();
 
@@ -22,17 +29,29 @@ namespace debug_ui
 		void end_frame();
 		void capture();
 
-		bool is_hiden() const { return !enable_input; }
+		void set_show_ui(bool show) { is_show = show; }
+		bool is_hiden() const { return !is_show; }
 
 		void switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action);
 		void set_enable_input(bool enable);
 
+		void registrate_menu(std::string_view path, DebugUiMainMenu::UI_CALLBACK callback);
+		void unregistrate_menu(std::string_view path);
+
+		void register_implicit(const std::string_view id, DebugUiMainMenu::UI_CALLBACK callback);
+		void unregister_implicit(const std::string_view id);
+
+		void set_menu_checked(const std::string_view path, bool checked);
+		bool is_item_checked(const std::string_view path) const;
+		void set_check_callback(const std::string_view path, DebugUiMainMenu::UI_SWITCH_CALLBACK callback);
+
+		bool show_stats();
+		bool show_demo();
 	private:
-		// Our state
-		bool show_demo_window = true;
-		bool show_another_window = false;
-		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-		bool enable_input = false;
+		bool is_show = true;
+		bool enable_input = true;
+
+		DebugUiMainMenu menu;
 	};
 
 	DebugUiSystem& get_system();

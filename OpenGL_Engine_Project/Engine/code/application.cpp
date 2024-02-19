@@ -21,12 +21,13 @@ int application::Application::run()
 {
 	auto& wndCreator = wnd::get_system();
 
-	glClearColor(0.5f, 0.5f, 0.5f, 1.f);
 
 	glEnable(GL_DEPTH_TEST);
 	while (!wndCreator.is_all_windows_close()) {
 		beginFrame();
 		capture();
+
+		glClearColor(clear_color_.r, clear_color_.g, clear_color_.b, clear_color_.a);
 
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -35,4 +36,9 @@ int application::Application::run()
 	}
 
 	return 0;
+}
+
+void application::Application::set_clear_color(glm::vec4 color)
+{
+	clear_color_ = color;
 }
