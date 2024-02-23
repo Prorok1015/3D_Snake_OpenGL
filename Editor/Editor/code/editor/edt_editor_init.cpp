@@ -1,0 +1,16 @@
+#include "edt_editor_init.h"
+#include "edt_editor_system.h"
+
+namespace components {
+
+	void editor_init(ds::AppDataStorage& data)
+	{
+		data.construct<edt::EditorSystem>();
+	}
+
+	void editor_term(ds::AppDataStorage& data)
+	{
+		data.destruct<edt::EditorSystem>();
+	}
+
+}
