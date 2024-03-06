@@ -1,6 +1,7 @@
 #не включать вложенные папки в инклюд.
 #Создается вспомогательными проектами
 /include/contrib
+/include/engine
 /include/assimp
 /include/glfw
 /include/Image
