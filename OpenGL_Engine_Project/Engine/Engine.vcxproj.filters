@@ -67,6 +67,9 @@
     <Filter Include="Source files\DebugUI">
       <UniqueIdentifier>{1f855322-edfb-46ad-8eee-9da1553aaa68}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source files\Resource">
+      <UniqueIdentifier>{81e99f50-9f14-43f6-9cd6-77bbc74e935b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="code\render\camera\camera.cpp">
@@ -343,6 +346,12 @@
     </ClInclude>
     <ClInclude Include="code\application\components_init.h">
       <Filter>Source files</Filter>
+    </ClInclude>
+    <ClInclude Include="code\resource\res_resource_system.h">
+      <Filter>Source files\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="code\resource\res_resource_tag.h">
+      <Filter>Source files\Resource</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -10,7 +10,7 @@ namespace editor
 		bool show_toolbar();
 
 	private:
-		char buf[64] = "Old_Hunter/source/Sketchfab.fbx";
+		char buf[64] = "getaur/scene.gltf";
 	};
 
 }

@@ -15,7 +15,7 @@
 #include <array>
 #include <queue>
 #include <ranges>
-#include <string_view>
+#include <string>
 #include <iomanip>
 
 #include "engine_assert.h"
@@ -31,6 +31,8 @@
 #include "imgui/imgui_impl_opengl3.h"
 
 #include "ds_event.hpp"
+
+using namespace std::string_literals;
 
 template <typename SIGNATURE>
 using EventManaged = ds::Event<SIGNATURE, ds::EventPolicyManagedContainer<ds::EventStoragePopicyVector>>;

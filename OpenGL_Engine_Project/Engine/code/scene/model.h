@@ -4,7 +4,7 @@
 #include "mesh.h"
 
 namespace scene {
-    Texture TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
+    Texture TextureFromFile(const std::string_view path, const std::string& directory, bool gamma = false);
 
     class Model
     {

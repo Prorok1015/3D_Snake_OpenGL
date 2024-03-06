@@ -1,8 +1,8 @@
 #include "model.h"
-
+#include <filesystem>
 using namespace scene;
 
-Texture scene::TextureFromFile(const char* path, const std::string& directory, bool gamma)
+Texture scene::TextureFromFile(const std::string_view path, const std::string& directory, bool gamma)
 {
     std::string filename = std::string(path);
     filename = directory + '/' + filename;
@@ -31,7 +31,7 @@ void scene::Model::loadModel(std::string_view path)
     // check for errors
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
     {
-        egLOG("scene/load_model", "ERROR::ASSIMP::{}", importer.GetErrorString());
+        egLOG("scene/model/load", "ERROR::ASSIMP::{}", importer.GetErrorString());
         ASSERT_FAIL("Model was not loaded");
         return;
     }
@@ -154,11 +154,22 @@ std::vector<Texture> scene::Model::loadMaterialTextures(aiMaterial* mat, aiTextu
     {
         aiString str;
         mat->GetTexture(type, i, &str);
+        std::string_view texture_name = str.C_Str();
+        auto f = [](const std::string_view name) {
+            size_t pos = name.find_last_of("/");
+            if (pos == -1) {
+                pos = name.find_last_of("\\");
+                return pos + 1;
+            }
+            return pos + 1;
+        };
+
+        texture_name = texture_name.substr(f(texture_name));
         // check if texture was loaded before and if so, continue to next iteration: skip loading a new texture
         bool skip = false;
         for (unsigned int j = 0; j < textures_loaded.size(); j++)
         {
-            if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0)
+            if (textures_loaded[j].path == texture_name)
             {
                 textures.push_back(textures_loaded[j]);
                 skip = true; // a texture with the same filepath has already been loaded, continue to next one. (optimization)
@@ -167,9 +178,14 @@ std::vector<Texture> scene::Model::loadMaterialTextures(aiMaterial* mat, aiTextu
         }
         if (!skip)
         {   // if texture hasn't been loaded already, load it
-            Texture texture = TextureFromFile(str.C_Str(), this->directory);
+            std::string filename = std::string(texture_name);
+            filename = directory + '/' + filename;
+            if (!std::filesystem::exists(filename)) {
+                continue;
+            }
+            Texture texture = TextureFromFile(texture_name, this->directory);
             texture.type = typeName;
-            texture.path = str.C_Str();
+            texture.path = texture_name;
             textures.push_back(texture);
             textures_loaded.push_back(texture);  // store it as texture loaded for entire model, to ensure we won't unnecessary load duplicate textures.
         }

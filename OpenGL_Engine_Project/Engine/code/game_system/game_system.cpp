@@ -8,6 +8,7 @@
 #include "../scene/model.h"
 
 #include "../windows/window_system.h"
+#include "../resource/res_resource_tag.h"
 
 game::GameSystem* p_game_system = nullptr;
 
@@ -24,7 +25,6 @@ game::GameSystem::GameSystem()
 
 	window = wndCreator.make_window("Window 3.0", WIDTH, HEIGHT);
 	input = std::make_shared<inp::InputManager>();
-
 	ourShader = Shader::load("./res/scene.glslv", "./res/scene.glslf");
 	camera = std::make_shared<Camera>(input, glm::vec3(0, 0, 2), glm::radians(45.0f));
 	camera->attath_to_window(window);
