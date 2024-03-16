@@ -10,7 +10,7 @@ namespace editor
 		bool show_toolbar();
 
 	private:
-		char buf[64] = "getaur/scene.gltf";
+		char buf[64] = "objects/backpack/backpack.obj";
 	};
 
 }

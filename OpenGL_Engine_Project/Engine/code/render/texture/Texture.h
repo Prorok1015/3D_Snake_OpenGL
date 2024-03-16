@@ -2,6 +2,7 @@
 #include "../../common/common.h"
 #include <string_view>
 #include <memory>
+#include "../../resource/res_resource_texture.h"
 
 class Texture {
 public:
@@ -26,6 +27,7 @@ public:
 	~Texture();
 	void bind();
 
+	static Texture load_from_res(std::shared_ptr<res::Texture> res);
 	static std::shared_ptr<Texture> load(std::string_view filename);
 	static std::shared_ptr<Texture> load(std::string_view filename, FILTERING filtering, WRAPPING wrapping);
 	static Texture loadClean(std::string_view filename, FILTERING minfiltering, FILTERING magfiltering, WRAPPING wrapping);

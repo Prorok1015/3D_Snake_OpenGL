@@ -269,6 +269,12 @@
     <ClCompile Include="code\render\light\LightSolver.cpp" />
     <ClCompile Include="code\render\shader\shader.cpp" />
     <ClCompile Include="code\render\texture\texture.cpp" />
+    <ClCompile Include="code\resource\res_resource_init.cpp" />
+    <ClCompile Include="code\resource\res_resource_model.cpp" />
+    <ClCompile Include="code\resource\res_resource_shader.cpp" />
+    <ClCompile Include="code\resource\res_resource_system.cpp" />
+    <ClCompile Include="code\resource\res_resource_tag.cpp" />
+    <ClCompile Include="code\resource\res_resource_texture.cpp" />
     <ClCompile Include="code\scene\cude.cpp" />
     <ClCompile Include="code\scene\mesh.cpp" />
     <ClCompile Include="code\scene\model.cpp" />
@@ -320,8 +326,13 @@
     <ClInclude Include="code\render\light\LightSolver.h" />
     <ClInclude Include="code\render\shader\shader.h" />
     <ClInclude Include="code\render\texture\texture.h" />
+    <ClInclude Include="code\resource\res_resource_base.h" />
+    <ClInclude Include="code\resource\res_resource_init.h" />
+    <ClInclude Include="code\resource\res_resource_model.h" />
+    <ClInclude Include="code\resource\res_resource_shader.h" />
     <ClInclude Include="code\resource\res_resource_system.h" />
     <ClInclude Include="code\resource\res_resource_tag.h" />
+    <ClInclude Include="code\resource\res_resource_texture.h" />
     <ClInclude Include="code\scene\cude.h" />
     <ClInclude Include="code\scene\mesh.h" />
     <ClInclude Include="code\scene\model.h" />

@@ -198,6 +198,24 @@
     <ClCompile Include="code\application\components_init.cpp">
       <Filter>Source files</Filter>
     </ClCompile>
+    <ClCompile Include="code\resource\res_resource_system.cpp">
+      <Filter>Source files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="code\resource\res_resource_texture.cpp">
+      <Filter>Source files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="code\resource\res_resource_init.cpp">
+      <Filter>Source files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="code\resource\res_resource_shader.cpp">
+      <Filter>Source files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="code\resource\res_resource_model.cpp">
+      <Filter>Source files\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="code\resource\res_resource_tag.cpp">
+      <Filter>Source files\Resource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\render\camera\camera.h">
@@ -351,6 +369,21 @@
       <Filter>Source files\Resource</Filter>
     </ClInclude>
     <ClInclude Include="code\resource\res_resource_tag.h">
+      <Filter>Source files\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="code\resource\res_resource_base.h">
+      <Filter>Source files\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="code\resource\res_resource_texture.h">
+      <Filter>Source files\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="code\resource\res_resource_init.h">
+      <Filter>Source files\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="code\resource\res_resource_shader.h">
+      <Filter>Source files\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="code\resource\res_resource_model.h">
       <Filter>Source files\Resource</Filter>
     </ClInclude>
   </ItemGroup>

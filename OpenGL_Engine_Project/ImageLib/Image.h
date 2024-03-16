@@ -33,6 +33,8 @@ public:
 	int height() { return height_; };
 	void flip(ImageFlip fp) { flipFlag_ = fp; }
 
+	static void free_image_data(unsigned char* data);
+
 private:
     bool read(const std::string_view filename);
 	void set_image_flip(ImageFlip flag);

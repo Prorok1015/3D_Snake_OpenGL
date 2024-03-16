@@ -17,13 +17,14 @@ namespace resource
 			return Tag{ get_default_pref(), std::move(path) };
 		}
 
+	public:
 		explicit Tag(const std::string& pref, const std::string& path) 
 		{
 			full_path_ = pref + "://" + path;
 			pref_ = std::string_view(full_path_.data(), pref.length());
 			std::size_t name_start_idx = full_path_.find_last_of("/");
 			std::size_t path_start_idx = full_path_.find_first_of("/") + 1;
-			path_ = std::string_view(full_path_.data() + path_start_idx, name_start_idx - path_start_idx);
+			path_ = std::string_view(full_path_.data() + path_start_idx + 1, name_start_idx - path_start_idx);
 			name_ = std::string_view(full_path_.data() + name_start_idx + 1, full_path_.length() - name_start_idx - 1);
 		}
 
@@ -49,8 +50,8 @@ namespace resource
 	class RelativeTag
 	{
 	public:
-		explicit RelativeTag(Tag a, Tag b) : path{a, b} {}
-		explicit RelativeTag(Tag a) : path{a} {}
+		explicit RelativeTag(Tag a, Tag b) : tags_{a, b} {}
+		explicit RelativeTag(Tag a) : tags_{a} {}
 		RelativeTag(const RelativeTag&) = default;
 		RelativeTag(RelativeTag&&) = default;
 		RelativeTag& operator=(const RelativeTag&) = default;
@@ -58,41 +59,45 @@ namespace resource
 
 		RelativeTag& append(const RelativeTag& rt) 
 		{ 
-			path.reserve(path.capacity() + rt.path.size());
-			for (const auto& tag : rt.path) {
-				path.push_back(tag);
+			tags_.reserve(tags_.capacity() + rt.tags_.size());
+			for (const auto& tag : rt.tags_) {
+				tags_.push_back(tag);
 			}
 			return *this;
 		}
 
 		RelativeTag& append(const Tag& tag) 
 		{ 
-			path.push_back(tag);
+			tags_.push_back(tag);
 			return *this;
 		}
 
-	private:
-		std::vector<Tag> path;
-	};
+		const std::vector<Tag>& tags() const { return tags_; }
 
-	RelativeTag operator+ (Tag a, Tag b)
-	{
-		if (a == b) {
-			return RelativeTag{ a };
+		operator Tag()
+		{
+			if (tags_.empty()) {
+				ASSERT_FAIL("relative tag is empty");
+			}
+
+			std::string path;
+			for (const auto& t : tags_) {
+				path += t.get_path();
+			}
+
+			path += tags_.back().get_name();
+
+			return Tag::make(path);
 		}
 
-		return RelativeTag{ a, b };
-	}
+	private:
+		std::vector<Tag> tags_;
+	};
 
-	RelativeTag operator+ (RelativeTag a, Tag b)
-	{
-		return a.append(b);
-	}
-
-	RelativeTag operator+ (RelativeTag a, RelativeTag b)
-	{
-		return a.append(b);
-	}
+	//RelativeTag operator+ (const Tag& a, const Tag& b);
+	Tag operator+ (const Tag& a, const Tag& b);
+	RelativeTag operator+ (RelativeTag a, Tag b);
+	RelativeTag operator+ (RelativeTag a, RelativeTag b);
 }
 
 namespace res = resource;

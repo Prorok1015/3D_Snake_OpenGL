@@ -1,7 +1,7 @@
 #include "image_loader.h"
 #include "../common/common.h"
 
-std::unique_ptr<Image> load_image(const char* file)
+std::unique_ptr<Image> load_image(const std::string_view file)
 {
     Image img;
     img.flip(Image::ImageFlip::VERTICAL);

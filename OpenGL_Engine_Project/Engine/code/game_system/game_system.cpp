@@ -8,7 +8,7 @@
 #include "../scene/model.h"
 
 #include "../windows/window_system.h"
-#include "../resource/res_resource_tag.h"
+#include "../resource/res_resource_system.h"
 
 game::GameSystem* p_game_system = nullptr;
 
@@ -18,16 +18,17 @@ game::GameSystem& game::get_system()
 	return *p_game_system;
 }
 
-
 game::GameSystem::GameSystem()
 {
 	wnd::WindowSystem& wndCreator = wnd::get_system();
 
 	window = wndCreator.make_window("Window 3.0", WIDTH, HEIGHT);
 	input = std::make_shared<inp::InputManager>();
-	ourShader = Shader::load("./res/scene.glslv", "./res/scene.glslf");
+	ourShader = Shader::load("scene.glslv", "scene.glslf");
+
 	camera = std::make_shared<Camera>(input, glm::vec3(0, 0, 2), glm::radians(45.0f));
 	camera->attath_to_window(window);
+
 	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this] { window->set_should_close(true); });
 	input->create_click_action(inp::KEYBOARD_BUTTONS::TAB, [this] { camera->set_enabled(!camera->is_enabled()); window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal); });
 }

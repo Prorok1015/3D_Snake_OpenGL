@@ -1,5 +1,7 @@
 #include "shader.h"
 #include "../../common/common.h"
+#include "../../resource/res_resource_system.h"
+#include "../../resource/res_resource_shader.h"
 #include <fstream>
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
@@ -23,34 +25,12 @@ void Shader::uniform_matrix(std::string name, glm::mat4 matrix)
 
 std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmentFile)
 {
-	// Reading Files
-	std::string vertexCode;
-	std::string fragmentCode;
-	std::ifstream vShaderFile;
-	std::ifstream fShaderFile;
 
-	vShaderFile.exceptions(std::ifstream::badbit);
-	fShaderFile.exceptions(std::ifstream::badbit);
-	try {
-		vShaderFile.open(vertexFile, std::ifstream::in);
-		fShaderFile.open(fragmentFile, std::ifstream::in);
-		std::stringstream vShaderStream, fShaderStream;
+	auto vertexCode = res::get_system().require_resource_shader(res::Tag::make(vertexFile));
+	auto fragmentCode = res::get_system().require_resource_shader(res::Tag::make(fragmentFile));
 
-		vShaderStream << vShaderFile.rdbuf();
-		fShaderStream << fShaderFile.rdbuf();
-
-		vShaderFile.close();
-		fShaderFile.close();
-
-		vertexCode = vShaderStream.str();
-		fragmentCode = fShaderStream.str();
-	}
-	catch (const std::ifstream::failure&) {
-		ASSERT_FAIL("ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ");
-		return nullptr;
-	}
-	const GLchar* vShaderCode = vertexCode.c_str();
-	const GLchar* fShaderCode = fragmentCode.c_str();
+	const GLchar* vShaderCode = vertexCode->c_str();
+	const GLchar* fShaderCode = fragmentCode->c_str();
 
 	GLuint vertex, fragment;
 	GLint success;

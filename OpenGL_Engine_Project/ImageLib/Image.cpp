@@ -35,7 +35,12 @@ Image& Image::operator=(Image&& rhs) noexcept
 
 Image::~Image()
 {
-	stbi_image_free(data_);
+	free_image_data(data_);
+}
+
+void Image::free_image_data(unsigned char* data)
+{
+	stbi_image_free(data);
 }
 
 bool Image::read(const std::string_view filename)
@@ -43,9 +48,7 @@ bool Image::read(const std::string_view filename)
 	set_image_flip(flipFlag_);
 	if (data_ = stbi_load(filename.data(), &width_, &height_, &channels_, 0))
 	{
-		size_ = width_;
-		size_ *= height_;
-		size_ *= channels_;
+		size_ = width_ * height_ * channels_;
 		return true;
 	}
 	return false;

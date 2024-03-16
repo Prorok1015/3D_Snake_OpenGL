@@ -2,6 +2,7 @@
 #include "../common/common.h"
 #include "../render/texture/texture.h"
 #include "mesh.h"
+#include "../resource/res_resource_model.h"
 
 namespace scene {
     Texture TextureFromFile(const std::string_view path, const std::string& directory, bool gamma = false);
@@ -14,6 +15,8 @@ namespace scene {
         std::vector<Mesh>    meshes;
         std::string directory;
         bool gammaCorrection;
+
+        std::shared_ptr<res::Model> res_;
 
         // constructor, expects a filepath to a 3D model.
         Model(std::string_view path, bool gamma = false);
