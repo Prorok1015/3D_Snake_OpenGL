@@ -85,14 +85,14 @@ void Bitmap::prepare_data()
 
 void Bitmap::draw()
 {
-    if (texture) {
-        texture->bind();
-    }
-    if (shader) {
-        shader->use();
-    }
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    //if (texture) {
+    //    texture->bind();
+    //}
+    //if (shader) {
+    //    shader->use();
+    //}
+    //glBindVertexArray(VAO);
+    //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 std::array<glm::fvec3, 4> Bitmap::bounds()
@@ -112,5 +112,5 @@ std::array<glm::fvec3, 4> Bitmap::bounds()
 
 void Bitmap::load_texture(std::string_view res)
 {
-	texture = Texture::load(res);
+	//texture = Texture::load(res);
 }

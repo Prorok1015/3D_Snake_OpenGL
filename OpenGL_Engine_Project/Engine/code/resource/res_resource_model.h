@@ -19,7 +19,7 @@ namespace resource
 
 	struct Material
 	{
-		std::shared_ptr<Texture> texture_ref_;
+		Tag tag_;
 		std::string type_;
 	};
 
@@ -33,7 +33,7 @@ namespace resource
 	class Model : public Resource
 	{
 	public:
-		Model(Tag tag);
+		Model(const Tag& tag);
 
 		void processNode(aiNode* node, const aiScene* scene);
 		Mesh processMesh(aiMesh* mesh, const aiScene* scene);

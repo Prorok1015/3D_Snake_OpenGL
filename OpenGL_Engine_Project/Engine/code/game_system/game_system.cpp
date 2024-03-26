@@ -24,7 +24,7 @@ game::GameSystem::GameSystem()
 
 	window = wndCreator.make_window("Window 3.0", WIDTH, HEIGHT);
 	input = std::make_shared<inp::InputManager>();
-	ourShader = Shader::load("scene.glslv", "scene.glslf");
+	ourShader = Shader::load("scene.vert", "scene.frag");
 
 	camera = std::make_shared<Camera>(input, glm::vec3(0, 0, 2), glm::radians(45.0f));
 	camera->attath_to_window(window);

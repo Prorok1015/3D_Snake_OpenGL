@@ -1,30 +1,12 @@
 #include "res_resource_tag.h"
 
-//
-//resource::RelativeTag resource::operator+ (const resource::Tag& a, const resource::Tag& b)
-//{
-//	if (a == b) {
-//		return RelativeTag{ a };
-//	}
-//
-//	return RelativeTag{ a, b };
-//}
-
-resource::Tag resource::operator+ (const resource::Tag& a, const resource::Tag& b)
+resource::Tag resource::operator+ (const resource::Tag& l, const resource::Tag& r)
 {
-	if (a == b) {
-		return a;
+	if (l == r) {
+		egLOG("resoure/tag", "Even Tags when resource::operator+ (const resource::Tag& l, const resource::Tag& r)");
+		return l;
 	}
 
-	return RelativeTag{ a, b };
-}
-
-resource::RelativeTag resource::operator+ (resource::RelativeTag a, resource::Tag b)
-{
-	return a.append(b);
-}
-
-resource::RelativeTag resource::operator+ (resource::RelativeTag a, resource::RelativeTag b)
-{
-	return a.append(b);
+	const std::string path = std::vformat("{}{}{}", std::make_format_args(l.path(), r.path(), r.name()));
+	return Tag(l.protocol(), path);
 }

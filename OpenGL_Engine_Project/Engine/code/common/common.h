@@ -17,6 +17,7 @@
 #include <ranges>
 #include <string>
 #include <iomanip>
+#include <filesystem>
 
 #include "engine_assert.h"
 #include "engine_log.h"

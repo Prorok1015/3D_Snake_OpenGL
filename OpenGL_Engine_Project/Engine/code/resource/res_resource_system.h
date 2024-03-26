@@ -5,27 +5,31 @@
 namespace resource
 {
 	class Resource;
-	class Texture;
-	class Shader;
-	class Model;
 
 	class ResourceSystem
 	{
 	public:
-		ResourceSystem() = default;
+		static std::string get_absolut_path(const Tag& tag);
+
+	public:
+		ResourceSystem();
 		~ResourceSystem() = default;
 		ResourceSystem(const ResourceSystem&) = delete;
 		ResourceSystem& operator= (const ResourceSystem&) = delete;
 		ResourceSystem(ResourceSystem&&) = default;
 		ResourceSystem& operator= (ResourceSystem&&) = default;
 
-		std::shared_ptr<Resource> require_resource(Tag tag);
-		std::shared_ptr<resource::Texture> require_resource_texture(Tag tag);
-		std::shared_ptr<resource::Shader> require_resource_shader(Tag tag);
-		std::shared_ptr<resource::Model> require_resource_model(Tag tag);
+		template<class RESOURCE>
+		std::shared_ptr<RESOURCE> require_resource(const Tag& tag)
+		{
+			if (auto res = find_cache(tag)) {
+				return std::static_pointer_cast<RESOURCE>(res);
+			}
 
-	public:
-		static std::string get_absolut_path(Tag tag);
+			auto res = std::make_shared<RESOURCE>(tag);
+			cache_.push_back(res);
+			return res;
+		}
 
 	private:
 		std::shared_ptr<Resource> find_cache(const Tag& tag);

@@ -216,6 +216,12 @@
     <ClCompile Include="code\resource\res_resource_tag.cpp">
       <Filter>Source files\Resource</Filter>
     </ClCompile>
+    <ClCompile Include="code\render\texture\rnd_texture_manager.cpp">
+      <Filter>Source files\Render\Texture</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\texture\rnd_texture.cpp">
+      <Filter>Source files\Render\Texture</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\render\camera\camera.h">
@@ -386,42 +392,48 @@
     <ClInclude Include="code\resource\res_resource_model.h">
       <Filter>Source files\Resource</Filter>
     </ClInclude>
+    <ClInclude Include="code\render\texture\rnd_texture_manager.h">
+      <Filter>Source files\Render\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\texture\rnd_texture.h">
+      <Filter>Source files\Render\Texture</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\crosshair.glslf">
+    <None Include="res\crosshair.frag">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\crosshair.glslv">
+    <None Include="res\crosshair.vert">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\lines.glslf">
+    <None Include="res\lines.frag">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\lines.glslv">
+    <None Include="res\lines.vert">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\main.glslf">
+    <None Include="res\main.frag">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\main.glslv">
+    <None Include="res\main.vert">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\bitmap.glslf">
+    <None Include="res\bitmap.frag">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\bitmap.glslv">
+    <None Include="res\bitmap.vert">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\shape.glslf">
+    <None Include="res\shape.frag">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\shape.glslv">
+    <None Include="res\shape.vert">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\scene.glslf">
+    <None Include="res\scene.frag">
       <Filter>Resource\Shaders</Filter>
     </None>
-    <None Include="res\scene.glslv">
+    <None Include="res\scene.vert">
       <Filter>Resource\Shaders</Filter>
     </None>
   </ItemGroup>

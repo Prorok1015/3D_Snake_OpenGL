@@ -1,6 +1,6 @@
 #include "mesh.h"
 
-scene::Mesh::Mesh(std::vector<res::Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures)
+scene::Mesh::Mesh(std::vector<res::Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<rnd::Texture>> textures)
 {
     this->vertices = vertices;
     this->indices = indices;
@@ -23,7 +23,7 @@ void scene::Mesh::Draw(Shader& shader)
         CHECK_GL_ERROR();
         // retrieve texture number (the N in diffuse_textureN)
         std::string number;
-        std::string name = textures[i].type;
+        std::string name = textures[i]->tmp_type;
         if (name == "texture_diffuse")
             number = std::to_string(diffuseNr++);
         else if (name == "texture_specular")
@@ -37,7 +37,7 @@ void scene::Mesh::Draw(Shader& shader)
         glUniform1i(glGetUniformLocation(shader.ID(), (name + number).c_str()), i);
         CHECK_GL_ERROR();
         // and finally bind the texture
-        textures[i].bind();
+        textures[i]->bind();
         CHECK_GL_ERROR();
         //glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }

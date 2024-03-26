@@ -2,7 +2,7 @@
 #include <engine/application/components_init.h>
 #include "code/editor/edt_editor_init.h"
 
-int main()
+int main(int argc, char* args[])
 {
 	ds::AppDataStorage app_storage;
 	com::component_init(app_storage);

@@ -16,6 +16,9 @@
     <Filter Include="Source Files\Editor">
       <UniqueIdentifier>{4e4b247e-2fc8-4831-9c43-6e807432f3b0}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\Shaders">
+      <UniqueIdentifier>{d23a8e72-56a6-4a73-80de-05f02e99ce8d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -35,5 +38,43 @@
     <ClInclude Include="code\editor\edt_editor_init.h">
       <Filter>Source Files\Editor</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\bitmap.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\bitmap.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\crosshair.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\crosshair.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\lines.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\lines.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\main.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\main.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\scene.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\scene.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\shape.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\shape.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

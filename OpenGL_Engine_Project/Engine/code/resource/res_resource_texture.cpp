@@ -4,7 +4,7 @@
 
 using namespace resource;
 
-resource::Texture::Texture(resource::Tag tag)
+resource::Texture::Texture(const resource::Tag& tag)
 	: resource::Resource(tag)
 {
 	std::string path = ResourceSystem::get_absolut_path(tag);

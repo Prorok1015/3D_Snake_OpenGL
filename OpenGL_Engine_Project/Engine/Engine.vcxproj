@@ -210,6 +210,8 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <CallingConvention>FastCall</CallingConvention>
       <DisableAnalyzeExternal>true</DisableAnalyzeExternal>
+      <EnableModules>
+      </EnableModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -268,6 +270,8 @@
     <ClCompile Include="code\render\light\Lightmap.cpp" />
     <ClCompile Include="code\render\light\LightSolver.cpp" />
     <ClCompile Include="code\render\shader\shader.cpp" />
+    <ClCompile Include="code\render\texture\rnd_texture.cpp" />
+    <ClCompile Include="code\render\texture\rnd_texture_manager.cpp" />
     <ClCompile Include="code\render\texture\texture.cpp" />
     <ClCompile Include="code\resource\res_resource_init.cpp" />
     <ClCompile Include="code\resource\res_resource_model.cpp" />
@@ -325,6 +329,8 @@
     <ClInclude Include="code\render\light\Lightmap.h" />
     <ClInclude Include="code\render\light\LightSolver.h" />
     <ClInclude Include="code\render\shader\shader.h" />
+    <ClInclude Include="code\render\texture\rnd_texture.h" />
+    <ClInclude Include="code\render\texture\rnd_texture_manager.h" />
     <ClInclude Include="code\render\texture\texture.h" />
     <ClInclude Include="code\resource\res_resource_base.h" />
     <ClInclude Include="code\resource\res_resource_init.h" />
@@ -356,18 +362,18 @@
     <ClInclude Include="include\imgui\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\crosshair.glslf" />
-    <None Include="res\crosshair.glslv" />
-    <None Include="res\lines.glslf" />
-    <None Include="res\lines.glslv" />
-    <None Include="res\main.glslf" />
-    <None Include="res\main.glslv" />
-    <None Include="res\bitmap.glslf" />
-    <None Include="res\bitmap.glslv" />
-    <None Include="res\scene.glslf" />
-    <None Include="res\scene.glslv" />
-    <None Include="res\shape.glslf" />
-    <None Include="res\shape.glslv" />
+    <None Include="res\crosshair.frag" />
+    <None Include="res\crosshair.vert" />
+    <None Include="res\lines.frag" />
+    <None Include="res\lines.vert" />
+    <None Include="res\main.frag" />
+    <None Include="res\main.vert" />
+    <None Include="res\bitmap.frag" />
+    <None Include="res\bitmap.vert" />
+    <None Include="res\scene.frag" />
+    <None Include="res\scene.vert" />
+    <None Include="res\shape.frag" />
+    <None Include="res\shape.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\block.png" />

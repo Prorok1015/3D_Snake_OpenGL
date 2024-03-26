@@ -21,8 +21,8 @@ public:
 	glm::fvec3 color{ 1.f, 1.f, 1.f };
 	std::array<glm::fvec2, 4> textureSize{ glm::fvec2{1.f, 1.f}, {1.f, 0.f}, {0.f, 0.f}, {0.f, 1.f} };
 
-private:
-	std::shared_ptr<Texture> texture = nullptr;
+private:/*
+	std::shared_ptr<Texture> texture = nullptr;*/
 	std::shared_ptr<Shader> shader = nullptr;
 
 private:

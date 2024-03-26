@@ -26,8 +26,8 @@ void Shader::uniform_matrix(std::string name, glm::mat4 matrix)
 std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmentFile)
 {
 
-	auto vertexCode = res::get_system().require_resource_shader(res::Tag::make(vertexFile));
-	auto fragmentCode = res::get_system().require_resource_shader(res::Tag::make(fragmentFile));
+	auto vertexCode = res::get_system().require_resource<res::Shader>(res::Tag::make(vertexFile));
+	auto fragmentCode = res::get_system().require_resource<res::Shader>(res::Tag::make(fragmentFile));
 
 	const GLchar* vShaderCode = vertexCode->c_str();
 	const GLchar* fShaderCode = fragmentCode->c_str();

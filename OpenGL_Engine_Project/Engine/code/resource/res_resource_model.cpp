@@ -2,7 +2,7 @@
 #include "res_resource_texture.h"
 #include "res_resource_system.h"
 
-resource::Model::Model(Tag tag)
+resource::Model::Model(const Tag& tag)
 	: Resource(tag)
 {
     // read file via ASSIMP
@@ -131,10 +131,7 @@ std::vector<resource::Material> resource::Model::loadMaterialTextures(aiMaterial
         aiString str;
         mat->GetTexture(type, i, &str);
         std::string_view texture_name = str.C_Str();
-        Material mat;
-        res::Tag m_tag = tag_ + Tag::make(texture_name.data());
-        mat.texture_ref_ = res::get_system().require_resource_texture(m_tag);
-        mat.type_ = typeName;
+        Material mat{ tag_ + Tag::make(texture_name), typeName };
         textures.push_back(mat);
     }
     return textures;

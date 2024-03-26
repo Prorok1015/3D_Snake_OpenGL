@@ -212,6 +212,20 @@
     <ClInclude Include="code\editor\edt_editor_init.h" />
     <ClInclude Include="code\editor\edt_editor_system.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="res\bitmap.frag" />
+    <None Include="res\bitmap.vert" />
+    <None Include="res\crosshair.frag" />
+    <None Include="res\crosshair.vert" />
+    <None Include="res\lines.frag" />
+    <None Include="res\lines.vert" />
+    <None Include="res\main.frag" />
+    <None Include="res\main.vert" />
+    <None Include="res\scene.frag" />
+    <None Include="res\scene.vert" />
+    <None Include="res\shape.frag" />
+    <None Include="res\shape.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

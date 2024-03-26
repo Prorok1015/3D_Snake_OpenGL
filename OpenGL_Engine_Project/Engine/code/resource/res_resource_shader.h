@@ -7,7 +7,7 @@ namespace resource
 	class Shader : public Resource
 	{
 	public:
-		Shader(Tag tag);
+		Shader(const Tag& tag);
 
 		const char* c_str() const { return body_.c_str(); }
 
