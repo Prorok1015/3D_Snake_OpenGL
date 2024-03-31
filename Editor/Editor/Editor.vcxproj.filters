@@ -76,5 +76,17 @@
     <None Include="res\shape.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="res\scene.geom">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\normal.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\normal.geom">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\normal.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

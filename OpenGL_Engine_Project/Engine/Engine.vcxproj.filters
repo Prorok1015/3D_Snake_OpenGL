@@ -150,9 +150,6 @@
     <ClCompile Include="code\debug_ui\debug_ui_init.cpp">
       <Filter>Source files\DebugUI</Filter>
     </ClCompile>
-    <ClCompile Include="code\windows\display.cpp">
-      <Filter>Source files\Window</Filter>
-    </ClCompile>
     <ClCompile Include="code\windows\window_system.cpp">
       <Filter>Source files\Window</Filter>
     </ClCompile>
@@ -316,9 +313,6 @@
     </ClInclude>
     <ClInclude Include="code\debug_ui\debug_ui_init.h">
       <Filter>Source files\DebugUI</Filter>
-    </ClInclude>
-    <ClInclude Include="code\windows\display.h">
-      <Filter>Source files\Window</Filter>
     </ClInclude>
     <ClInclude Include="code\common\ds_store.hpp">
       <Filter>Source files\Common</Filter>

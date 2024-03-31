@@ -3,5 +3,5 @@
 class Shader;
 
 void init_cude();
-void draw_cude(std::unique_ptr<Shader>& ourShader);
+void draw_cude(Shader& ourShader);
 void delete_cude();

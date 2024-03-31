@@ -29,6 +29,17 @@ bool editor::EditorSystem::show_toolbar()
 			gm::get_system().load_model(buf);
 		}
 
+		if (ImGui::SliderFloat("Cude Scale", &gm::get_system().cube_scale, 1.f, 10.f))
+		{
+
+		}
+
+		if (ImGui::Button("Reload Shaders")) {
+			gm::get_system().reload_shaders();
+		}
+
+		ImGui::Checkbox("Show normals", &gm::get_system().is_show_normal);
+
 		ImGui::End();
 	}
 

@@ -24,7 +24,11 @@ game::GameSystem::GameSystem()
 
 	window = wndCreator.make_window("Window 3.0", WIDTH, HEIGHT);
 	input = std::make_shared<inp::InputManager>();
-	ourShader = Shader::load("scene.vert", "scene.frag");
+	reload_shaders();
+
+	NormalVisualizeShader = Shader::load("normal.vert", "normal.frag", "normal.geom");
+
+	init_cude();
 
 	camera = std::make_shared<Camera>(input, glm::vec3(0, 0, 2), glm::radians(45.0f));
 	camera->attath_to_window(window);
@@ -44,6 +48,10 @@ void game::GameSystem::capture()
 
 void game::GameSystem::render()
 {
+	if (!ourShader) {
+		return;
+	}
+
 	// activate shader
 	ourShader->use();
 
@@ -58,6 +66,22 @@ void game::GameSystem::render()
 	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
 	ourShader->uniform_matrix("model", model);
 	ourModel->Draw(*ourShader.get());
+
+	if (is_show_normal && NormalVisualizeShader)
+	{
+		NormalVisualizeShader->use();
+		NormalVisualizeShader->uniform_matrix("projection", projection);
+		NormalVisualizeShader->uniform_matrix("view", view);
+		NormalVisualizeShader->uniform_matrix("model", model);
+		ourModel->Draw(*NormalVisualizeShader.get());
+	}
+
+	//model = glm::scale(model, glm::vec3(cube_scale));
+	//ourShader->uniform_matrix("model", model);
+
+	//ourShader->uniform_float("time", window->current_time());
+
+	//draw_cude(*ourShader.get());
 }
 
 void game::GameSystem::begin_frame()
@@ -87,5 +111,10 @@ void game::GameSystem::load_model(std::string_view path)
 {
 	ourModel = std::make_shared<scene::Model>(path);
 
+}
+
+void game::GameSystem::reload_shaders()
+{
+	ourShader = Shader::load("scene.vert", /*"lines.frag"*/"scene.frag", "scene.geom");
 }
 

@@ -20,10 +20,14 @@ namespace resource
 		ResourceSystem& operator= (ResourceSystem&&) = default;
 
 		template<class RESOURCE>
-		std::shared_ptr<RESOURCE> require_resource(const Tag& tag)
+		std::shared_ptr<RESOURCE> require_resource(const Tag& tag, bool hard_reload = false)
 		{
 			if (auto res = find_cache(tag)) {
-				return std::static_pointer_cast<RESOURCE>(res);
+				if (!hard_reload) {
+					return std::static_pointer_cast<RESOURCE>(res);
+				}
+
+				cache_.erase(std::remove(cache_.begin(), cache_.end(), res));
 			}
 
 			auto res = std::make_shared<RESOURCE>(tag);

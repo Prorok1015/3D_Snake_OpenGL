@@ -31,10 +31,14 @@ namespace game
 
 		std::shared_ptr<wnd::Window> get_window() { return window; };
 		void load_model(std::string_view path);
+		void reload_shaders();
 
+		float cube_scale = 1.f;
+		bool is_show_normal = false;
 	private:
 		std::shared_ptr<scene::Model> ourModel;
 		std::shared_ptr<Shader> ourShader;
+		std::shared_ptr<Shader> NormalVisualizeShader;
 		std::shared_ptr<Camera> camera;
 
 		std::shared_ptr<wnd::Window> window;
@@ -45,6 +49,7 @@ namespace game
 
 		float camX = 0.0f;
 		float camY = 0.0f;
+
 	};
 
 	GameSystem& get_system();
