@@ -5,6 +5,7 @@
 
 #include "../common/enums.h"
 #include "../scene/cude.h"
+#include "../scene/sphere.h"
 #include "../scene/model.h"
 
 #include "../windows/window_system.h"
@@ -29,6 +30,7 @@ game::GameSystem::GameSystem()
 	NormalVisualizeShader = Shader::load("normal.vert", "normal.frag", "normal.geom");
 
 	init_cude();
+	init_sphere();
 
 	camera = std::make_shared<Camera>(input, glm::vec3(0, 0, 2), glm::radians(45.0f));
 	camera->attath_to_window(window);
@@ -39,6 +41,7 @@ game::GameSystem::GameSystem()
 
 game::GameSystem::~GameSystem()
 {
+	term_sphere();
 }
 
 void game::GameSystem::capture()
@@ -65,7 +68,9 @@ void game::GameSystem::render()
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
 	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
 	ourShader->uniform_matrix("model", model);
-	ourModel->Draw(*ourShader.get());
+	//ourModel->Draw(*ourShader.get());
+
+	draw_sphere(*ourShader.get());
 
 	if (is_show_normal && NormalVisualizeShader)
 	{
@@ -73,7 +78,8 @@ void game::GameSystem::render()
 		NormalVisualizeShader->uniform_matrix("projection", projection);
 		NormalVisualizeShader->uniform_matrix("view", view);
 		NormalVisualizeShader->uniform_matrix("model", model);
-		ourModel->Draw(*NormalVisualizeShader.get());
+		//ourModel->Draw(*NormalVisualizeShader.get());
+		draw_sphere(*NormalVisualizeShader.get());
 	}
 
 	//model = glm::scale(model, glm::vec3(cube_scale));
@@ -109,7 +115,7 @@ void game::GameSystem::set_enable_input(bool enable)
 
 void game::GameSystem::load_model(std::string_view path)
 {
-	ourModel = std::make_shared<scene::Model>(path);
+	//ourModel = std::make_shared<scene::Model>(path);
 
 }
 

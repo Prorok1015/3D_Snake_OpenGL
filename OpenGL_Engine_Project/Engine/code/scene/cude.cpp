@@ -64,7 +64,7 @@ float vertices[] = {
 //
 //unsigned int VBO, VAO;
 
-std::unique_ptr<scene::Mesh> p_Mesh;
+static std::unique_ptr<scene::Mesh> p_Mesh;
 
 void init_cude()
 {

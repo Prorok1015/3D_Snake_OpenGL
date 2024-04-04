@@ -219,6 +219,9 @@
     <ClCompile Include="code\render\texture\rnd_texture.cpp">
       <Filter>Source files\Render\Texture</Filter>
     </ClCompile>
+    <ClCompile Include="code\scene\sphere.cpp">
+      <Filter>Source files\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\render\camera\camera.h">
@@ -391,6 +394,9 @@
     </ClInclude>
     <ClInclude Include="code\render\texture\rnd_texture.h">
       <Filter>Source files\Render\Texture</Filter>
+    </ClInclude>
+    <ClInclude Include="code\scene\sphere.h">
+      <Filter>Source files\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

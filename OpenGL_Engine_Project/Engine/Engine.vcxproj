@@ -283,6 +283,7 @@
     <ClCompile Include="code\scene\cude.cpp" />
     <ClCompile Include="code\scene\mesh.cpp" />
     <ClCompile Include="code\scene\model.cpp" />
+    <ClCompile Include="code\scene\sphere.cpp" />
     <ClCompile Include="code\serialize\files.cpp" />
     <ClCompile Include="code\serialize\image_loader.cpp" />
     <ClCompile Include="code\ui\bitmap.cpp" />
@@ -342,6 +343,7 @@
     <ClInclude Include="code\scene\cude.h" />
     <ClInclude Include="code\scene\mesh.h" />
     <ClInclude Include="code\scene\model.h" />
+    <ClInclude Include="code\scene\sphere.h" />
     <ClInclude Include="code\serialize\files.h" />
     <ClInclude Include="code\serialize\image_loader.h" />
     <ClInclude Include="code\ui\bitmap.h" />
