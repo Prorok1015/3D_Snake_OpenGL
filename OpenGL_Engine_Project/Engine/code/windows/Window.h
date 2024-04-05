@@ -1,5 +1,7 @@
 #pragma once
 #include "../common/common.h"
+#include "../resource/res_resource_texture.h"
+
 struct GLFWwindow;
 enum class CursorMode;
 
@@ -22,7 +24,7 @@ namespace windows
 
 		Window(std::string_view title, int width, int height);
 		~Window();
-		float get_aspect_ratio() const { return (float)width_ / (float)height_; }
+		float get_aspect_ratio() const { if (width_ == 0 && height_ == 0) return 0.f; return (float)width_ / (float)height_; }
 		bool is_should_close();
 		void swap_buffers();
 		void set_should_close(bool close = true);
@@ -34,6 +36,8 @@ namespace windows
 		void on_mouse_button_action(int button, int action, int mode);
 		void on_keyboard_action(int keycode, int scancode, int action, int mode);
 
+		void set_logo(std::shared_ptr<res::Texture> logo, std::shared_ptr<res::Texture> logo_small);
+
 		static float current_time();
 	private:
 	public:
@@ -44,6 +48,7 @@ namespace windows
 		float lastTime = 0.f;
 		std::size_t current_frame = 0;
 
+		Event<void(Window& window)> eventRefreshWindow;
 		Event<void(Window& window, int width, int height)> eventResizeWindow;
 		Event<void(Window& window, double xpos, double ypos)> eventMouseMove;
 		Event<void(Window& window, int button, int action, int mode)> eventMouseAction;

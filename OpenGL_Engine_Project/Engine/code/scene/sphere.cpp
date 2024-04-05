@@ -2,40 +2,39 @@
 #include "../resource/res_resource_model.h"
 #include "model.h"
 
-constexpr std::vector<res::Vertex> get_sphere_data()
+std::vector<res::Vertex> get_sphere_data()
 {
     std::vector<res::Vertex> result;
 
-    float radius = 2.0f;
+    float radius = 1.0f;
     float sectorCount = 72.f;
     float stackCount = 24.f;
-
-    float PI = 3.14f;
+    
+    constexpr float PI = std::numbers::pi;
     float x, y, z, xy;                              // vertex position
     float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
     float s, t;                                     // vertex texCoord
 
     float sectorStep = 2 * PI / sectorCount;
     float stackStep = PI / stackCount;
-    float sectorAngle, stackAngle;
 
     for (int i = 0; i <= stackCount; ++i)
     {
-        stackAngle = PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
-        xy = radius * cosf(stackAngle);             // r * cos(u)
-        z = radius * sinf(stackAngle);              // r * sin(u)
+        const float stackAngle = PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+        xy = radius * std::cos(stackAngle);             // r * cos(u)
+        z = radius * std::sin(stackAngle);              // r * sin(u)
 
         // add (sectorCount+1) vertices per stack
         // first and last vertices have same position and normal, but different tex coords
         for (int j = 0; j <= sectorCount; ++j)
         {
-            sectorAngle = j * sectorStep;           // starting from 0 to 2pi
+            const float sectorAngle = j * sectorStep;           // starting from 0 to 2pi
 
             res::Vertex vert;
 
             // vertex position (x, y, z)
-            x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
-            y = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+            x = xy * std::cos(sectorAngle);             // r * cos(u) * cos(v)
+            y = xy * std::sin(sectorAngle);             // r * cos(u) * sin(v)
             vert.position_ = glm::vec3(x, y, z);
 
             // normalized vertex normal (nx, ny, nz)

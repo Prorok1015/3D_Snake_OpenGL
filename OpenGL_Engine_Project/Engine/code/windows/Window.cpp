@@ -88,3 +88,26 @@ void windows::Window::on_keyboard_action(int keycode, int scancode, int action, 
 {
     eventKeyboardAction(*this, keycode, scancode, action, mode);
 }
+
+void windows::Window::set_logo(std::shared_ptr<res::Texture> logo, std::shared_ptr<res::Texture> logo_small)
+{
+    if (logo->channels() != 4) {
+        egLOG("window/logo", "Logo should be rgba image");
+        return;
+    }
+
+    GLFWimage images[2];
+    images[0].pixels = logo->data();
+    images[0].width = logo->size().x;
+    images[0].height = logo->size().y;
+
+    if (logo_small) {
+        images[1].pixels = logo_small->data();
+        images[1].width = logo_small->size().x;
+        images[1].height = logo_small->size().y;
+        glfwSetWindowIcon(id_, 2, images);
+        return;
+    }
+
+    glfwSetWindowIcon(id_, 1, images);
+}

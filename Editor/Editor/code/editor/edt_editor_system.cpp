@@ -2,12 +2,16 @@
 #include <engine/debug_ui/debug_ui_api.h>
 #include <engine/application/application.h>
 #include <engine/game_system/game_system.h>
+#include <engine/resource/res_resource_system.h>
+#include <engine/resource/res_resource_texture.h>
 
 editor::EditorSystem::EditorSystem()
 {
 	DBG_UI_REG_LAMBDA("GAME/UI/TOOLBAR", [this] { return show_toolbar(); });
 	DBG_UI_SET_ITEM_CHECKED("GAME/UI/TOOLBAR", true);
 	gm::get_system().load_model(buf);
+	auto logo = res::get_system().require_resource<res::Texture>(res::Tag::make("icons/editor_engine_logo.png"));
+	gm::get_system().get_window()->set_logo(logo, nullptr);
 }
 
 

@@ -21,3 +21,6 @@ public:
 	static std::shared_ptr<Shader> load(std::string vertexFile, std::string fragmentFile);
 };
 
+void prepare_global_structure();
+
+void set_global_data(const glm::mat4& proj, const glm::mat4& view, float time);

@@ -1,4 +1,4 @@
-#version 400 core
+#version 420 core
 layout (triangles) in;
 layout (line_strip, max_vertices = 6) out;
 
@@ -8,7 +8,12 @@ in VS_OUT {
 
 const float MAGNITUDE = 0.4;
   
-uniform mat4 projection;
+layout (std140, binding = 0) uniform Matrices 
+{
+    mat4 projection;
+    mat4 view;    
+    float time;
+};
 
 void GenerateLine(int index)
 {

@@ -53,7 +53,7 @@ void Camera::rotate(float x, float y, float z) {
 
 glm::mat4 Camera::projection(float fov) {
 	float aspect = window_->get_aspect_ratio();
-	return glm::perspective(fov, aspect, 0.1f, 100.0f);
+	return glm::perspective(fov_, aspect, 0.1f, 100.0f);
 }
 
 glm::mat4 Camera::view() {

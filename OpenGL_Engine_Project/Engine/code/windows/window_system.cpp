@@ -51,6 +51,22 @@ static void key_callback(GLFWwindow* window, int keycode, int scancode, int acti
     inpSys.keyboard.on_key_action(keycode, scancode, action, mode);
 }
 
+static void window_refresh_callback(GLFWwindow* window) {
+    auto& wndCreator = wnd::get_system();
+    auto wnd = wndCreator.find_window({ window });
+    if (auto swnd = wnd.lock()) {
+        swnd->eventRefreshWindow(*swnd);
+    }
+}
+
+static void window_move_callback(GLFWwindow* window, int xpos, int ypos) {
+    auto& wndCreator = wnd::get_system();
+    auto wnd = wndCreator.find_window({ window });
+    if (auto swnd = wnd.lock()) {
+        swnd->eventRefreshWindow(*swnd);
+    }
+}
+
 windows::WindowSystem::WindowSystem()
 {
     glfwInit();
@@ -75,7 +91,8 @@ std::shared_ptr<Window> windows::WindowSystem::make_window(std::string_view titl
     glfwSetWindowSizeCallback(window, window_size_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
-
+    glfwSetWindowRefreshCallback(window, window_refresh_callback);
+    glfwSetWindowPosCallback(window, window_move_callback);
     return shared_window;
 }
 

@@ -25,8 +25,9 @@ game::GameSystem::GameSystem()
 
 	window = wndCreator.make_window("Window 3.0", WIDTH, HEIGHT);
 	input = std::make_shared<inp::InputManager>();
+	prepare_global_structure();
+	
 	reload_shaders();
-
 	NormalVisualizeShader = Shader::load("normal.vert", "normal.frag", "normal.geom");
 
 	init_cude();
@@ -46,52 +47,51 @@ game::GameSystem::~GameSystem()
 
 void game::GameSystem::capture()
 {
+	egLOG("gs/log", "capture {}", window->current_frame);
 	camera->update();
 }
 
 void game::GameSystem::render()
 {
-	if (!ourShader) {
+	if (!ourShader || window->get_aspect_ratio() < 0.01) {
 		return;
 	}
+
+	egLOG("gs/log", "render {}", window->current_frame);
 
 	// activate shader
 	ourShader->use();
 
 	glm::mat4 projection = camera->projection(glm::radians(45.f));
 	glm::mat4 view = camera->view();
-	ourShader->uniform_matrix("projection", projection);
-	ourShader->uniform_matrix("view", view);
+
+	set_global_data(projection, view, window->current_time());
+
+	//ourShader->uniform_matrix("projection", projection);
+	//ourShader->uniform_matrix("view", view);
 
 	// render the loaded model
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-	model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+	model = glm::scale(model, glm::vec3(cube_scale));	// it's a bit too big for our scene, so scale it down
 	ourShader->uniform_matrix("model", model);
 	//ourModel->Draw(*ourShader.get());
-
-	draw_sphere(*ourShader.get());
+	//draw_sphere(*ourShader.get());
+	draw_cude(*ourShader.get());
 
 	if (is_show_normal && NormalVisualizeShader)
 	{
 		NormalVisualizeShader->use();
-		NormalVisualizeShader->uniform_matrix("projection", projection);
-		NormalVisualizeShader->uniform_matrix("view", view);
 		NormalVisualizeShader->uniform_matrix("model", model);
 		//ourModel->Draw(*NormalVisualizeShader.get());
-		draw_sphere(*NormalVisualizeShader.get());
+		//draw_sphere(*NormalVisualizeShader.get());
+		draw_cude(*NormalVisualizeShader.get());
 	}
-
-	//model = glm::scale(model, glm::vec3(cube_scale));
-	//ourShader->uniform_matrix("model", model);
-
-	//ourShader->uniform_float("time", window->current_time());
-
-	//draw_cude(*ourShader.get());
 }
 
 void game::GameSystem::begin_frame()
 {
+	egLOG("gs/log", "begin_frame {}", window->current_frame);
 	window->update_frame();
 	float dt = window->delta;
 	input->notify_listeners(dt);
@@ -99,6 +99,7 @@ void game::GameSystem::begin_frame()
 
 void game::GameSystem::end_frame()
 {
+	egLOG("gs/log", "end_frame {}", window->current_frame);
 	window->swap_buffers();
 }
 
@@ -121,6 +122,6 @@ void game::GameSystem::load_model(std::string_view path)
 
 void game::GameSystem::reload_shaders()
 {
-	ourShader = Shader::load("scene.vert", /*"lines.frag"*/"scene.frag", "scene.geom");
+	ourShader = Shader::load("scene.vert", "scene.frag", "scene.geom");
 }
 
