@@ -4,11 +4,11 @@
 
 namespace resource
 {
-	class Texture : public Resource
+	class Image : public Resource
 	{
 	public:
-		Texture(const Tag& tag);
-		~Texture();
+		Image(const Tag& tag);
+		~Image();
 
 		unsigned char* data() const { return data_; }
 		int channels() const { return channels_; }

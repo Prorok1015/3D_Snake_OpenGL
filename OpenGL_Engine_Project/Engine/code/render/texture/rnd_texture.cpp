@@ -4,7 +4,7 @@
 
 std::shared_ptr<render::Texture> render::Texture::load(const res::Tag& tag)
 {
-	auto res = res::get_system().require_resource<res::Texture>(tag);
+	auto res = res::get_system().require_resource<res::Image>(tag);
     FILTERING minfiltering = Texture::FILTERING::LINEAR_MIPMAP;
     FILTERING magfiltering = Texture::FILTERING::LINEAR;
     WRAPPING wrapping = Texture::WRAPPING::REPEAT;

@@ -2,9 +2,8 @@
 #include "res_resource_system.h"
 #include "../serialize/image_loader.h"
 
-using namespace resource;
 
-resource::Texture::Texture(const resource::Tag& tag)
+resource::Image::Image(const resource::Tag& tag)
 	: resource::Resource(tag)
 {
 	std::string path = ResourceSystem::get_absolut_path(tag);
@@ -12,7 +11,7 @@ resource::Texture::Texture(const resource::Tag& tag)
 		return;
 	}
 
-	if (std::unique_ptr<Image> img = load_image(path.data())) {
+	if (std::unique_ptr<stb_image::Image> img = load_image(path.data())) {
 		size_.x = img->width();
 		size_.y = img->height();
 		channels_ = img->channels_count();
@@ -20,7 +19,7 @@ resource::Texture::Texture(const resource::Tag& tag)
 	}
 }
 
-resource::Texture::~Texture()
+resource::Image::~Image()
 {
-	Image::free_image_data(data_);
+	stb_image::Image::free_image_data(data_);
 }

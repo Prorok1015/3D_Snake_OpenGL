@@ -36,7 +36,7 @@ namespace windows
 		void on_mouse_button_action(int button, int action, int mode);
 		void on_keyboard_action(int keycode, int scancode, int action, int mode);
 
-		void set_logo(std::shared_ptr<res::Texture> logo, std::shared_ptr<res::Texture> logo_small);
+		void set_logo(std::shared_ptr<res::Image> logo, std::shared_ptr<res::Image> logo_small);
 
 		static float current_time();
 	private:

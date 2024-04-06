@@ -10,6 +10,8 @@
 
 #define EXCEPT(msg) std::exception(msg)
 
+using namespace stb_image;
+
 Image::Image(const std::string_view filename)
 {
 	if (!read(filename)) {

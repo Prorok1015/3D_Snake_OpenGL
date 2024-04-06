@@ -89,7 +89,7 @@ void windows::Window::on_keyboard_action(int keycode, int scancode, int action, 
     eventKeyboardAction(*this, keycode, scancode, action, mode);
 }
 
-void windows::Window::set_logo(std::shared_ptr<res::Texture> logo, std::shared_ptr<res::Texture> logo_small)
+void windows::Window::set_logo(std::shared_ptr<res::Image> logo, std::shared_ptr<res::Image> logo_small)
 {
     if (logo->channels() != 4) {
         egLOG("window/logo", "Logo should be rgba image");
