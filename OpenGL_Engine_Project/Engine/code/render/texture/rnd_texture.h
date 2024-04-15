@@ -33,6 +33,7 @@ namespace render
 
 		void bind() {
 			glBindTexture(GL_TEXTURE_2D, id);
+			CHECK_GL_ERROR();
 		}
 
 		int width() const { return width_; }

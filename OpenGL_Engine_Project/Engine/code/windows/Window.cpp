@@ -1,6 +1,7 @@
 #include "window.h"
 #include "../common/common.h"
 #include "../common/enums.h"
+#include "../render/rnd_render_system.h"
 
 using namespace windows;
 
@@ -12,7 +13,7 @@ windows::Window::Window(std::string_view title, int width, int height)
 
     if (!id_)
     {
-        ASSERT_FAIL("window didnt create!");
+        ASSERT_FAIL("window didn't create!");
     }
 
     /* Make the window's context current */
@@ -26,7 +27,7 @@ windows::Window::Window(std::string_view title, int width, int height)
         ASSERT_FAIL("glad didnt loaded in this process!");
     }
 
-    glViewport(0, 0, width_, height_);
+    rnd::get_system().viewport({ 0, 0, width_, height_ });
 }
 
 windows::Window::~Window()
@@ -68,7 +69,7 @@ void Window::update_frame()
 
 void windows::Window::on_resize_window(int width, int height)
 {
-    glViewport(0, 0, width, height);
+    rnd::get_system().viewport({ 0, 0, width_, height_ });
     width_ = width;
     height_ = height;
     eventResizeWindow(*this, width, height);

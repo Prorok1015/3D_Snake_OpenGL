@@ -5,11 +5,6 @@
 
 Shape::Shape()
 {
-    shader = Shader::load("./res/shape.glslv", "./res/shape.glslf");
-    if (!shader) {
-        ASSERT_FAIL("Shape's shader not create");
-        //Window::terminate();
-    }
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
     glGenBuffers(1, &EBO);
@@ -94,7 +89,6 @@ void Shape::prepare_data()
 
 void Shape::draw()
 {
-    shader->use();
     glBindVertexArray(VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }

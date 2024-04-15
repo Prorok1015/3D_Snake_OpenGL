@@ -1,7 +1,7 @@
 #pragma once
 #include "../common/common.h"
 
-#include "../render/shader/shader.h"
+#include "../render/shader/rnd_shader.h"
 #include "../render/camera/camera.h"
 
 namespace scene {
@@ -33,12 +33,14 @@ namespace game
 		void load_model(std::string_view path);
 		void reload_shaders();
 
+		void add_cube_to_scene(float radius);
+		void remove_cube();
+
 		float cube_scale = 1.f;
 		bool is_show_normal = false;
 	private:
+		std::vector<scene::Model> scene_objects;
 		std::shared_ptr<scene::Model> ourModel;
-		std::shared_ptr<Shader> ourShader;
-		std::shared_ptr<Shader> NormalVisualizeShader;
 		std::shared_ptr<Camera> camera;
 
 		std::shared_ptr<wnd::Window> window;

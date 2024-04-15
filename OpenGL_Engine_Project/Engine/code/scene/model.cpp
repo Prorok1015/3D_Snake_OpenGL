@@ -1,27 +1,27 @@
 #include "model.h"
 #include <filesystem>
 #include "../resource/res_resource_system.h"
+#include "../render/rnd_render_system.h"
 
 using namespace scene;
 
 
 scene::Model::Model(std::string_view path, bool gamma)
-    : gammaCorrection(gamma)
 {
     loadModel(path);
 }
 
-void scene::Model::Draw(Shader& shader)
+void scene::Model::draw(const rnd::Shader& shader)
 {
     for (unsigned int i = 0; i < meshes.size(); i++)
-        meshes[i].Draw(shader);
+        meshes[i].draw(shader);
 }
 
 std::vector<std::shared_ptr<rnd::Texture>> make_texture(std::vector<res::Material> vec)
 {
     std::vector<std::shared_ptr<rnd::Texture>> result;
     for (const auto& mat : vec) {
-        auto txt = rnd::TextureManager::inst().require_texture(mat.tag_);
+        auto txt = rnd::get_system().get_txr_manager().require_texture(mat.tag_);
         txt->tmp_type = mat.type_;
         result.push_back(txt);
     }

@@ -24,7 +24,7 @@ namespace windows
 
 		Window(std::string_view title, int width, int height);
 		~Window();
-		float get_aspect_ratio() const { if (width_ == 0 && height_ == 0) return 0.f; return (float)width_ / (float)height_; }
+		float aspect_ratio() const { if (width_ == 0 && height_ == 0) return 0.f; return (float)width_ / (float)height_; }
 		bool is_should_close();
 		void swap_buffers();
 		void set_should_close(bool close = true);

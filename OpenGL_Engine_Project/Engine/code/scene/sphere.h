@@ -1,7 +1,9 @@
 #pragma once
 #include "../common/common.h"
-class Shader;
+namespace render{
+	class Shader;
+}
 
 void init_sphere();
-void draw_sphere(Shader& ourShader);
+void draw_sphere(const render::Shader& ourShader);
 void term_sphere();

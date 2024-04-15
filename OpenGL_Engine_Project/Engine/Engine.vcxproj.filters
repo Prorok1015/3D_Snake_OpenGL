@@ -81,7 +81,7 @@
     <ClCompile Include="code\render\light\LightSolver.cpp">
       <Filter>Source files\Render\Light</Filter>
     </ClCompile>
-    <ClCompile Include="code\render\shader\shader.cpp">
+    <ClCompile Include="code\render\shader\rnd_shader.cpp">
       <Filter>Source files\Render\Shader</Filter>
     </ClCompile>
     <ClCompile Include="code\render\texture\texture.cpp">
@@ -222,6 +222,15 @@
     <ClCompile Include="code\scene\sphere.cpp">
       <Filter>Source files\Scene</Filter>
     </ClCompile>
+    <ClCompile Include="code\render\rnd_render_system.cpp">
+      <Filter>Source files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\rnd_render_init.cpp">
+      <Filter>Source files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\shader\rnd_shader_manager.cpp">
+      <Filter>Source files\Render\Shader</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\render\camera\camera.h">
@@ -233,7 +242,7 @@
     <ClInclude Include="code\render\light\LightSolver.h">
       <Filter>Source files\Render\Light</Filter>
     </ClInclude>
-    <ClInclude Include="code\render\shader\shader.h">
+    <ClInclude Include="code\render\shader\rnd_shader.h">
       <Filter>Source files\Render\Shader</Filter>
     </ClInclude>
     <ClInclude Include="code\render\texture\texture.h">
@@ -397,6 +406,15 @@
     </ClInclude>
     <ClInclude Include="code\scene\sphere.h">
       <Filter>Source files\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\rnd_render_system.h">
+      <Filter>Source files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\rnd_render_init.h">
+      <Filter>Source files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\shader\rnd_shader_manager.h">
+      <Filter>Source files\Render\Shader</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

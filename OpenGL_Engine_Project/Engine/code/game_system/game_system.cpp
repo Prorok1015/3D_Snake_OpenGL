@@ -11,6 +11,8 @@
 #include "../windows/window_system.h"
 #include "../resource/res_resource_system.h"
 
+#include "../render/rnd_render_system.h"
+
 game::GameSystem* p_game_system = nullptr;
 
 game::GameSystem& game::get_system()
@@ -25,15 +27,9 @@ game::GameSystem::GameSystem()
 
 	window = wndCreator.make_window("Window 3.0", WIDTH, HEIGHT);
 	input = std::make_shared<inp::InputManager>();
-	prepare_global_structure();
-	
-	reload_shaders();
-	NormalVisualizeShader = Shader::load("normal.vert", "normal.frag", "normal.geom");
+	rnd::get_system().get_sh_manager().init_global_uniform();
 
-	init_cude();
-	init_sphere();
-
-	camera = std::make_shared<Camera>(input, glm::vec3(0, 0, 2), glm::radians(45.0f));
+	camera = std::make_shared<Camera>(input, glm::vec3(0, 0, 40), glm::radians(45.0f));
 	camera->attath_to_window(window);
 
 	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this] { window->set_should_close(true); });
@@ -42,56 +38,45 @@ game::GameSystem::GameSystem()
 
 game::GameSystem::~GameSystem()
 {
-	term_sphere();
+
 }
 
 void game::GameSystem::capture()
 {
-	egLOG("gs/log", "capture {}", window->current_frame);
 	camera->update();
 }
 
 void game::GameSystem::render()
 {
-	if (!ourShader || window->get_aspect_ratio() < 0.01) {
+	if (window->aspect_ratio() < 0.01) {
 		return;
 	}
 
-	egLOG("gs/log", "render {}", window->current_frame);
+	rnd::GlobalUniform val;
 
-	// activate shader
-	ourShader->use();
+	val.projection = camera->projection(glm::radians(45.f));
+	val.view = camera->view();
+	val.time = window->current_time();
 
-	glm::mat4 projection = camera->projection(glm::radians(45.f));
-	glm::mat4 view = camera->view();
-
-	set_global_data(projection, view, window->current_time());
-
-	//ourShader->uniform_matrix("projection", projection);
-	//ourShader->uniform_matrix("view", view);
+	rnd::get_system().get_sh_manager().update_global_uniform(val);
 
 	// render the loaded model
-	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f)); // translate it down so it's at the center of the scene
-	model = glm::scale(model, glm::vec3(cube_scale));	// it's a bit too big for our scene, so scale it down
-	ourShader->uniform_matrix("model", model);
-	//ourModel->Draw(*ourShader.get());
-	//draw_sphere(*ourShader.get());
-	draw_cude(*ourShader.get());
+	for (auto& model : scene_objects) {
+		rnd::get_system().get_sh_manager().uniform("scene", "model", glm::scale(model.model, glm::vec3(cube_scale)));
+		model.draw(rnd::get_system().get_sh_manager().use("scene"));
+	}
 
-	if (is_show_normal && NormalVisualizeShader)
+	if (is_show_normal)
 	{
-		NormalVisualizeShader->use();
-		NormalVisualizeShader->uniform_matrix("model", model);
-		//ourModel->Draw(*NormalVisualizeShader.get());
-		//draw_sphere(*NormalVisualizeShader.get());
-		draw_cude(*NormalVisualizeShader.get());
+		for (auto& model : scene_objects) {
+			rnd::get_system().get_sh_manager().uniform("normal", "model", glm::scale(model.model, glm::vec3(cube_scale)));
+			model.draw(rnd::get_system().get_sh_manager().use("normal"));
+		}
 	}
 }
 
 void game::GameSystem::begin_frame()
 {
-	egLOG("gs/log", "begin_frame {}", window->current_frame);
 	window->update_frame();
 	float dt = window->delta;
 	input->notify_listeners(dt);
@@ -99,7 +84,6 @@ void game::GameSystem::begin_frame()
 
 void game::GameSystem::end_frame()
 {
-	egLOG("gs/log", "end_frame {}", window->current_frame);
 	window->swap_buffers();
 }
 
@@ -122,6 +106,23 @@ void game::GameSystem::load_model(std::string_view path)
 
 void game::GameSystem::reload_shaders()
 {
-	ourShader = Shader::load("scene.vert", "scene.frag", "scene.geom");
+	rnd::get_system().get_sh_manager().clear_cache();
+}
+
+void game::GameSystem::add_cube_to_scene(float radius)
+{
+	scene_objects.push_back(create_cube());
+	auto rand_pos = glm::diskRand(radius);
+
+	auto& m = scene_objects.back();
+	m.model = glm::translate(m.model, glm::vec3{ rand_pos, 0.0f });
+}
+
+void game::GameSystem::remove_cube()
+{
+	if (scene_objects.empty()) {
+		return;
+	}
+	scene_objects.pop_back();
 }
 

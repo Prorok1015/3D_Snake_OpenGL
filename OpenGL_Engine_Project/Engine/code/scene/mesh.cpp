@@ -1,4 +1,5 @@
 #include "mesh.h"
+#include "../render/rnd_render_system.h"
 
 scene::Mesh::Mesh(std::vector<res::Vertex> vertices, std::vector<unsigned int> indices, std::vector<std::shared_ptr<rnd::Texture>> textures)
 {
@@ -10,7 +11,14 @@ scene::Mesh::Mesh(std::vector<res::Vertex> vertices, std::vector<unsigned int> i
     setupMesh();
 }
 
-void scene::Mesh::Draw(Shader& shader)
+scene::Mesh::~Mesh()
+{
+    rnd::get_system().del_buf(EBO);
+    rnd::get_system().del_buf(VBO);
+    rnd::get_system().del_vertex_buf(VAO);
+}
+
+void scene::Mesh::draw(const rnd::Shader& shader)
 {
     // bind appropriate textures
     unsigned int diffuseNr = 1;
@@ -19,8 +27,6 @@ void scene::Mesh::Draw(Shader& shader)
     unsigned int heightNr = 1;
     for (unsigned int i = 0; i < textures.size(); i++)
     {
-        glActiveTexture(GL_TEXTURE0 + i); // active proper texture unit before binding
-        CHECK_GL_ERROR();
         // retrieve texture number (the N in diffuse_textureN)
         std::string number;
         std::string name = textures[i]->tmp_type;
@@ -34,71 +40,53 @@ void scene::Mesh::Draw(Shader& shader)
             number = std::to_string(heightNr++); // transfer unsigned int to string
 
         // now set the sampler to the correct texture unit
-        glUniform1i(glGetUniformLocation(shader.ID(), (name + number).c_str()), i);
-        CHECK_GL_ERROR();
+        shader.uniform(name + number, (int)i);
+
+        rnd::get_system().activate_texture_unit(i);
         // and finally bind the texture
         textures[i]->bind();
-        CHECK_GL_ERROR();
-        //glBindTexture(GL_TEXTURE_2D, textures[i].id);
     }
 
     // draw mesh
-    glBindVertexArray(VAO);
-    CHECK_GL_ERROR();
-    glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-    CHECK_GL_ERROR();
-    glBindVertexArray(0);
-    CHECK_GL_ERROR();
+    rnd::get_system().draw_elements(VAO, static_cast<unsigned int>(indices.size()));
 
     // always good practice to set everything back to defaults once configured.
-    glActiveTexture(GL_TEXTURE0);
-}
-
-void scene::Mesh::draw(const res::Mesh& mesh)
-{
-
+    rnd::get_system().reset_texture();
 }
 
 void scene::Mesh::setupMesh()
 {
     // create buffers/arrays
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+    VAO = rnd::get_system().gen_vertex_buf();
+    VBO = rnd::get_system().gen_buf();
+    EBO = rnd::get_system().gen_buf();
 
-    glBindVertexArray(VAO);
+    rnd::get_system().bind_vertex_array(VAO);
     // load data into vertex buffers
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    rnd::get_system().bind_buffer(VBO, GL_ARRAY_BUFFER);
     // A great thing about structs is that their memory layout is sequential for all its items.
     // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
     // again translates to 3/2 floats which translates to a byte array.
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(res::Vertex), &vertices[0], GL_STATIC_DRAW);
+    rnd::get_system().buffer_data(GL_ARRAY_BUFFER, vertices.size() * sizeof(res::Vertex), &vertices[0]);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+    rnd::get_system().bind_buffer(EBO, GL_ELEMENT_ARRAY_BUFFER);
+    rnd::get_system().buffer_data(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0]);
 
     // set the vertex attribute pointers
     // vertex Positions
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(res::Vertex), (void*)0);
+    rnd::get_system().vertex_attribute_pointer(0, 3, GL_FLOAT, sizeof(res::Vertex), (void*)0);
     // vertex normals
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(res::Vertex), (void*)offsetof(res::Vertex, normal_));
+    rnd::get_system().vertex_attribute_pointer(1, 3, GL_FLOAT, sizeof(res::Vertex), (void*)offsetof(res::Vertex, normal_));
     // vertex texture coords
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(res::Vertex), (void*)offsetof(res::Vertex, texture_position_));
+    rnd::get_system().vertex_attribute_pointer(2, 2, GL_FLOAT, sizeof(res::Vertex), (void*)offsetof(res::Vertex, texture_position_));
     // vertex tangent
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(res::Vertex), (void*)offsetof(res::Vertex, tangent_));
+    rnd::get_system().vertex_attribute_pointer(3, 3, GL_FLOAT,  sizeof(res::Vertex), (void*)offsetof(res::Vertex, tangent_));
     // vertex bitangent
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(res::Vertex), (void*)offsetof(res::Vertex, bitangent_));
+    rnd::get_system().vertex_attribute_pointer(4, 3, GL_FLOAT, sizeof(res::Vertex), (void*)offsetof(res::Vertex, bitangent_));
     // ids
-    glEnableVertexAttribArray(5);
-    glVertexAttribIPointer(5, 4, GL_INT, sizeof(res::Vertex), (void*)offsetof(res::Vertex, bones_));
+    rnd::get_system().vertex_attribute_pointeri(5, 4, GL_INT, sizeof(res::Vertex), (void*)offsetof(res::Vertex, bones_));
 
     // weights
-    glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(res::Vertex), (void*)offsetof(res::Vertex, bones_weight_));
-    glBindVertexArray(0);
+    rnd::get_system().vertex_attribute_pointer(6, 4, GL_FLOAT, sizeof(res::Vertex), (void*)offsetof(res::Vertex, bones_weight_));
+    rnd::get_system().bind_vertex_array(0);
 }

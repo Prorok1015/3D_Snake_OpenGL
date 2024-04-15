@@ -1,7 +1,12 @@
 #pragma once
 #include <memory>
-class Shader;
+#include "model.h"
+namespace render {
+	class Shader;
+}
 
 void init_cude();
-void draw_cude(Shader& ourShader);
-void delete_cude();
+void draw_cude(const render::Shader& ourShader);
+void term_cude();
+
+scene::Model create_cube();

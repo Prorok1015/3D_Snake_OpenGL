@@ -1,5 +1,6 @@
 #include "application.h"
 #include "../windows/window_system.h"
+#include "../render/rnd_render_system.h"
 
 app::Application* p_app_system = nullptr;
 
@@ -21,16 +22,13 @@ int application::Application::run()
 {
 	auto& wndCreator = wnd::get_system();
 
-
-	glEnable(GL_DEPTH_TEST);
+	rnd::get_system().enable(GL_DEPTH_TEST);
 	while (!wndCreator.is_all_windows_close()) {
 		beginFrame();
 		capture();
 
-		glClearColor(clear_color_.r, clear_color_.g, clear_color_.b, clear_color_.a);
-
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+		rnd::get_system().clear_color(clear_color_);
+		rnd::get_system().clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		render();
 		endFrame();
 	}

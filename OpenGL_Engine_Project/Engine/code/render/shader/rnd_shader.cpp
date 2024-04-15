@@ -1,34 +1,32 @@
-#include "shader.h"
-#include "../../common/common.h"
+#include "rnd_shader.h"
 #include "../../resource/res_resource_system.h"
 #include "../../resource/res_resource_shader.h"
 #include <fstream>
 #include <sstream>
-#include <glm/gtc/type_ptr.hpp>
 
-Shader::Shader(unsigned int id) : id(id) {
+render::Shader::Shader(unsigned int id) : id(id) {
 }
 
-Shader::~Shader() {
-	glDeleteProgram(id);
+render::Shader::~Shader() {
+	//glDeleteProgram(id);
 }
 
-void Shader::use() {
+void render::Shader::use() {
 	glUseProgram(id);
 }
 
-void Shader::uniform_matrix(std::string name, glm::mat4 matrix)
+void render::Shader::uniform_matrix(const std::string_view name, glm::mat4 matrix)
 {
-	GLuint transformLoc = glGetUniformLocation(id, name.c_str());
+	GLuint transformLoc = glGetUniformLocation(id, name.data());
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
-void Shader::uniform_float(std::string name, float val)
+void render::Shader::uniform_float(std::string name, float val)
 {
 	glUniform1f(glGetUniformLocation(id, name.c_str()), val);
 }
 
-std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmentFile, std::string geomFile)
+std::shared_ptr<render::Shader> render::Shader::load(std::string vertexFile, std::string fragmentFile, std::string geomFile)
 {
 	auto vertexCode = res::get_system().require_resource<res::Shader>(res::Tag::make(vertexFile), true);
 	auto fragmentCode = res::get_system().require_resource<res::Shader>(res::Tag::make(fragmentFile), true);
@@ -100,11 +98,9 @@ std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmen
 
 	egLOG("shader/load", "Success loading shader {}; {}; {}", vertexFile, fragmentFile, geomFile);
 	return std::make_shared<Shader>(id);
-
-	return std::shared_ptr<Shader>();
 }
 
-std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmentFile)
+std::shared_ptr<render::Shader> render::Shader::load(std::string vertexFile, std::string fragmentFile)
 {
 
 	auto vertexCode = res::get_system().require_resource<res::Shader>(res::Tag::make(vertexFile), true);
@@ -166,26 +162,4 @@ std::shared_ptr<Shader> Shader::load(std::string vertexFile, std::string fragmen
 
 	egLOG("shader/load", "Success loading shader {}; {}", vertexFile, fragmentFile);
 	return std::make_shared<Shader>(id);
-}
-
-static unsigned int uboMatrices;
-
-void prepare_global_structure()
-{
-	glGenBuffers(1, &uboMatrices);
-
-	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4) + sizeof(float), NULL, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4) + sizeof(float));
-}
-
-void set_global_data(const glm::mat4& projection, const glm::mat4& view, float time)
-{
-	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
-	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(float), std::addressof(time));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }

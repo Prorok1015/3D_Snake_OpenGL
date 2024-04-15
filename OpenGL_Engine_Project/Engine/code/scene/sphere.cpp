@@ -1,5 +1,6 @@
 #include "sphere.h"
 #include "../resource/res_resource_model.h"
+#include "../render/rnd_render_system.h"
 #include "model.h"
 
 std::vector<res::Vertex> get_sphere_data()
@@ -112,15 +113,15 @@ void init_sphere()
         v.texture_position_ = glm::vec2(v.texture_position_.x / 16, -v.texture_position_.y / 16);
     }
 
-    auto txt = rnd::TextureManager::inst().require_texture(res::Tag::make("block.png"));
+    auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
     txt->tmp_type = "texture_diffuse";
     p_Mesh = std::make_unique<scene::Mesh>(vex, inc, std::vector<std::shared_ptr<rnd::Texture>>{txt});
 
 }
 
-void draw_sphere(Shader& ourShader)
+void draw_sphere(const render::Shader& ourShader)
 {
-    p_Mesh->Draw(ourShader);
+    p_Mesh->draw(ourShader);
 }
 
 void term_sphere()

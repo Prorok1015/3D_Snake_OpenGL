@@ -47,7 +47,32 @@ bool editor::EditorSystem::show_toolbar()
 		if (ImGui::Button("Reload")) {
 			gm::get_system().load_model(buf);
 		}
+		static int cube_count_add = 1;
+		static int cube_count_remove = 1;
+		static int cube_count = 0;
 		ImGui::SliderFloat("Object scale", &gm::get_system().cube_scale, 0.1f, 10.f);
+		if (ImGui::Button("add cube")) {
+			for (int i = 0; i < cube_count_add; ++i) {
+				gm::get_system().add_cube_to_scene(10.f);
+				cube_count++;
+			}
+		}		
+		ImGui::SameLine();
+		ImGui::SliderInt("count add", &cube_count_add, 1, 100);
+		ImGui::NewLine();
+
+		if (ImGui::Button("remove cube")) {
+			for (int i = 0; i < cube_count_remove; ++i) {
+				gm::get_system().remove_cube();
+				if (cube_count > 0)
+					cube_count--;
+			}
+		}
+		ImGui::SameLine();
+		ImGui::SliderInt("count remove", &cube_count_remove, 1, 100);
+		ImGui::NewLine();
+
+		ImGui::Text("cubes count: %d", cube_count);
 
 		ImGui::End();
 	}

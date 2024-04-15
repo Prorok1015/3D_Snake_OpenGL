@@ -11,11 +11,6 @@ namespace render
 	public:
 		std::shared_ptr<Texture> require_texture(const res::Tag& tag) const;
 
-		static TextureManager& inst() {
-			static TextureManager inst;
-			return inst;
-		}
-
 	protected:
 		std::shared_ptr<Texture> find_cache(const res::Tag& tag) const;
 
