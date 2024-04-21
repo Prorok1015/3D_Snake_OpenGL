@@ -10,6 +10,7 @@ namespace render
 	{
 	public:
 		std::shared_ptr<Texture> require_texture(const res::Tag& tag) const;
+		std::shared_ptr<Texture> generate_texture(const res::Tag& tag, glm::vec2 size, int channels, std::vector<unsigned char> data) const;
 
 	protected:
 		std::shared_ptr<Texture> find_cache(const res::Tag& tag) const;

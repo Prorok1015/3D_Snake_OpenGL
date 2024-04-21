@@ -231,6 +231,9 @@
     <ClCompile Include="code\render\shader\rnd_shader_manager.cpp">
       <Filter>Source files\Render\Shader</Filter>
     </ClCompile>
+    <ClCompile Include="code\scene\primitives.cpp">
+      <Filter>Source files\Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="code\render\camera\camera.h">
@@ -415,6 +418,9 @@
     </ClInclude>
     <ClInclude Include="code\render\shader\rnd_shader_manager.h">
       <Filter>Source files\Render\Shader</Filter>
+    </ClInclude>
+    <ClInclude Include="code\scene\primitives.h">
+      <Filter>Source files\Scene</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

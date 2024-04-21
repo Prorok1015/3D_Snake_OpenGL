@@ -4,6 +4,7 @@
 #include <engine/game_system/game_system.h>
 #include <engine/resource/res_resource_system.h>
 #include <engine/resource/res_resource_texture.h>
+#include <engine/render/rnd_render_system.h>
 
 editor::EditorSystem::EditorSystem()
 {
@@ -73,6 +74,24 @@ bool editor::EditorSystem::show_toolbar()
 		ImGui::NewLine();
 
 		ImGui::Text("cubes count: %d", cube_count);
+
+		const char* items[] = { "TRIANGLE", "TRIANGLE_STRIP", "LINE_LOOP", "LINE_STRIP", "LINE", "POINT"};
+		static int item_current = 0;
+		static int item_old = 0;
+
+		ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items));
+		if (item_current != item_old) {
+			static std::unordered_map<std::string, rnd::RENDER_VIEW> mmap{ 
+				{items[0], rnd::RENDER_VIEW::TRIANGLE}, 
+				{items[1], rnd::RENDER_VIEW::TRIANGLE_STRIP},
+				{items[2], rnd::RENDER_VIEW::LINE_LOOP},
+				{items[3], rnd::RENDER_VIEW::LINE_STRIP},
+				{items[4], rnd::RENDER_VIEW::LINE},
+				{items[5], rnd::RENDER_VIEW::POINT},
+			};
+			rnd::get_system().render_view(mmap[items[item_current]]);
+			item_old = item_current;
+		}
 
 		ImGui::End();
 	}

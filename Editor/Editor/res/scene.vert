@@ -10,12 +10,12 @@ layout (std140, binding = 0) uniform Matrices
     float time;
 };
 
-out vec2 texCoords;
+varying vec2 TexCoords;
 
 uniform mat4 model;
 
 void main()
 {
-    texCoords = aTexCoords;    
+    TexCoords = aTexCoords;    
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 }

@@ -88,5 +88,14 @@
     <None Include="res\normal.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="res\scene_network.vert">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\scene_network.geom">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
+    <None Include="res\scene_network.frag">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

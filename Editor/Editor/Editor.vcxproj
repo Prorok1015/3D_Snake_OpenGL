@@ -227,6 +227,9 @@
     <None Include="res\scene.frag" />
     <None Include="res\scene.geom" />
     <None Include="res\scene.vert" />
+    <None Include="res\scene_network.frag" />
+    <None Include="res\scene_network.geom" />
+    <None Include="res\scene_network.vert" />
     <None Include="res\shape.frag" />
     <None Include="res\shape.vert" />
   </ItemGroup>

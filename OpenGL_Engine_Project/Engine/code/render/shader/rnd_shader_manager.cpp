@@ -91,22 +91,23 @@ render::Shader render::ShaderManager::load(const std::string& name) const
 		return -1;
 	}
 
-	// Geometry Shader
-	geom = glCreateShader(GL_GEOMETRY_SHADER);
-	glShaderSource(geom, 1, &gShaderCode, nullptr);
-	glCompileShader(geom);
-	glGetShaderiv(geom, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(geom, 512, nullptr, infoLog);
-		egLOG("shader/load", "Geometry Shader: \n{}", infoLog);
-		return -1;
-	}
+	// TEMPORARY OFF
+	//// Geometry Shader
+	//geom = glCreateShader(GL_GEOMETRY_SHADER);
+	//glShaderSource(geom, 1, &gShaderCode, nullptr);
+	//glCompileShader(geom);
+	//glGetShaderiv(geom, GL_COMPILE_STATUS, &success);
+	//if (!success) {
+	//	glGetShaderInfoLog(geom, 512, nullptr, infoLog);
+	//	egLOG("shader/load", "Geometry Shader: \n{}", infoLog);
+	//	return -1;
+	//}
 
 	// Shader Program
 	GLuint id = glCreateProgram();
 	glAttachShader(id, vertex);
 	glAttachShader(id, fragment);
-	glAttachShader(id, geom);
+	//glAttachShader(id, geom);
 	glLinkProgram(id);
 
 	glGetProgramiv(id, GL_LINK_STATUS, &success);
@@ -115,7 +116,7 @@ render::Shader render::ShaderManager::load(const std::string& name) const
 
 		glDeleteShader(vertex);
 		glDeleteShader(fragment);
-		glDeleteShader(geom);
+		//glDeleteShader(geom);
 
 		egLOG("shader/load", "{}", infoLog);
 		return -1;
@@ -123,7 +124,7 @@ render::Shader render::ShaderManager::load(const std::string& name) const
 
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
-	glDeleteShader(geom);
+	//glDeleteShader(geom);
 
 	egLOG("shader/load", "Success loading shader {}", name);
 	return Shader(id);

@@ -5,6 +5,21 @@
 
 namespace render
 {
+	enum class RENDER_VIEW
+	{
+		TRIANGLE = GL_TRIANGLES,
+		TRIANGLE_STRIP = GL_TRIANGLE_STRIP,
+		TRIANGLE_FAN = GL_TRIANGLE_FAN,
+		TRIANGLE_ADJ = GL_TRIANGLES_ADJACENCY,
+		TRIANGLE_STRIP_ADJ = GL_TRIANGLE_STRIP_ADJACENCY,
+		LINE = GL_LINES,
+		LINE_STRIP = GL_LINE_STRIP,
+		LINE_LOOP = GL_LINE_LOOP,
+		LINE_ADJ = GL_LINES_ADJACENCY,
+		LINE_STRIP_ADJ = GL_LINE_STRIP_ADJACENCY,
+		POINT = GL_POINTS,
+	};
+
 	class RenderSystem
 	{
 	public:
@@ -39,10 +54,30 @@ namespace render
 			glActiveTexture(GL_TEXTURE0);
 		}
 
+		void draw_point(unsigned int vao) const {
+			glDrawArrays(GL_POINTS, 0, 1);
+			CHECK_GL_ERROR();
+		}
+
+		void set_point_size(float size) const {
+			glPointSize(size);
+			CHECK_GL_ERROR();
+		}
+
+		void set_line_size(float size) const {
+			glLineWidth(size);
+			CHECK_GL_ERROR();
+		}
+
 		void draw_elements(unsigned int vao, unsigned int count) const {
 			glBindVertexArray(vao);
 			CHECK_GL_ERROR();
-			glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, 0);
+
+			if (render_view() == RENDER_VIEW::POINT) {
+				set_point_size(10.f);
+			}
+
+			glDrawElements((GLenum)render_view(), count, GL_UNSIGNED_INT, 0);
 			CHECK_GL_ERROR();
 			glBindVertexArray(0);
 			CHECK_GL_ERROR();
@@ -77,10 +112,12 @@ namespace render
 
 		void bind_buffer(unsigned int buf, int type) const {
 			glBindBuffer(type, buf);
+			CHECK_GL_ERROR();
 		}
 
 		void buffer_data(int flag, int size, void* data) const {
 			glBufferData(flag, size, data, GL_STATIC_DRAW);
+			CHECK_GL_ERROR();
 		}
 
 		void vertex_attribute_pointer(int idx, int count, int type, int size, void* offset) const {
@@ -95,9 +132,13 @@ namespace render
 			glVertexAttribIPointer(idx, count, type, size, offset);
 		}
 
+		RENDER_VIEW render_view() const { return _render_view; }
+		void render_view(RENDER_VIEW val) { _render_view = val; }
 	private:
 		rnd::TextureManager txrManager;
 		rnd::ShaderManager shManager;
+
+		RENDER_VIEW _render_view = RENDER_VIEW::TRIANGLE;
 	};
 
 	RenderSystem& get_system();

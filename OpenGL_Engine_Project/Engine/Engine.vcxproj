@@ -286,6 +286,7 @@
     <ClCompile Include="code\scene\cude.cpp" />
     <ClCompile Include="code\scene\mesh.cpp" />
     <ClCompile Include="code\scene\model.cpp" />
+    <ClCompile Include="code\scene\primitives.cpp" />
     <ClCompile Include="code\scene\sphere.cpp" />
     <ClCompile Include="code\serialize\files.cpp" />
     <ClCompile Include="code\serialize\image_loader.cpp" />
@@ -347,6 +348,7 @@
     <ClInclude Include="code\resource\res_resource_tag.h" />
     <ClInclude Include="code\resource\res_resource_texture.h" />
     <ClInclude Include="code\scene\cude.h" />
+    <ClInclude Include="code\scene\primitives.h" />
     <ClInclude Include="code\scene\mesh.h" />
     <ClInclude Include="code\scene\model.h" />
     <ClInclude Include="code\scene\sphere.h" />
