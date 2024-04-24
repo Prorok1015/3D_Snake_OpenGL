@@ -5,6 +5,7 @@
 #include <engine/resource/res_resource_system.h>
 #include <engine/resource/res_resource_texture.h>
 #include <engine/render/rnd_render_system.h>
+#include <engine/scene/primitives.h>
 
 editor::EditorSystem::EditorSystem()
 {
@@ -13,6 +14,20 @@ editor::EditorSystem::EditorSystem()
 	gm::get_system().load_model(buf);
 	auto logo = res::get_system().require_resource<res::Image>(res::Tag::make("icons/editor_engine_logo.png"));
 	gm::get_system().get_window()->set_logo(logo, nullptr);
+
+	g_Scene = generate_network({ 50, 50 });
+
+	auto txt = rnd::get_system().get_txr_manager().generate_texture(res::Tag::make("__black"), { 1,1 }, 3, { 0, 0, 0 });
+	txt->tmp_type = "texture_diffuse";
+
+	g_Scene.meshes.back().textures.push_back(txt);
+	g_Scene.model = glm::scale(g_Scene.model, glm::vec3(20, 0, 20));
+}
+
+
+editor::EditorSystem::~EditorSystem()
+{
+
 }
 
 
@@ -25,7 +40,8 @@ bool editor::EditorSystem::show_toolbar()
 		auto& app = app::get_app_system();
 		ImGui::Text("Common");
 		ImGui::Separator();
-		ImGui::ColorEdit4("Clear color", glm::value_ptr(app.clear_color_));
+		ImGui::ColorEdit4("Clear color", glm::value_ptr(clear_color_));
+		rnd::get_system().clear_color(clear_color_);
 		ImGui::Separator();
 		ImGui::NewLine();
 
@@ -89,7 +105,7 @@ bool editor::EditorSystem::show_toolbar()
 				{items[4], rnd::RENDER_VIEW::LINE},
 				{items[5], rnd::RENDER_VIEW::POINT},
 			};
-			rnd::get_system().render_view(mmap[items[item_current]]);
+			rnd::get_system().render_mode(mmap[items[item_current]]);
 			item_old = item_current;
 		}
 
@@ -97,4 +113,17 @@ bool editor::EditorSystem::show_toolbar()
 	}
 
 	return is_open;
+}
+
+void editor::EditorSystem::pre_render()
+{
+	auto tmp = rnd::get_system().render_mode();
+	rnd::get_system().render_mode(rnd::RENDER_VIEW::LINE);
+	rnd::get_system().set_line_size(2);
+	rnd::get_system().get_sh_manager().uniform("scene"/*"scene_network"*/, "model", g_Scene.model);
+
+	g_Scene.draw(rnd::get_system().get_sh_manager().use("scene"/*"scene_network"*/));
+
+	rnd::get_system().render_mode(tmp);
+
 }

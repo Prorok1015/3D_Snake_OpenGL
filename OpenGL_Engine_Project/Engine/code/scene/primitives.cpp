@@ -165,13 +165,9 @@ scene::Model generate_cube()
     return m;
 }
 
-std::vector<res::Vertex> generate_sphere_data()
+std::vector<res::Vertex> generate_sphere_data(float radius, float sectorCount, float stackCount)
 {
     std::vector<res::Vertex> result;
-
-    float radius = 1.0f;
-    float sectorCount = 72.f;
-    float stackCount = 24.f;
 
     constexpr float PI = std::numbers::pi;
     float x, y, z, xy;                              // vertex position
@@ -219,11 +215,12 @@ std::vector<res::Vertex> generate_sphere_data()
 
 scene::Model generate_sphere()
 {
-    auto vex = generate_sphere_data();
-
-    float radius = 2.0f;
+    float radius = 1.0f;
     float sectorCount = 72.f;
     float stackCount = 24.f;
+
+    auto vex = generate_sphere_data(radius, sectorCount, stackCount);
+
     // generate CCW index list of sphere triangles
     // k1--k1+1
     // |  / |
@@ -231,11 +228,11 @@ scene::Model generate_sphere()
     // k2--k2+1
     std::vector<unsigned int> inc;
     std::vector<int> lineIndices;
-    int k1, k2;
+
     for (int i = 0; i < stackCount; ++i)
     {
-        k1 = i * (sectorCount + 1);     // beginning of current stack
-        k2 = k1 + sectorCount + 1;      // beginning of next stack
+        int k1 = i * (sectorCount + 1);     // beginning of current stack
+        int k2 = k1 + sectorCount + 1;      // beginning of next stack
 
         for (int j = 0; j < sectorCount; ++j, ++k1, ++k2)
         {
@@ -269,7 +266,7 @@ scene::Model generate_sphere()
     }
 
     for (auto& v : vex) {
-        v.texture_position_ = glm::vec2(v.texture_position_.x / 16, -v.texture_position_.y / 16);
+        v.texture_position_ = v.texture_position_ / glm::vec2(16, -16);
     }
 
     auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));

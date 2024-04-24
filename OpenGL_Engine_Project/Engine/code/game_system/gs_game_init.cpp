@@ -14,6 +14,7 @@ void components::game_init(ds::AppDataStorage& data)
 
 	myApp.beginFrame += [] { gm::get_system().begin_frame(); };
 	myApp.capture += [] { gm::get_system().capture(); };
+	myApp.prepair_render += [] { gm::get_system().prepair_render(); };
 	myApp.render += [] { gm::get_system().render(); };
 	myApp.endFrame += [] { gm::get_system().end_frame(); };
 }

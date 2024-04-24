@@ -12,6 +12,6 @@ void main()
     } else {
         //FragColor.b = 1.f;
     }
-    FragColor = texture(texture_diffuse1, vec2(TexCoords.x/16, -TexCoords.y/16));
+    FragColor = texture(texture_diffuse1, TexCoords);
 
 }

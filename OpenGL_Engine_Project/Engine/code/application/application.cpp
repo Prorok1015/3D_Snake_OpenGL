@@ -21,22 +21,20 @@ application::Application::~Application()
 int application::Application::run()
 {
 	auto& wndCreator = wnd::get_system();
-
 	rnd::get_system().enable(GL_DEPTH_TEST);
+	rnd::get_system().clear_color(clear_color_);
+
 	while (!wndCreator.is_all_windows_close()) {
 		beginFrame();
 		capture();
 
-		rnd::get_system().clear_color(clear_color_);
-		rnd::get_system().clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		prepair_render();
+		pre_render();
 		render();
+		post_render();
+
 		endFrame();
 	}
 
 	return 0;
-}
-
-void application::Application::set_clear_color(glm::vec4 color)
-{
-	clear_color_ = color;
 }

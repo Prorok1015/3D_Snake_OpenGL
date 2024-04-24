@@ -16,16 +16,23 @@ namespace application
 
 		virtual int run();
 
-		void set_clear_color(glm::vec4 clear_color);
+		void set_clear_color(const glm::vec4& clear_color) {
+			clear_color_ = clear_color;
+		}
+
 		const glm::vec4& get_clear_color() const { return clear_color_; }
-		glm::vec4 clear_color_ = { 0.45f, 0.55f, 0.60f, 1.00f };
+
 	public:
 		Event<> beginFrame;
 		Event<> capture;
+		Event<> prepair_render;
+		Event<> pre_render;
 		Event<> render;
+		Event<> post_render;
 		Event<> endFrame;
 
 	private:
+		glm::vec4 clear_color_ = { 0.45f, 0.55f, 0.60f, 1.00f };
 	};
 
 	Application& get_app_system();

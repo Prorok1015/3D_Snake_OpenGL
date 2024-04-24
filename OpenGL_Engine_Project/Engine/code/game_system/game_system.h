@@ -21,6 +21,7 @@ namespace game
 		GameSystem& operator= (GameSystem&&) = default;
 
 		void capture();
+		void prepair_render();
 		void render();
 
 		void begin_frame();

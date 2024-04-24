@@ -73,11 +73,11 @@ namespace render
 			glBindVertexArray(vao);
 			CHECK_GL_ERROR();
 
-			if (render_view() == RENDER_VIEW::POINT) {
+			if (render_mode() == RENDER_VIEW::POINT) {
 				set_point_size(10.f);
 			}
 
-			glDrawElements((GLenum)render_view(), count, GL_UNSIGNED_INT, 0);
+			glDrawElements((GLenum)render_mode(), count, GL_UNSIGNED_INT, 0);
 			CHECK_GL_ERROR();
 			glBindVertexArray(0);
 			CHECK_GL_ERROR();
@@ -132,13 +132,13 @@ namespace render
 			glVertexAttribIPointer(idx, count, type, size, offset);
 		}
 
-		RENDER_VIEW render_view() const { return _render_view; }
-		void render_view(RENDER_VIEW val) { _render_view = val; }
+		RENDER_VIEW render_mode() const { return _render_mode; }
+		void render_mode(RENDER_VIEW val) { _render_mode = val; }
 	private:
 		rnd::TextureManager txrManager;
 		rnd::ShaderManager shManager;
 
-		RENDER_VIEW _render_view = RENDER_VIEW::TRIANGLE;
+		RENDER_VIEW _render_mode = RENDER_VIEW::TRIANGLE;
 	};
 
 	RenderSystem& get_system();
