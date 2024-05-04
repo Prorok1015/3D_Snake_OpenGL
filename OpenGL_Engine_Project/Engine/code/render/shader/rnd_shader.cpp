@@ -13,17 +13,21 @@ render::Shader::~Shader() {
 
 void render::Shader::use() {
 	glUseProgram(id);
+	CHECK_GL_ERROR();
 }
 
 void render::Shader::uniform_matrix(const std::string_view name, glm::mat4 matrix)
 {
 	GLuint transformLoc = glGetUniformLocation(id, name.data());
+	CHECK_GL_ERROR();
 	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(matrix));
+	CHECK_GL_ERROR(); 
 }
 
 void render::Shader::uniform_float(std::string name, float val)
 {
 	glUniform1f(glGetUniformLocation(id, name.c_str()), val);
+	CHECK_GL_ERROR();
 }
 
 std::shared_ptr<render::Shader> render::Shader::load(std::string vertexFile, std::string fragmentFile, std::string geomFile)

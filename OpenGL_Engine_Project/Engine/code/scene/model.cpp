@@ -11,12 +11,6 @@ scene::Model::Model(std::string_view path, bool gamma)
     loadModel(path);
 }
 
-void scene::Model::draw(const rnd::Shader& shader)
-{
-    for (unsigned int i = 0; i < meshes.size(); i++)
-        meshes[i].draw(shader);
-}
-
 std::vector<std::shared_ptr<rnd::Texture>> make_texture(std::vector<res::Material> vec)
 {
     std::vector<std::shared_ptr<rnd::Texture>> result;
@@ -34,7 +28,7 @@ void scene::Model::loadModel(std::string_view path)
     res_ = res::get_system().require_resource<res::Model>(res::Tag::make(path));
     meshes.clear();
     for (const auto& mesh : res_->get_meshes()) {
-        meshes.push_back(Mesh{ mesh.vertexes_, mesh.indeces_, make_texture(mesh.textures_) });
+        meshes.push_back(Mesh{ mesh.vertexes_, mesh.indeces_, mesh.textures_.front().tag_/*make_texture(mesh.textures_)*/ });
     }
 }
 

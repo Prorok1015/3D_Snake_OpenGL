@@ -72,7 +72,7 @@ resource::Mesh resource::Model::processMesh(aiMesh* mesh, const aiScene* scene)
             // use models where a vertex can have multiple texture coordinates so we always take the first set (0).
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
-            vertex.texture_position_ = vec;
+            vertex.tex_uv_ = vec;
             // tangent
             vector.x = mesh->mTangents[i].x;
             vector.y = mesh->mTangents[i].y;
@@ -85,7 +85,7 @@ resource::Mesh resource::Model::processMesh(aiMesh* mesh, const aiScene* scene)
             vertex.bitangent_ = vector;
         }
         else
-            vertex.texture_position_ = glm::vec2(0.0f, 0.0f);
+            vertex.tex_uv_ = glm::vec2(0.0f, 0.0f);
 
         vertices.push_back(vertex);
     }

@@ -2,32 +2,21 @@
 #include "../common/common.h"
 #include "../common/enums.h"
 #include "../render/rnd_render_system.h"
+#include "../common/timer.hpp"
 
 using namespace windows;
 
-windows::Window::Window(std::string_view title, int width, int height)
-    : width_(width), height_(height)
+windows::Window::Window(std::string_view title, glm::ivec2 size_)
+    : size(size_)
 {   
-    /* Create a windowed mode window and its OpenGL context */
-    id_.id_ = glfwCreateWindow(width_, height_, title.data(), NULL, NULL);
+    /* Create a windowed mode window */
+    id_.id_ = glfwCreateWindow(size.x, size.y, title.data(), NULL, NULL);
 
-    if (!id_)
-    {
-        ASSERT_FAIL("window didn't create!");
-    }
+    ASSERT_MSG(id_, "Window didn't create!");
 
-    /* Make the window's context current */
-    glfwMakeContextCurrent(id_);
+    _render_context.init(id_);
 
-    // Enable vsync
-    glfwSwapInterval(1); 
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-    {
-        ASSERT_FAIL("glad didnt loaded in this process!");
-    }
-
-    rnd::get_system().viewport({ 0, 0, width_, height_ });
+    rnd::get_system().viewport({ glm::zero<glm::ivec2>(), size });
 }
 
 windows::Window::~Window()
@@ -35,18 +24,17 @@ windows::Window::~Window()
     //glfwDestroyWindow
 }
 
-void Window::swap_buffers()
+void Window::on_update()
 {
-    glfwSwapBuffers(id_);
-    ++current_frame;
+    _render_context.swap_buffers();
 }
 
-bool Window::is_should_close()
+bool Window::is_shutdown() const
 {
     return glfwWindowShouldClose(id_);
 }
 
-void Window::set_should_close(bool close)
+void Window::shutdown(bool close)
 {
     glfwSetWindowShouldClose(id_, close);
 }
@@ -55,42 +43,21 @@ void Window::set_cursor_mode(CursorMode mode) {
     glfwSetInputMode(id_, GLFW_CURSOR, (int)mode);
 }
 
-float Window::current_time()
-{
-    return (float)glfwGetTime();
-}
-
 void Window::update_frame()
 {
-    float currentTime = Window::current_time();
+    double currentTime = Timer::now();
     delta = currentTime - lastTime;
     lastTime = currentTime;
 }
 
 void windows::Window::on_resize_window(int width, int height)
 {
-    rnd::get_system().viewport({ 0, 0, width_, height_ });
-    width_ = width;
-    height_ = height;
+    size = { width, height };
+    rnd::get_system().viewport({ glm::zero<glm::ivec2>(), size});
     eventResizeWindow(*this, width, height);
 }
 
-void windows::Window::on_mouse_move(double xpos, double ypos)
-{
-    eventMouseMove(*this, xpos, ypos);
-}
-
-void windows::Window::on_mouse_button_action(int button, int action, int mode)
-{
-    eventMouseAction(*this, button, action, mode);
-}
-
-void windows::Window::on_keyboard_action(int keycode, int scancode, int action, int mode)
-{
-    eventKeyboardAction(*this, keycode, scancode, action, mode);
-}
-
-void windows::Window::set_logo(std::shared_ptr<res::Image> logo, std::shared_ptr<res::Image> logo_small)
+void windows::Window::set_logo(res::ImageRef logo, res::ImageRef logo_small)
 {
     if (logo->channels() != 4) {
         egLOG("window/logo", "Logo should be rgba image");

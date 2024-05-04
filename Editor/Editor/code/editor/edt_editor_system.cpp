@@ -11,17 +11,17 @@ editor::EditorSystem::EditorSystem()
 {
 	DBG_UI_REG_LAMBDA("GAME/UI/TOOLBAR", [this] { return show_toolbar(); });
 	DBG_UI_SET_ITEM_CHECKED("GAME/UI/TOOLBAR", true);
-	gm::get_system().load_model(buf);
+
 	auto logo = res::get_system().require_resource<res::Image>(res::Tag::make("icons/editor_engine_logo.png"));
 	gm::get_system().get_window()->set_logo(logo, nullptr);
 
 	g_Scene = generate_network({ 50, 50 });
 
 	auto txt = rnd::get_system().get_txr_manager().generate_texture(res::Tag::make("__black"), { 1,1 }, 3, { 0, 0, 0 });
-	txt->tmp_type = "texture_diffuse";
 
-	g_Scene.meshes.back().textures.push_back(txt);
+	g_Scene.meshes.back().material.texture = res::Tag::make("__black");
 	g_Scene.model = glm::scale(g_Scene.model, glm::vec3(20, 0, 20));
+	rnd::get_system().set_line_size(2);
 }
 
 
@@ -60,6 +60,8 @@ bool editor::EditorSystem::show_toolbar()
 		ImGui::Text("Scene");
 		ImGui::Separator();
 
+		ImGui::Checkbox("Is Draw Scene Net", &is_draw_scene_net);
+
 		ImGui::InputText("Name", buf, 64);
 		if (ImGui::Button("Reload")) {
 			gm::get_system().load_model(buf);
@@ -97,17 +99,20 @@ bool editor::EditorSystem::show_toolbar()
 
 		ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items));
 		if (item_current != item_old) {
-			static std::unordered_map<std::string, rnd::RENDER_VIEW> mmap{ 
-				{items[0], rnd::RENDER_VIEW::TRIANGLE}, 
-				{items[1], rnd::RENDER_VIEW::TRIANGLE_STRIP},
-				{items[2], rnd::RENDER_VIEW::LINE_LOOP},
-				{items[3], rnd::RENDER_VIEW::LINE_STRIP},
-				{items[4], rnd::RENDER_VIEW::LINE},
-				{items[5], rnd::RENDER_VIEW::POINT},
+			static std::unordered_map<std::string, rnd::RENDER_MODE> mmap{ 
+				{items[0], rnd::RENDER_MODE::TRIANGLE}, 
+				{items[1], rnd::RENDER_MODE::TRIANGLE_STRIP},
+				{items[2], rnd::RENDER_MODE::LINE_LOOP},
+				{items[3], rnd::RENDER_MODE::LINE_STRIP},
+				{items[4], rnd::RENDER_MODE::LINE},
+				{items[5], rnd::RENDER_MODE::POINT},
 			};
 			rnd::get_system().render_mode(mmap[items[item_current]]);
 			item_old = item_current;
 		}
+
+		scn::Transform ct = game::get_system().get_camera_transform();
+		ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
 
 		ImGui::End();
 	}
@@ -117,13 +122,13 @@ bool editor::EditorSystem::show_toolbar()
 
 void editor::EditorSystem::pre_render()
 {
-	auto tmp = rnd::get_system().render_mode();
-	rnd::get_system().render_mode(rnd::RENDER_VIEW::LINE);
-	rnd::get_system().set_line_size(2);
-	rnd::get_system().get_sh_manager().uniform("scene"/*"scene_network"*/, "model", g_Scene.model);
+	if (is_draw_scene_net) {
+		auto tmp = rnd::get_system().render_mode();
+		rnd::get_system().render_mode(rnd::RENDER_MODE::LINE);
 
-	g_Scene.draw(rnd::get_system().get_sh_manager().use("scene"/*"scene_network"*/));
 
-	rnd::get_system().render_mode(tmp);
+		rnd::get_system().get_renderer().draw(g_Scene);
 
+		rnd::get_system().render_mode(tmp);
+	}
 }

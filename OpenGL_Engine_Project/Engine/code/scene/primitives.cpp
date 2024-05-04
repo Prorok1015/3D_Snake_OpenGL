@@ -16,8 +16,8 @@ scene::Model generate_network(glm::ivec2 size)
 
         vex.push_back(line[0]);
         vex.push_back(line[1]);
-        inc.push_back(vex.size() - 2);
-        inc.push_back(vex.size() - 1);
+        inc.push_back((unsigned)vex.size() - 2);
+        inc.push_back((unsigned)vex.size() - 1);
     }
 
     const int half_y = size.y / 2;
@@ -28,12 +28,12 @@ scene::Model generate_network(glm::ivec2 size)
 
         vex.push_back(line[0]);
         vex.push_back(line[1]);
-        inc.push_back(vex.size() - 2);
-        inc.push_back(vex.size() - 1);
+        inc.push_back((unsigned)vex.size() - 2);
+        inc.push_back((unsigned)vex.size() - 1);
     }
 
     scene::Model m;
-    m.meshes.emplace_back(vex, inc, std::vector<std::shared_ptr<rnd::Texture>>{});
+    m.meshes.emplace_back(vex, inc);
     return m;
 }
 
@@ -41,35 +41,35 @@ scene::Model generate_cube()
 {
     std::vector<res::Vertex> vex
     {
-        {.position_ = {-1.f, -1.f, -1.f}, .texture_position_ = {0,0}}, // 0
-        {.position_ = { -1.f, 1.f, -1.f}, .texture_position_ = {0,1}}, // 1
-        {.position_ = { 1.f,  1.f, -1.f}, .texture_position_ = {1,1}}, // 2
-        {.position_ = { 1.f, -1.f, -1.f}, .texture_position_ = {1,0}}, // 3
+        {.position_ = {-1.f, -1.f, -1.f}, .tex_uv_ = {0,0}}, // 0
+        {.position_ = { -1.f, 1.f, -1.f}, .tex_uv_ = {0,1}}, // 1
+        {.position_ = { 1.f,  1.f, -1.f}, .tex_uv_ = {1,1}}, // 2
+        {.position_ = { 1.f, -1.f, -1.f}, .tex_uv_ = {1,0}}, // 3
 
-        {.position_ = {-1.f, -1.f, 1.f}, .texture_position_ = {1,0}},  // 4
-        {.position_ = { 1.f, -1.f, 1.f}, .texture_position_ = {0,0}},  // 5
-        {.position_ = { 1.f,  1.f, 1.f}, .texture_position_ = {0,1}},  // 6
-        {.position_ = {-1.f,  1.f, 1.f}, .texture_position_ = {1,1}},  // 7
+        {.position_ = {-1.f, -1.f, 1.f}, .tex_uv_ = {1,0}},  // 4
+        {.position_ = { 1.f, -1.f, 1.f}, .tex_uv_ = {0,0}},  // 5
+        {.position_ = { 1.f,  1.f, 1.f}, .tex_uv_ = {0,1}},  // 6
+        {.position_ = {-1.f,  1.f, 1.f}, .tex_uv_ = {1,1}},  // 7
 
-        {.position_ = {-1.f, -1.f,-1.f}, .texture_position_ = {0,0}},  // 8
-        {.position_ = {-1.f, -1.f, 1.f}, .texture_position_ = {1,0}},  // 9
-        {.position_ = {-1.f,  1.f, 1.f}, .texture_position_ = {1,1}},  // 10
-        {.position_ = {-1.f,  1.f,-1.f}, .texture_position_ = {0,1}},  // 11
+        {.position_ = {-1.f, -1.f,-1.f}, .tex_uv_ = {0,0}},  // 8
+        {.position_ = {-1.f, -1.f, 1.f}, .tex_uv_ = {1,0}},  // 9
+        {.position_ = {-1.f,  1.f, 1.f}, .tex_uv_ = {1,1}},  // 10
+        {.position_ = {-1.f,  1.f,-1.f}, .tex_uv_ = {0,1}},  // 11
 
-        {.position_ = { 1.f, -1.f, -1.f}, .texture_position_ = {1,0}}, // 12
-        {.position_ = { 1.f,  1.f, -1.f}, .texture_position_ = {0,0}}, // 13
-        {.position_ = { 1.f,  1.f,  1.f}, .texture_position_ = {0,1}}, // 14
-        {.position_ = { 1.f,  -1.f, 1.f}, .texture_position_ = {1,1}}, // 15
+        {.position_ = { 1.f, -1.f, -1.f}, .tex_uv_ = {1,0}}, // 12
+        {.position_ = { 1.f,  1.f, -1.f}, .tex_uv_ = {0,0}}, // 13
+        {.position_ = { 1.f,  1.f,  1.f}, .tex_uv_ = {0,1}}, // 14
+        {.position_ = { 1.f,  -1.f, 1.f}, .tex_uv_ = {1,1}}, // 15
 
-        {.position_ = {-1.f, -1.f, -1.f}, .texture_position_ = {0,0}}, // 16
-        {.position_ = { 1.f, -1.f, -1.f}, .texture_position_ = {1,0}}, // 17
-        {.position_ = { 1.f, -1.f,  1.f}, .texture_position_ = {1,1}}, // 18
-        {.position_ = {-1.f, -1.f,  1.f}, .texture_position_ = {0,1}}, // 19
+        {.position_ = {-1.f, -1.f, -1.f}, .tex_uv_ = {0,0}}, // 16
+        {.position_ = { 1.f, -1.f, -1.f}, .tex_uv_ = {1,0}}, // 17
+        {.position_ = { 1.f, -1.f,  1.f}, .tex_uv_ = {1,1}}, // 18
+        {.position_ = {-1.f, -1.f,  1.f}, .tex_uv_ = {0,1}}, // 19
 
-        {.position_ = {-1.f,  1.f, -1.f}, .texture_position_ = {0,0}}, // 20
-        {.position_ = {-1.f,  1.f,  1.f}, .texture_position_ = {1,0}}, // 21
-        {.position_ = { 1.f,  1.f,  1.f}, .texture_position_ = {1,1}}, // 22
-        {.position_ = { 1.f,  1.f, -1.f}, .texture_position_ = {0,1}}, // 23
+        {.position_ = {-1.f,  1.f, -1.f}, .tex_uv_ = {0,0}}, // 20
+        {.position_ = {-1.f,  1.f,  1.f}, .tex_uv_ = {1,0}}, // 21
+        {.position_ = { 1.f,  1.f,  1.f}, .tex_uv_ = {1,1}}, // 22
+        {.position_ = { 1.f,  1.f, -1.f}, .tex_uv_ = {0,1}}, // 23
     };
     std::vector<unsigned int> inc
     {
@@ -155,13 +155,17 @@ scene::Model generate_cube()
         p3.normal_ = p1.normal_;
     }
 
-    std::vector<std::shared_ptr<rnd::Texture>> tex;
-    auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
-    txt->tmp_type = "texture_diffuse";
-    tex.push_back(txt);
+    for (auto& v : vex) {
+        v.tex_uv_ /= glm::vec2(16, -16);
+    }
+
+    //std::vector<std::shared_ptr<rnd::Texture>> tex;
+    //auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
+    //txt->tmp_type = "texture_diffuse";
+    //tex.push_back(txt);
 
     scene::Model m;
-    m.meshes.emplace_back(vex, inc, tex);
+    m.meshes.emplace_back(vex, inc, res::Tag::make("block.png"));
     return m;
 }
 
@@ -169,7 +173,7 @@ std::vector<res::Vertex> generate_sphere_data(float radius, float sectorCount, f
 {
     std::vector<res::Vertex> result;
 
-    constexpr float PI = std::numbers::pi;
+    constexpr float PI = (float)std::numbers::pi;
     float x, y, z, xy;                              // vertex position
     float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
     float s, t;                                     // vertex texCoord
@@ -205,7 +209,7 @@ std::vector<res::Vertex> generate_sphere_data(float radius, float sectorCount, f
             // vertex tex coord (s, t) range between [0, 1]
             s = (float)j / sectorCount;
             t = (float)i / stackCount;
-            vert.texture_position_ = glm::vec2(s, t);
+            vert.tex_uv_ = glm::vec2(s, t);
             result.push_back(vert);
         }
     }
@@ -231,10 +235,10 @@ scene::Model generate_sphere()
 
     for (int i = 0; i < stackCount; ++i)
     {
-        int k1 = i * (sectorCount + 1);     // beginning of current stack
-        int k2 = k1 + sectorCount + 1;      // beginning of next stack
+        int k1 = i * (int)(sectorCount + 1);     // beginning of current stack
+        int k2 = k1 + (int)sectorCount + 1;      // beginning of next stack
 
-        for (int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+        for (int j = 0; j < (int)sectorCount; ++j, ++k1, ++k2)
         {
             // 2 triangles per sector excluding first and last stacks
             // k1 => k2 => k1+1
@@ -266,13 +270,13 @@ scene::Model generate_sphere()
     }
 
     for (auto& v : vex) {
-        v.texture_position_ = v.texture_position_ / glm::vec2(16, -16);
+        v.tex_uv_ = v.tex_uv_ / glm::vec2(16, -16);
     }
 
-    auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
-    txt->tmp_type = "texture_diffuse";
+    //auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
+    //txt->tmp_type = "texture_diffuse";
 
     scene::Model m;
-    m.meshes.emplace_back(vex, inc, std::vector<std::shared_ptr<rnd::Texture>>{txt});
+    m.meshes.emplace_back(vex, inc, res::Tag::make("block.png"));
     return m;
 }

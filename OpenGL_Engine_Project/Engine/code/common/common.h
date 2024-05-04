@@ -19,6 +19,7 @@
 #include <iomanip>
 #include <numbers>
 #include <filesystem>
+#include <type_traits>
 
 #include "engine_assert.h"
 #include "engine_log.h"
@@ -41,3 +42,11 @@ using EventManaged = ds::Event<SIGNATURE, ds::EventPolicyManagedContainer<ds::Ev
 
 template <typename SIGNATURE = void()>
 using Event = ds::Event<SIGNATURE, ds::EventPolicySimpleContainer<ds::EventStoragePopicyVector>>;
+
+namespace glm
+{
+	decltype(auto) value_ptr(auto&& v)
+	{
+		return std::addressof(v);
+	}
+}

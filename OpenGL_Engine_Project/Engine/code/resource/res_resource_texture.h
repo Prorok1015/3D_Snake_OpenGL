@@ -20,6 +20,7 @@ namespace resource
 		glm::ivec2 size_{ 0, 0 };
 	};
 
+	using ImageRef = std::shared_ptr<Image>;
 }
 
 namespace res = resource;

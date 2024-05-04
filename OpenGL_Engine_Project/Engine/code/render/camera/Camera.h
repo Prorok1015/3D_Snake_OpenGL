@@ -2,44 +2,42 @@
 #ifndef WINDOW_CAMERA_H_
 #define WINDOW_CAMERA_H_
 
-#include <glm/glm.hpp>
-#include "../../windows/window.h"
 #include "../../input/inp_input_manager.h"
+
+#include "../../scene/scn_transform_3d.hpp"
 
 class Camera {
 public:
-	Camera(std::shared_ptr<inp::InputManager> inp_manager, glm::vec3 position, float fov);
+	Camera(glm::vec3 position, glm::ivec2 size, float fov = glm::radians(45.0f));
+	virtual ~Camera() {};
 
-	void attath_to_window(std::shared_ptr<wnd::Window> wnd);
+	glm::mat4 projection() const;
+	glm::mat4 view() const;
 
-	void rotate(float x, float y, float z);
-	glm::mat4 projection(float fov);
-	glm::mat4 view();
+	virtual void enable_input_actions(inp::InputManagerRef manager) {};
+	virtual void disable_input_actions(inp::InputManagerRef manager) {};
 
-	void update();
-	void mouse_move(glm::vec2, glm::vec2);
+	void on_viewport_size_change(glm::ivec2 size);
 
 	void set_enabled(bool enable) { enabled_ = enable; }
 	bool is_enabled() const { return enabled_; }
 
-private:
-	void update_vectors();
-	void wasd_move(inp::KEYBOARD_BUTTONS key);
+	void move_to(glm::vec3 pos) {
+		transform.move_to(pos);
+	}
+
+	void look_at(glm::vec3 at) {
+		transform.look_at(at);
+	}
 
 public:
-	std::shared_ptr<inp::InputManager> input_;
-	std::shared_ptr<wnd::Window> window_;
-	glm::vec3 front_;
-	glm::vec3 up_;
-	glm::vec3 right_;
+	scn::Transform transform;
 
-	glm::vec3 position_;
-	glm::mat4 rotation_;
+	glm::ivec2 window_size{ 0 };
+
 	float fov_ = glm::radians(90.f);
-	float speed_ = 15;
-
-	float camX = 0.f;
-	float camY = 0.f;
+	float distance = 100.f;
+	float aspect = 0.f;
 
 	bool enabled_ = false;
 };

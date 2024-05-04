@@ -11,6 +11,7 @@
 #include "../resource/res_resource_system.h"
 
 #include "../render/rnd_render_system.h"
+#include "../common/timer.hpp"
 
 game::GameSystem* p_game_system = nullptr;
 
@@ -24,31 +25,36 @@ game::GameSystem::GameSystem()
 {
 	wnd::WindowSystem& wndCreator = wnd::get_system();
 
-	window = wndCreator.make_window("Window 3.0", WIDTH, HEIGHT);
+	window = wndCreator.make_window("Snake Engine", WIDTH, HEIGHT);
 	input = std::make_shared<inp::InputManager>();
-	rnd::get_system().get_sh_manager().init_global_uniform();
 
-	camera = std::make_shared<Camera>(input, glm::vec3(-5, 5, 0), glm::radians(45.0f));
-	camera->attath_to_window(window);
+	rnd::get_system().init();
 
-	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this] { window->set_should_close(true); });
-	input->create_click_action(inp::KEYBOARD_BUTTONS::TAB, [this] { camera->set_enabled(!camera->is_enabled()); window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal); });
+	camera = std::make_shared<snakeengine::WASDCamera>(glm::vec3(15, 15, 0), window->get_size());
+	camera->look_at(glm::vec3{ 0 });
+	camera->enable_input_actions(input);
+	window->eventResizeWindow.subscribe([this](wnd::Window&, int w, int h) { camera->on_viewport_size_change(glm::ivec2{ w, h }); });
 
+	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
+	input->create_click_action(inp::KEYBOARD_BUTTONS::TAB, [this](float) {
+		camera->set_enabled(!camera->is_enabled()); 
+		window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal); 
+		});
 }
 
 game::GameSystem::~GameSystem()
 {
-
+	camera->disable_input_actions(input);
+	rnd::get_system().term();
 }
 
 void game::GameSystem::capture()
 {
-	camera->update();
 }
 
 void game::GameSystem::prepair_render()
 {
-	if (window->aspect_ratio() < 0.01) {
+	if (window->is_minimize_mode()) {
 		return;
 	}
 
@@ -56,9 +62,9 @@ void game::GameSystem::prepair_render()
 
 	rnd::GlobalUniform val;
 
-	val.projection = camera->projection(glm::radians(45.f));
+	val.projection = camera->projection();
 	val.view = camera->view();
-	val.time = window->current_time();
+	val.time = (float)Timer::now();
 
 	rnd::get_system().get_sh_manager().update_global_uniform(val);
 
@@ -66,41 +72,35 @@ void game::GameSystem::prepair_render()
 
 void game::GameSystem::render()
 {
-	if (window->aspect_ratio() < 0.01) {
+	if (window->is_minimize_mode()) {
 		return;
 	}
 
 	// render the loaded model
 	for (auto& model : scene_objects) {
-		rnd::get_system().get_sh_manager().uniform("scene", "model", glm::scale(model.model, glm::vec3(cube_scale)));
-		model.draw(rnd::get_system().get_sh_manager().use("scene"));
+		rnd::get_system().get_renderer().draw(model);
 	}
 
 	// temporary off while geom shader dont use
-	if (is_show_normal && false)
-	{
-		for (auto& model : scene_objects) {
-			rnd::get_system().get_sh_manager().uniform("normal", "model", glm::scale(model.model, glm::vec3(cube_scale)));
-			model.draw(rnd::get_system().get_sh_manager().use("normal"));
-		}
+	if (is_show_normal && ourModel)
+	{		
+		rnd::get_system().get_renderer().draw(*ourModel);
+		//for (auto& model : scene_objects) {
+		//	rnd::get_system().get_sh_manager().uniform("normal", "model", glm::scale(model.model, glm::vec3(cube_scale)));
+		//	model.draw(rnd::get_system().get_sh_manager().use("normal"));
+		//}
 	}
 }
 
 void game::GameSystem::begin_frame()
 {
 	window->update_frame();
-	float dt = window->delta;
-	input->notify_listeners(dt);
+	input->notify_listeners(window->get_delta());
 }
 
 void game::GameSystem::end_frame()
 {
-	window->swap_buffers();
-}
-
-void game::GameSystem::switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action)
-{
-
+	window->on_update();
 }
 
 void game::GameSystem::set_enable_input(bool enable)
@@ -111,8 +111,7 @@ void game::GameSystem::set_enable_input(bool enable)
 
 void game::GameSystem::load_model(std::string_view path)
 {
-	//ourModel = std::make_shared<scene::Model>(path);
-
+	ourModel = std::make_shared<scene::Model>(path);
 }
 
 void game::GameSystem::reload_shaders()
@@ -122,7 +121,9 @@ void game::GameSystem::reload_shaders()
 
 void game::GameSystem::add_cube_to_scene(float radius)
 {
-	scene_objects.push_back(generate_sphere());
+	static bool is_gen_cube = true;
+	scene_objects.push_back(is_gen_cube ? generate_cube() : generate_sphere());
+	is_gen_cube = !is_gen_cube;
 	auto rand_pos = glm::diskRand(radius);
 
 	auto& m = scene_objects.back();

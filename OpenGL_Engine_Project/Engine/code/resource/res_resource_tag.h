@@ -55,4 +55,18 @@ namespace resource
 	Tag operator+ (const Tag& a, const Tag& b);
 }
 
+namespace std {
+	template <typename T> struct hash;
+
+	template<>
+	struct hash<resource::Tag>
+	{
+		std::size_t operator()(const resource::Tag& tag) const
+		{
+			return tag.get_hash();
+		}
+	};
+
+}
+
 namespace res = resource;

@@ -49,7 +49,6 @@ float vertices[] = {
      0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
 };
 
-static std::unique_ptr<scene::Mesh> p_Mesh;
 
 void init_cude()
 {
@@ -61,7 +60,7 @@ void init_cude()
     {
         res::Vertex v;
         v.position_ = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-        v.texture_position_ = glm::vec2(vertices[i + 3] / 16, -vertices[i + 4] / 16);
+        v.tex_uv_ = glm::vec2(vertices[i + 3] / 16, -vertices[i + 4] / 16);
         vex.push_back(v);
     }
 
@@ -80,23 +79,15 @@ void init_cude()
     auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
     txt->tmp_type = "texture_diffuse";
     tex.push_back(txt);
-
-    p_Mesh = std::make_unique<scene::Mesh>(vex, inc, tex);
 }
 
 void draw_cude(const render::Shader& ourShader)
 {
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    p_Mesh->draw(ourShader);
-
-    //glDisable(GL_BLEND);
 }
 
 void term_cude()
 {
-    p_Mesh.reset();
 }
 
 scene::Model create_cube()
@@ -109,7 +100,7 @@ scene::Model create_cube()
     {
         res::Vertex v;
         v.position_ = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-        v.texture_position_ = glm::vec2(vertices[i + 3] / 16, -vertices[i + 4] / 16);
+        v.tex_uv_ = glm::vec2(vertices[i + 3] / 16, -vertices[i + 4] / 16);
         vex.push_back(v);
     }
 
@@ -125,11 +116,11 @@ scene::Model create_cube()
 
     inc.resize(vex.size());
     std::iota(inc.begin(), inc.end(), 0);
-    auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
-    txt->tmp_type = "texture_diffuse";
-    tex.push_back(txt);
+    //auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
+    //txt->tmp_type = "texture_diffuse";
+    //tex.push_back(txt);
 
     scene::Model m;
-    m.meshes.emplace_back(vex, inc, tex);
+    m.meshes.emplace_back(vex, inc, res::Tag::make("block.png"));
     return m;
 }

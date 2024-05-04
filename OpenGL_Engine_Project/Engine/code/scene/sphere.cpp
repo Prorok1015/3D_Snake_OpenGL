@@ -11,7 +11,7 @@ std::vector<res::Vertex> get_sphere_data()
     float sectorCount = 72.f;
     float stackCount = 24.f;
     
-    constexpr float PI = std::numbers::pi;
+    constexpr float PI = (float)std::numbers::pi;
     float x, y, z, xy;                              // vertex position
     float nx, ny, nz, lengthInv = 1.0f / radius;    // vertex normal
     float s, t;                                     // vertex texCoord
@@ -47,7 +47,7 @@ std::vector<res::Vertex> get_sphere_data()
             // vertex tex coord (s, t) range between [0, 1]
             s = (float)j / sectorCount;
             t = (float)i / stackCount;
-            vert.texture_position_ = glm::vec2(s, t);
+            vert.tex_uv_ = glm::vec2(s, t);
             result.push_back(vert);
         }
     }
@@ -55,7 +55,6 @@ std::vector<res::Vertex> get_sphere_data()
     return result;
 }
 
-static std::unique_ptr<scene::Mesh> p_Mesh;
 
 void init_sphere()
 {
@@ -75,10 +74,10 @@ void init_sphere()
     int k1, k2;
     for (int i = 0; i < stackCount; ++i)
     {
-        k1 = i * (sectorCount + 1);     // beginning of current stack
-        k2 = k1 + sectorCount + 1;      // beginning of next stack
+        k1 = i * (int)(sectorCount + 1);     // beginning of current stack
+        k2 = k1 + (int)sectorCount + 1;      // beginning of next stack
 
-        for (int j = 0; j < sectorCount; ++j, ++k1, ++k2)
+        for (int j = 0; j < (int)sectorCount; ++j, ++k1, ++k2)
         {
             // 2 triangles per sector excluding first and last stacks
             // k1 => k2 => k1+1
@@ -110,21 +109,18 @@ void init_sphere()
     }
 
     for (auto& v : vex) {
-        v.texture_position_ = glm::vec2(v.texture_position_.x / 16, -v.texture_position_.y / 16);
+        v.tex_uv_ = glm::vec2(v.tex_uv_.x / 16, -v.tex_uv_.y / 16);
     }
 
     auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
     txt->tmp_type = "texture_diffuse";
-    p_Mesh = std::make_unique<scene::Mesh>(vex, inc, std::vector<std::shared_ptr<rnd::Texture>>{txt});
 
 }
 
 void draw_sphere(const render::Shader& ourShader)
 {
-    p_Mesh->draw(ourShader);
 }
 
 void term_sphere()
 {
-    p_Mesh.reset();
 }

@@ -52,9 +52,6 @@
     <Filter Include="Source files\Input">
       <UniqueIdentifier>{7edaac7a-375e-4fc0-938f-9a8f5ca5f130}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source files\Render\Legacy">
-      <UniqueIdentifier>{2777d811-eb9c-4e60-bcd0-9e6ddf583b11}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source files\Scene">
       <UniqueIdentifier>{0d4154c9-d2a3-4c64-b780-7ca10f3c2121}</UniqueIdentifier>
     </Filter>
@@ -69,6 +66,9 @@
     </Filter>
     <Filter Include="Source files\Resource">
       <UniqueIdentifier>{81e99f50-9f14-43f6-9cd6-77bbc74e935b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source files\Render\Renderer3d">
+      <UniqueIdentifier>{e36f6baa-e6b0-4e79-b5ae-ef9bcb9a1c0b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -233,6 +233,27 @@
     </ClCompile>
     <ClCompile Include="code\scene\primitives.cpp">
       <Filter>Source files\Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\rnd_renderer_3d.cpp">
+      <Filter>Source files\Render\Renderer3d</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\rnd_render_context.cpp">
+      <Filter>Source files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\rnd_material.cpp">
+      <Filter>Source files\Render\Renderer3d</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\rnd_buffer.cpp">
+      <Filter>Source files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\rnd_vertex_array.cpp">
+      <Filter>Source files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\rnd_uniform_buffer.cpp">
+      <Filter>Source files\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="code\render\camera\scene_camera.cpp">
+      <Filter>Source files\Render\Camera</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -420,6 +441,36 @@
       <Filter>Source files\Render\Shader</Filter>
     </ClInclude>
     <ClInclude Include="code\scene\primitives.h">
+      <Filter>Source files\Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\rnd_renderer_3d.h">
+      <Filter>Source files\Render\Renderer3d</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\rnd_render_context.h">
+      <Filter>Source files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\rnd_material.h">
+      <Filter>Source files\Render\Renderer3d</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\rnd_vertex_array.h">
+      <Filter>Source files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\rnd_buffer.h">
+      <Filter>Source files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\rnd_buffer_layout.h">
+      <Filter>Source files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\rnd_uniform_buffer.h">
+      <Filter>Source files\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="code\common\timer.hpp">
+      <Filter>Source files\Common</Filter>
+    </ClInclude>
+    <ClInclude Include="code\render\camera\scene_camera.h">
+      <Filter>Source files\Render\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="code\scene\scn_transform_3d.hpp">
       <Filter>Source files\Scene</Filter>
     </ClInclude>
   </ItemGroup>

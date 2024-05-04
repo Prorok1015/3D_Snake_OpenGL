@@ -1,5 +1,6 @@
 #include "inp_keyboard_device.h"
 #include "../windows/window_system.h"
+#include "../common/timer.hpp"
 
 namespace {
     inp::KEY_ACTION to_action(int action)
@@ -22,7 +23,7 @@ void input::KeyboardDevice::on_key_action(int keycode, int scancode, int action,
     }
 
     KEYBOARD_BUTTONS keyboard_keycode = (KEYBOARD_BUTTONS)keycode;
-    on_key_keyboard_action(keyboard_keycode, act, wnd::WindowSystem::now_time());
+    on_key_keyboard_action(keyboard_keycode, act, (float)Timer::now());
 
     onKeyStateChanged(keyboard_keycode, act);
 

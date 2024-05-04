@@ -8,7 +8,6 @@ render::ShaderManager::ShaderManager()
 
 render::ShaderManager::~ShaderManager()
 {
-	glDeleteBuffers(1, &uboMatrices);
 }
 
 render::Shader render::ShaderManager::use(std::string_view shader) const
@@ -17,6 +16,7 @@ render::Shader render::ShaderManager::use(std::string_view shader) const
 	if (it == _cache.end()) {
 		auto new_shader = load(shader.data());
 		new_shader.use();
+		new_shader.uniform("texture_diffuse1", 0);
 		return _cache[shader] = new_shader;		
 	}
 	it->second.use();
@@ -35,24 +35,23 @@ void render::ShaderManager::uniform(const std::string_view shader, const std::st
 	unuse();
 }
 
+void render::ShaderManager::uniform(const std::string_view shader, const std::string_view field, int val) const
+{
+	auto sh = use(shader);
+	sh.uniform(field, val);
+	unuse();
+}
+
 void render::ShaderManager::init_global_uniform() const
 {
-	glGenBuffers(1, &uboMatrices);
-
-	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4) + sizeof(float), NULL, GL_STATIC_DRAW);
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4) + sizeof(float));
+	_matrices = std::make_shared<rnd::UniformBuffer>(sizeof(GlobalUniform), 0);
 }
 
 void render::ShaderManager::update_global_uniform(const GlobalUniform& val) const
 {
-	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(val.projection));
-	glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(val.view));
-	glBufferSubData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), sizeof(float), std::addressof(val.time));
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	_matrices->set_data(val.projection, offsetof(GlobalUniform, projection));
+	_matrices->set_data(val.view, offsetof(GlobalUniform, view));
+	_matrices->set_data(val.time, offsetof(GlobalUniform, time));
 }
 
 render::Shader render::ShaderManager::load(const std::string& name) const
@@ -71,23 +70,31 @@ render::Shader render::ShaderManager::load(const std::string& name) const
 
 	// Vertex Shader
 	vertex = glCreateShader(GL_VERTEX_SHADER);
+	CHECK_GL_ERROR();
 	glShaderSource(vertex, 1, &vShaderCode, nullptr);
+	CHECK_GL_ERROR();
 	glCompileShader(vertex);
+	CHECK_GL_ERROR();
 	glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+	CHECK_GL_ERROR();
 	if (!success) {
 		glGetShaderInfoLog(vertex, 512, nullptr, infoLog);
-		egLOG("shader/load", "Vertex Shader: \n{}", infoLog);
+		egLOG("shader/load", "Vertex Shader: \n{0}", infoLog);
 		return -1;
 	}
 
 	// Fragment Shader
 	fragment = glCreateShader(GL_FRAGMENT_SHADER);
+	CHECK_GL_ERROR();
 	glShaderSource(fragment, 1, &fShaderCode, nullptr);
+	CHECK_GL_ERROR();
 	glCompileShader(fragment);
+	CHECK_GL_ERROR();
 	glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+	CHECK_GL_ERROR();
 	if (!success) {
 		glGetShaderInfoLog(fragment, 512, nullptr, infoLog);
-		egLOG("shader/load", "Fragment Shader: \n{}", infoLog);
+		egLOG("shader/load", "Fragment Shader: \n{0}", infoLog);
 		return -1;
 	}
 
@@ -105,12 +112,17 @@ render::Shader render::ShaderManager::load(const std::string& name) const
 
 	// Shader Program
 	GLuint id = glCreateProgram();
+	CHECK_GL_ERROR();
 	glAttachShader(id, vertex);
+	CHECK_GL_ERROR();
 	glAttachShader(id, fragment);
+	CHECK_GL_ERROR();
 	//glAttachShader(id, geom);
 	glLinkProgram(id);
+	CHECK_GL_ERROR();
 
 	glGetProgramiv(id, GL_LINK_STATUS, &success);
+	CHECK_GL_ERROR();
 	if (!success) {
 		glGetProgramInfoLog(id, 512, nullptr, infoLog);
 
@@ -118,14 +130,17 @@ render::Shader render::ShaderManager::load(const std::string& name) const
 		glDeleteShader(fragment);
 		//glDeleteShader(geom);
 
-		egLOG("shader/load", "{}", infoLog);
+		egLOG("shader/load", "{0}", infoLog);
 		return -1;
 	}
 
 	glDeleteShader(vertex);
+	CHECK_GL_ERROR();
 	glDeleteShader(fragment);
+	CHECK_GL_ERROR();
 	//glDeleteShader(geom);
 
-	egLOG("shader/load", "Success loading shader {}", name);
+	egLOG("shader/load", "Success loading shader '{0}'", name);
+
 	return Shader(id);
 }

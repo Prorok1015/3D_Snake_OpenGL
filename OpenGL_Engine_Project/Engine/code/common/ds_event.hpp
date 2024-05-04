@@ -233,8 +233,7 @@ namespace data_struct
 		using PARENT_TYPE = EventBase<T, IMPL_POLICY>;
 
 	public:
-		template<class ...ARGS>
-		void Invoke(ARGS... args) const
+		void Invoke(auto&&... args) const
 		{
 			using IMPL_T = typename PARENT_TYPE::IMPL_T;
 
@@ -243,8 +242,7 @@ namespace data_struct
 			}
 		}
 
-		template<class ...ARGS>
-		void operator()(ARGS... args) const
+		void operator()(auto&&... args) const
 		{
 			using IMPL_T = typename PARENT_TYPE::IMPL_T;
 

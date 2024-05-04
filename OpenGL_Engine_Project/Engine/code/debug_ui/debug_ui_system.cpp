@@ -28,7 +28,7 @@ debug_ui::DebugUiSystem::DebugUiSystem()
 	ImGui::StyleColorsDark();
 
 	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(win->id_, enable_input);
+	ImGui_ImplGlfw_InitForOpenGL(win->get_id(), enable_input);
 	ImGui_ImplOpenGL3_Init("#version 130");
 
 	registrate_menu("DEMO/SHOW DEMO WINDOW", [this] { return show_demo(); });
@@ -87,10 +87,10 @@ void debug_ui::DebugUiSystem::set_enable_input(bool enable)
 	auto& game = gm::get_system();
 
 	if (enable_input) {
-		ImGui_ImplGlfw_InstallCallbacks(game.get_window()->id_);
+		ImGui_ImplGlfw_InstallCallbacks(game.get_window()->get_id());
 		game.get_window()->set_cursor_mode(CursorMode::Normal);
 	} else {
-		ImGui_ImplGlfw_RestoreCallbacks(game.get_window()->id_);
+		ImGui_ImplGlfw_RestoreCallbacks(game.get_window()->get_id());
 	}
 }
 

@@ -19,9 +19,6 @@ namespace scene {
         // constructor, expects a filepath to a 3D model.
         Model(std::string_view path, bool gamma = false);
 
-        // draws the model, and thus all its meshes
-        void draw(const rnd::Shader& shader);
-
     private:
         // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
         void loadModel(std::string_view path);

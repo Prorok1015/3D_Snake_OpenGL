@@ -2,7 +2,8 @@
 #include "../common/common.h"
 
 #include "../render/shader/rnd_shader.h"
-#include "../render/camera/camera.h"
+#include "../render/camera/scene_camera.h"
+#include "../windows/window.h"
 
 namespace scene {
 	class Model;
@@ -27,7 +28,6 @@ namespace game
 		void begin_frame();
 		void end_frame();
 
-		void switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action);
 		void set_enable_input(bool enable);
 
 		std::shared_ptr<wnd::Window> get_window() { return window; };
@@ -36,6 +36,8 @@ namespace game
 
 		void add_cube_to_scene(float radius);
 		void remove_cube();
+
+		scn::Transform get_camera_transform() const { return camera->transform; }
 
 		float cube_scale = 1.f;
 		bool is_show_normal = false;

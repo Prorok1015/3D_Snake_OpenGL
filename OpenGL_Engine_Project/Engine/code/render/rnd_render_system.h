@@ -2,10 +2,11 @@
 #include "../common/common.h"
 #include "texture/rnd_texture_manager.h"
 #include "shader/rnd_shader_manager.h"
+#include "rnd_renderer_3d.h"
 
 namespace render
 {
-	enum class RENDER_VIEW
+	enum class RENDER_MODE
 	{
 		TRIANGLE = GL_TRIANGLES,
 		TRIANGLE_STRIP = GL_TRIANGLE_STRIP,
@@ -30,8 +31,12 @@ namespace render
 		RenderSystem& operator= (const RenderSystem&) = delete;
 		RenderSystem& operator= (RenderSystem&&) = delete;
 
+		void init();
+		void term();
+
 		const rnd::TextureManager& get_txr_manager() const { return txrManager; }
 		const rnd::ShaderManager& get_sh_manager() const { return shManager; }
+		rnd::Renderer3d& get_renderer() { return renderer; }
 
 		void viewport(glm::ivec4 rect) const {
 			glViewport(rect[0], rect[1], rect[2], rect[3]);
@@ -73,13 +78,22 @@ namespace render
 			glBindVertexArray(vao);
 			CHECK_GL_ERROR();
 
-			if (render_mode() == RENDER_VIEW::POINT) {
+			if (render_mode() == RENDER_MODE::POINT) {
 				set_point_size(10.f);
 			}
 
 			glDrawElements((GLenum)render_mode(), count, GL_UNSIGNED_INT, 0);
 			CHECK_GL_ERROR();
 			glBindVertexArray(0);
+			CHECK_GL_ERROR();
+		}
+
+		void draw_elements(unsigned int count) const {
+			if (render_mode() == RENDER_MODE::POINT) {
+				set_point_size(10.f);
+			}
+
+			glDrawElements((GLenum)render_mode(), count, GL_UNSIGNED_INT, 0);
 			CHECK_GL_ERROR();
 		}
 
@@ -92,6 +106,7 @@ namespace render
 
 		void del_vertex_buf(unsigned int vao, int count = 1) const {
 			glDeleteVertexArrays(count, &vao);
+			CHECK_GL_ERROR();
 		}
 
 		unsigned int gen_buf(int count = 1) const {
@@ -103,6 +118,7 @@ namespace render
 
 		void del_buf(unsigned int buf, int count = 1) const {
 			glDeleteBuffers(count, &buf);
+			CHECK_GL_ERROR();
 		}
 
 		void bind_vertex_array(unsigned int vao) const {
@@ -123,22 +139,28 @@ namespace render
 		void vertex_attribute_pointer(int idx, int count, int type, int size, void* offset) const {
 
 			glEnableVertexAttribArray(idx);
+			CHECK_GL_ERROR();
 			glVertexAttribPointer(idx, count, type, GL_FALSE, size, offset);
+			CHECK_GL_ERROR();
 		}
 
 		void vertex_attribute_pointeri(int idx, int count, int type, int size, void* offset) const {
 
 			glEnableVertexAttribArray(idx);
+			CHECK_GL_ERROR();
 			glVertexAttribIPointer(idx, count, type, size, offset);
+			CHECK_GL_ERROR();
 		}
 
-		RENDER_VIEW render_mode() const { return _render_mode; }
-		void render_mode(RENDER_VIEW val) { _render_mode = val; }
+		RENDER_MODE render_mode() const { return _render_mode; }
+		void render_mode(RENDER_MODE val) { _render_mode = val; }
 	private:
 		rnd::TextureManager txrManager;
 		rnd::ShaderManager shManager;
+		rnd::Renderer3d renderer;
 
-		RENDER_VIEW _render_mode = RENDER_VIEW::TRIANGLE;
+
+		RENDER_MODE _render_mode = RENDER_MODE::TRIANGLE;
 	};
 
 	RenderSystem& get_system();

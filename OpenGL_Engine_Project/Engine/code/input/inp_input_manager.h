@@ -25,7 +25,7 @@ namespace input
 		template<typename KB, typename HANDLER>
 		std::shared_ptr<InputActionBase> create_click_action(KB&& tag, HANDLER&& callback)
 		{
-			auto handler = InputActionClickT<KB>::create(tag, std::move(callback));
+			auto handler = InputActionClickT<KB>::create(tag, std::forward<HANDLER>(callback));
 			registrate(handler);
 			return handler;
 		}
@@ -33,7 +33,7 @@ namespace input
 		template<typename KB, typename HANDLER>
 		std::shared_ptr<InputActionBase> create_hold_action(KB&& tag, HANDLER&& callback)
 		{
-			auto handler = InputActionHoldT<KB>::create(tag, std::move(callback));
+			auto handler = InputActionHoldT<KB>::create(tag, std::forward<HANDLER>(callback));
 			registrate(handler);
 			return handler;
 		}
@@ -41,7 +41,7 @@ namespace input
 		template<typename HANDLER>
 		std::shared_ptr<InputActionBase> create_mouse_move_action(HANDLER&& callback)
 		{
-			auto handler = InputActionMouseMove::create(std::move(callback));
+			auto handler = InputActionMouseMove::create(std::forward<HANDLER>(callback));
 			registrate(handler);
 			return handler;
 		}
@@ -55,6 +55,8 @@ namespace input
 		std::string active_layer_ = "game";
 		bool enabled_ = true;
 	};
+
+	using InputManagerRef = std::shared_ptr<InputManager>;
 }
 
 namespace inp = input;

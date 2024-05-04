@@ -14,6 +14,7 @@ namespace resource
 		Tag tag_;
 	};
 
+	using RecourceRef = std::shared_ptr<Resource>;
 }
 
 namespace res = resource;

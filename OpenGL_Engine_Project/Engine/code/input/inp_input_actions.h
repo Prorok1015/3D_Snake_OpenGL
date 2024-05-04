@@ -20,7 +20,7 @@ namespace input
 		template <typename KB, typename HANDLER>
 		static auto create(KB tag, HANDLER&& callback)
 		{
-			return std::shared_ptr<InputActionClickT<KB>>(new InputActionClickT<KB>(tag, std::move(callback)));
+			return std::shared_ptr<InputActionClickT<KB>>(new InputActionClickT<KB>(tag, std::forward<HANDLER>(callback)));
 		}
 
 		virtual void update(float dt)
@@ -34,7 +34,7 @@ namespace input
 
 			if (action.action == inp::KEY_ACTION::UP) {
 				if (actual_time > 0.f && actual_time < activate_time) {
-					onAction();
+					onAction(dt);
 				}
 				actual_time = 0.f;
 			}
@@ -50,7 +50,7 @@ namespace input
 
 
 	public:
-		Event<void()> onAction;
+		Event<void(float)> onAction;
 		KEY_BUTTON tag_;
 		float actual_time = 0.f;
 
@@ -65,7 +65,7 @@ namespace input
 		template <typename KB, typename HANDLER>
 		static auto create(KB tag, HANDLER&& callback)
 		{
-			return std::shared_ptr<InputActionHoldT<KB>>(new InputActionHoldT<KB>(tag, callback));
+			return std::shared_ptr<InputActionHoldT<KB>>(new InputActionHoldT<KB>(tag, std::forward<HANDLER>(callback)));
 		}
 
 		virtual void update(float dt)
@@ -77,7 +77,7 @@ namespace input
 				actual_step_time += dt;
 
 				if (actual_time > activate_time && actual_step_time > step_time) {
-					onAction();
+					onAction(dt);
 					actual_step_time = 0.f;
 				}
 			}
@@ -98,7 +98,7 @@ namespace input
 
 
 	public:
-		Event<void()> onAction;
+		Event<void(float)> onAction;
 		KEY_BUTTON tag_;
 		float actual_time = 0.f;
 		float actual_step_time = -activate_time;
@@ -113,7 +113,7 @@ namespace input
 		template <typename HANDLER>
 		static std::shared_ptr<InputActionMouseMove> create(HANDLER&& callback)
 		{
-			return std::shared_ptr<InputActionMouseMove>(new InputActionMouseMove(std::move(callback)));
+			return std::shared_ptr<InputActionMouseMove>(new InputActionMouseMove(std::forward<HANDLER>(callback)));
 		}
 
 		virtual void update(float dt);

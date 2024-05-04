@@ -18,9 +18,8 @@ namespace windows
 		std::shared_ptr<Window> make_window(std::string_view title, int width, int height);
 		std::weak_ptr<Window> find_window(Window::Id win);
 		bool is_all_windows_close();
-		static float now_time();
 	private:
-		std::unordered_map<Window::Id, std::weak_ptr<Window>, Window::Id::Hasher> windows_;
+		std::unordered_map<Window::Id, std::weak_ptr<Window>, Window::Id::Hasher> _windows;
 	};
 	
 	WindowSystem& get_system();
