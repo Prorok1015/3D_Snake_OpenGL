@@ -57,6 +57,54 @@ namespace input
 		static constexpr float activate_time = 0.2f;
 	};
 
+	//template<typename KEY_BUTTON>
+	//class InputAction : public InputActionBase
+	//{
+	//public:
+	//	~InputAction() = default;
+	//	template <typename KB, typename HANDLER>
+	//	static auto create(KB tag, HANDLER&& callback)
+	//	{
+	//		return std::shared_ptr<InputAction<KB>>(new InputAction<KB>(tag, std::forward<HANDLER>(callback)));
+	//	}
+
+	//	virtual void update(float dt)
+	//	{
+	//		InputSystem& inpSys = inp::get_system();
+	//		const auto& action = inpSys.keyboard.get_key(tag_);
+	//		if (action.action == inp::KEY_ACTION::DOWN) {
+	//			actual_time += dt;
+	//			actual_step_time += dt;
+
+	//			if (actual_time > activate_time && actual_step_time > step_time) {
+	//				onAction(dt);
+	//				actual_step_time = 0.f;
+	//			}
+	//		}
+
+	//		if (action.action == inp::KEY_ACTION::UP) {
+	//			actual_time = 0.f;
+	//			actual_step_time = -activate_time;
+	//		}
+	//	}
+	//private:
+	//	template <typename HANDLER>
+	//	InputAction(KEY_BUTTON tag, HANDLER&& callback)
+	//		: tag_(tag)
+	//	{
+	//		onAction += callback;
+	//	}
+
+
+	//public:
+	//	Event<void(float)> onAction;
+	//	KEY_BUTTON tag_;
+	//	float actual_time = 0.f;
+	//	float actual_step_time = -activate_time;
+	//	static constexpr float step_time = 0.f;
+	//	static constexpr float activate_time = 0.2f;
+	//};
+
 	template<typename KEY_BUTTON>
 	class InputActionHoldT : public InputActionBase
 	{
@@ -71,7 +119,7 @@ namespace input
 		virtual void update(float dt)
 		{
 			InputSystem& inpSys = inp::get_system();
-			const auto& action = inpSys.keyboard.get_key(tag_);
+			const auto& action = inpSys.get_key_state(tag_);
 			if (action.action == inp::KEY_ACTION::DOWN) {
 				actual_time += dt;
 				actual_step_time += dt;

@@ -50,3 +50,38 @@ void snakeengine::WASDCamera::wasd_move(inp::KEYBOARD_BUTTONS key, float dt)
 		break;
 	}
 }
+
+void snakeengine::MouseCamera::enable_input_actions(inp::InputManagerRef manager)
+{
+	manager->create_hold_action(inp::MOUSE_BUTTONS::RIGHT, std::bind(&MouseCamera::mouse_right_key_down, this, std::placeholders::_1));
+	manager->create_click_action(inp::MOUSE_BUTTONS::RIGHT, std::bind(&MouseCamera::mouse_right_key_up, this, std::placeholders::_1));
+	manager->create_hold_action(inp::MOUSE_BUTTONS::MIDDLE, std::bind(&MouseCamera::mouse_middle_key_down, this, std::placeholders::_1));
+	manager->create_click_action(inp::MOUSE_BUTTONS::MIDDLE, std::bind(&MouseCamera::mouse_middle_key_up, this, std::placeholders::_1));
+	manager->create_mouse_move_action(std::bind(&MouseCamera::mouse_move, this, std::placeholders::_1, std::placeholders::_2));
+}
+
+void snakeengine::MouseCamera::mouse_right_key_down(float dt)
+{
+	isLookAt = true;
+}
+
+void snakeengine::MouseCamera::mouse_move(glm::vec2 cur, glm::vec2 prev)
+{
+	glm::vec2 delta = cur - prev;
+	delta = -delta / glm::vec2(window_size) * 2.f;
+
+	if (isLookAt) {
+		transform.add_rotate(delta.y, delta.x);
+		transform.set_pitch(std::clamp(transform.get_pitch(), -glm::radians(89.0f), glm::radians(89.0f)));
+	}
+	if (isMove) {
+		glm::vec3 addition = glm::vec3(delta.x, 0, 0);
+		y += delta.y * 15.f;
+
+		transform.add_position(addition * 15.f);
+	}
+}
+
+void snakeengine::MouseCamera::mouse_whell()
+{
+}

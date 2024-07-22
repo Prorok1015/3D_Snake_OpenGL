@@ -30,7 +30,7 @@ game::GameSystem::GameSystem()
 
 	rnd::get_system().init();
 
-	camera = std::make_shared<snakeengine::WASDCamera>(glm::vec3(15, 15, 0), window->get_size());
+	camera = std::make_shared<snakeengine::MouseCamera>(glm::vec3(4, 15, 80), window->get_size());
 	camera->look_at(glm::vec3{ 0 });
 	camera->enable_input_actions(input);
 	window->eventResizeWindow.subscribe([this](wnd::Window&, int w, int h) { camera->on_viewport_size_change(glm::ivec2{ w, h }); });

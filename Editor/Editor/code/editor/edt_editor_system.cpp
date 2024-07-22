@@ -113,6 +113,8 @@ bool editor::EditorSystem::show_toolbar()
 
 		scn::Transform ct = game::get_system().get_camera_transform();
 		ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
+		auto pos = ct.get_pos();
+		ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
 
 		ImGui::End();
 	}

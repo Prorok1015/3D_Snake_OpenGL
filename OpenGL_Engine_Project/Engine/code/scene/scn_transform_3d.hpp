@@ -23,7 +23,7 @@ namespace scene {
 		glm::mat4 get_view() const {
 
 			glm::quat orientation = get_orientation();
-			auto m_ViewMatrix = glm::translate(glm::mat4(1.0f), pos) * glm::toMat4(orientation);
+			auto m_ViewMatrix = glm::toMat4(orientation) * glm::translate(glm::mat4(1.0f), pos);
 			return glm::inverse(m_ViewMatrix);
 		}
 

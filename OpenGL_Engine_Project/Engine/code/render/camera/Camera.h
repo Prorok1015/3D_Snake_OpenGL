@@ -33,6 +33,7 @@ public:
 public:
 	scn::Transform transform;
 
+	float y = 0.f;
 	glm::ivec2 window_size{ 0 };
 
 	float fov_ = glm::radians(90.f);

@@ -10,7 +10,7 @@ glm::mat4 Camera::projection() const {
 }
 
 glm::mat4 Camera::view() const {
-	return transform.get_view();
+	return transform.get_view() * glm::translate(glm::mat4(1.0), glm::vec3(0, 0, y));
 }
 
 void Camera::on_viewport_size_change(glm::ivec2 size)
