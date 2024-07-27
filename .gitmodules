@@ -1,0 +1,18 @@
+[submodule "lib3dparty/glfw"]
+	path = lib3dparty/glfw
+	url = git@github.com:glfw/glfw.git
+[submodule "lib3dparty/imgui"]
+	path = lib3dparty/imgui
+	url = git@github.com:ocornut/imgui.git
+[submodule "lib3dparty/glm"]
+	path = lib3dparty/glm
+	url = git@github.com:g-truc/glm.git
+[submodule "lib3dparty/spdlog"]
+	path = lib3dparty/spdlog
+	url = git@github.com:gabime/spdlog.git
+[submodule "lib3dparty/yaml"]
+	path = lib3dparty/yaml
+	url = git@github.com:jbeder/yaml-cpp.git
+[submodule "lib3dparty/assimp"]
+	path = lib3dparty/assimp
+	url = git@github.com:assimp/assimp.git
