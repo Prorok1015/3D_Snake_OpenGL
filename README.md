@@ -1,8 +1,14 @@
-# OpenGL_Engine
+# The Snake Engine
 
-Need define environment variable THIRD_PARTY_LIBRARY_PATH
-Install GLFW Library in the folder THIRD_PARTY_LIBRARY_PATH
-Install glm Library in the folder THIRD_PARTY_LIBRARY_PATH
-Need exist folders:
-   - glfw
-   - glm-master
+Used third party libs
+	- glfw
+	- stb_image
+	- assimp
+	- glad
+	- glm
+	- imgui
+	- spdlog
+	- yaml-cpp
+
+To build you have to use cmake.
+The root CMakeLists.txt is building editor application from folder 'editor'.

@@ -1,6 +1,6 @@
 #include <application/application.h>
 #include <application/components_init.h>
-#include "code/editor/edt_editor_init.h"
+#include "code/editor_system/edt_editor_init.h"
 
 
 int main(int argc, char* args[])

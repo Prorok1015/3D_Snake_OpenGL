@@ -1,6 +1,4 @@
 #pragma once
-
-// need define GLFW_INCLUDE_NONE for build
 #include <GLFW/glfw3.h>
 
 #include <glad/glad.h>
