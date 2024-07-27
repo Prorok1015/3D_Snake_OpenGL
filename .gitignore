@@ -5,7 +5,6 @@
 /include/assimp
 /include/glfw
 /include/Image
-/tmp
 imgui.ini
 
 #Не включать папки временных объектов
@@ -13,6 +12,12 @@ imgui.ini
 **/x64
 **/x86
 **/.vs
+/out
+bin/
+build/
+.idea/
+CMakeSettings.json
+Makefile
 
 #Не включать папки сборок
 **/Debug
