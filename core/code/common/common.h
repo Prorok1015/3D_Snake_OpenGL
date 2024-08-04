@@ -40,11 +40,3 @@ using EventManaged = ds::Event<SIGNATURE, ds::EventPolicyManagedContainer<ds::Ev
 
 template <typename SIGNATURE = void()>
 using Event = ds::Event<SIGNATURE, ds::EventPolicySimpleContainer<ds::EventStoragePopicyVector>>;
-
-namespace glm
-{
-	decltype(auto) value_ptr(auto&& v)
-	{
-		return std::addressof(v);
-	}
-}

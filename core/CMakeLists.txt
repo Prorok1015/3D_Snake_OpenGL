@@ -20,7 +20,7 @@ target_link_libraries(core image)
 
 add_subdirectory(${THIRD_PARTY_PATH}/glfw glfw)
 add_subdirectory(${THIRD_PARTY_PATH}/glm glm)
-add_subdirectory(${THIRD_PARTY_PATH}/glad glad)
+#add_subdirectory(${THIRD_PARTY_PATH}/glad glad)
 add_subdirectory(${THIRD_PARTY_PATH}/assimp assimp)
 
 target_sources(core PRIVATE 
@@ -39,12 +39,15 @@ target_include_directories(core PUBLIC ${THIRD_PARTY_PATH}/imgui)
 target_include_directories(core PUBLIC code)
 
 target_link_libraries(core glfw)
-target_link_libraries(core glad)
+#target_link_libraries(core glad)
 target_link_libraries(core glm)
 target_link_libraries(core assimp)
 
 target_compile_definitions(core PUBLIC GLFW_INCLUDE_NONE=1) 
 target_compile_definitions(core PUBLIC GLM_ENABLE_EXPERIMENTAL=1)
+
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/code/render/drivers/driver_implimentations/driver_opengl")
+target_link_libraries(core drv_opengl)
 
 project(core_exe)
 set(CMAKE_CXX_STANDARD 20)

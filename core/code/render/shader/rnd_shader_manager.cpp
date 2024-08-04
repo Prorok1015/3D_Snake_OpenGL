@@ -44,7 +44,7 @@ void render::ShaderManager::uniform(const std::string_view shader, const std::st
 
 void render::ShaderManager::init_global_uniform() const
 {
-	_matrices = std::make_shared<rnd::UniformBuffer>(sizeof(GlobalUniform), 0);
+	_matrices = std::make_shared<render::driver::gl::uniform_buffer>(sizeof(GlobalUniform), 0);
 }
 
 void render::ShaderManager::update_global_uniform(const GlobalUniform& val) const

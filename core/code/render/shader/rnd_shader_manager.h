@@ -2,7 +2,7 @@
 #include "../../common/common.h"
 #include "../../resource/res_resource_tag.h"
 #include "rnd_shader.h"
-#include "../rnd_uniform_buffer.h"
+#include <rnd_gl_uniform_buffer.h>
 
 namespace render
 {
@@ -39,7 +39,7 @@ namespace render
 
 	private:
 		mutable std::unordered_map<std::string_view, Shader> _cache;
-		mutable std::shared_ptr<rnd::UniformBuffer> _matrices;
+		mutable std::shared_ptr<render::driver::gl::uniform_buffer> _matrices;
 	};
 
 }

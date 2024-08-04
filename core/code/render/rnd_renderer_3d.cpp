@@ -1,6 +1,7 @@
 #include "rnd_renderer_3d.h"
 #include "rnd_render_system.h"
 #include "rnd_material.h"
+#include <rnd_gl_buffer_layout.h>
 
 render::Renderer3d::Renderer3d()
 {
@@ -14,17 +15,17 @@ render::Renderer3d::~Renderer3d()
 
 void render::Renderer3d::init()
 {    
-    vertex_array = std::make_shared<rnd::VertexArray>();
-    vertex_buffer = std::make_shared<rnd::VertexBuffer>(20000 * sizeof(res::Vertex));
+    vertex_array = std::make_shared<render::driver::gl::vertex_array>();
+    vertex_buffer = std::make_shared<render::driver::gl::vertex_buffer>(20000 * sizeof(res::Vertex));
     vertex_buffer->set_layout(
         {
-            {ShaderDataType::Float3, "position"},
-            {ShaderDataType::Float3, "normal"},
-            {ShaderDataType::Float2, "texture_position"},
-            {ShaderDataType::Float3, "tangent"},
-            {ShaderDataType::Float3, "bitangent"},
-            {ShaderDataType::Int4,   "bones"},
-            {ShaderDataType::Float4, "bones_weight"},
+            {render::driver::gl::ShaderDataType::Float3, "position"},
+            {render::driver::gl::ShaderDataType::Float3, "normal"},
+            {render::driver::gl::ShaderDataType::Float2, "texture_position"},
+            {render::driver::gl::ShaderDataType::Float3, "tangent"},
+            {render::driver::gl::ShaderDataType::Float3, "bitangent"},
+            {render::driver::gl::ShaderDataType::Int4,   "bones"},
+            {render::driver::gl::ShaderDataType::Float4, "bones_weight"},
         }
     );
 
@@ -46,7 +47,7 @@ void render::Renderer3d::init()
         offset += 4;
     }
 
-    index_buffer = std::make_shared<rnd::IndexBuffer>(indeces);
+    index_buffer = std::make_shared<render::driver::gl::index_buffer>(indeces);
     vertex_array->set_index_buffer(index_buffer);
 }
 
@@ -78,7 +79,7 @@ void render::Renderer3d::draw(scene::Mesh& mesh)
         vertex_array->set_index_buffer(index_buffer);
     }
     else {
-        vertex_array->set_index_buffer(std::make_shared<rnd::IndexBuffer>(mesh.indices.data(), mesh.indices.size()));
+        vertex_array->set_index_buffer(std::make_shared<render::driver::gl::index_buffer>(mesh.indices.data(), mesh.indices.size()));
     }
 
     rnd::get_system().activate_texture_unit(0);

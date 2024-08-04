@@ -2,7 +2,8 @@
 #include "../common/common.h"
 #include "../scene/model.h"
 #include "../scene/mesh.h"
-#include "rnd_vertex_array.h"
+//#include "rnd_vertex_array.h"
+#include <rnd_gl_vertex_array.h>
 
 namespace render
 {
@@ -17,10 +18,10 @@ namespace render
 		void draw(scene::Mesh& val);
 
 	private:
-		std::shared_ptr<VertexArray> vertex_array;
-		std::shared_ptr<VertexBuffer> vertex_buffer;
+		std::shared_ptr<render::driver::gl::vertex_array> vertex_array;
+		std::shared_ptr<render::driver::gl::vertex_buffer> vertex_buffer;
 
-		std::shared_ptr<IndexBuffer> index_buffer;
+		std::shared_ptr<render::driver::gl::index_buffer> index_buffer;
 	};
 }
 

@@ -1,7 +1,9 @@
-#include "rnd_buffer.h"
-#include "rnd_render_system.h"
+#include "rnd_gl_buffer.h"
 
-render::VertexBuffer::VertexBuffer(std::size_t size)
+//#include <common/open_gl_specific.h>
+#define CHECK_GL_ERROR()
+
+render::driver::gl::vertex_buffer::vertex_buffer(std::size_t size)
 {
 	glCreateBuffers(1, &m_RendererID);
 	//m_RendererID = rnd::get_system().gen_buf();
@@ -13,7 +15,7 @@ render::VertexBuffer::VertexBuffer(std::size_t size)
 	CHECK_GL_ERROR();
 }
 
-render::VertexBuffer::VertexBuffer(float* vertices, std::size_t size)
+render::driver::gl::vertex_buffer::vertex_buffer(float* vertices, std::size_t size)
 {
 	glCreateBuffers(1, &m_RendererID);
 	//m_RendererID = rnd::get_system().gen_buf();
@@ -24,25 +26,25 @@ render::VertexBuffer::VertexBuffer(float* vertices, std::size_t size)
 	CHECK_GL_ERROR();
 }
 
-render::VertexBuffer::~VertexBuffer()
+render::driver::gl::vertex_buffer::~vertex_buffer()
 {
 	glDeleteBuffers(1, &m_RendererID);
 	CHECK_GL_ERROR();
 }
 
-void render::VertexBuffer::bind() const
+void render::driver::gl::vertex_buffer::bind()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 	CHECK_GL_ERROR();
 }
 
-void render::VertexBuffer::unbind() const
+void render::driver::gl::vertex_buffer::unbind()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	CHECK_GL_ERROR();
 }
 
-void render::VertexBuffer::set_data(const void* data, std::size_t size)
+void render::driver::gl::vertex_buffer::set_data(const void* data, std::size_t size)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 	CHECK_GL_ERROR();
@@ -51,10 +53,10 @@ void render::VertexBuffer::set_data(const void* data, std::size_t size)
 }
 
 /////////////////////////////////////////////////////////////////////////////
-// IndexBuffer //////////////////////////////////////////////////////////////
+// index_buffer //////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////
 
-render::IndexBuffer::IndexBuffer(const unsigned int* indices, std::size_t count)
+render::driver::gl::index_buffer::index_buffer(const unsigned int* indices, std::size_t count)
 	: m_Count(count)
 {
 
@@ -69,19 +71,19 @@ render::IndexBuffer::IndexBuffer(const unsigned int* indices, std::size_t count)
 	CHECK_GL_ERROR();
 }
 
-render::IndexBuffer::~IndexBuffer()
+render::driver::gl::index_buffer::~index_buffer()
 {
 	glDeleteBuffers(1, &m_RendererID);
 	CHECK_GL_ERROR();
 }
 
-void render::IndexBuffer::bind() const
+void render::driver::gl::index_buffer::bind()
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
 	CHECK_GL_ERROR();
 }
 
-void render::IndexBuffer::unbind() const
+void render::driver::gl::index_buffer::unbind()
 {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	CHECK_GL_ERROR();

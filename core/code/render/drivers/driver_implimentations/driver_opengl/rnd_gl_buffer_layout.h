@@ -1,7 +1,9 @@
 #pragma once
-#include "../common/common.h"
+#include <glad/glad.h>
+#include <vector>
+#include <string>
 
-namespace render
+namespace render::driver::gl
 {
 	enum class ShaderDataType
 	{
@@ -99,5 +101,3 @@ namespace render
 		uint32_t m_Stride = 0;
 	};
 }
-
-namespace rnd = render;
