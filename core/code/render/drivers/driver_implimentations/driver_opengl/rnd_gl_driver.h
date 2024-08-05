@@ -12,8 +12,8 @@ namespace render::driver::gl
 		virtual void set_activate_texture(int idx) override;
 		virtual void set_line_size(float size) override;
 		virtual void set_point_size(float size) override;
-		virtual void draw_elements(unsigned int render_mode, unsigned int vao, unsigned int count) override;
-		virtual void draw_elements(unsigned int render_mode, unsigned int count) override;
+		virtual void draw_elements(RENDER_MODE render_mode, unsigned int vao, unsigned int count) override;
+		virtual void draw_elements(RENDER_MODE render_mode, unsigned int count) override;
 
 		virtual void enable(int flags) override;
 	};

@@ -8,20 +8,7 @@
 
 namespace render
 {
-	enum class RENDER_MODE
-	{
-		TRIANGLE = GL_TRIANGLES,
-		TRIANGLE_STRIP = GL_TRIANGLE_STRIP,
-		TRIANGLE_FAN = GL_TRIANGLE_FAN,
-		TRIANGLE_ADJ = GL_TRIANGLES_ADJACENCY,
-		TRIANGLE_STRIP_ADJ = GL_TRIANGLE_STRIP_ADJACENCY,
-		LINE = GL_LINES,
-		LINE_STRIP = GL_LINE_STRIP,
-		LINE_LOOP = GL_LINE_LOOP,
-		LINE_ADJ = GL_LINES_ADJACENCY,
-		LINE_STRIP_ADJ = GL_LINE_STRIP_ADJACENCY,
-		POINT = GL_POINTS,
-	};
+	using RENDER_MODE = driver::RENDER_MODE;
 
 	class RenderSystem
 	{
@@ -72,7 +59,7 @@ namespace render
 				set_point_size(10.f);
 			}
 
-			pDrv->draw_elements((unsigned int)render_mode(), vao, count);
+			pDrv->draw_elements(render_mode(), vao, count);
 		}
 
 		void draw_elements(unsigned int count) const {
@@ -80,7 +67,7 @@ namespace render
 				set_point_size(10.f);
 			}
 
-			pDrv->draw_elements((unsigned int)render_mode(), count);
+			pDrv->draw_elements(render_mode(), count);
 		}
 
 		RENDER_MODE render_mode() const { return _render_mode; }

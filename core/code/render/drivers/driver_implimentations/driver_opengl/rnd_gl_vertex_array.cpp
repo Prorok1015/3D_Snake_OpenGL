@@ -2,7 +2,6 @@
 #include "rnd_gl_buffer_layout.h"
 #include "glad/glad.h"
 
-
 static GLenum ShaderDataTypeToOpenGLBaseType(render::driver::gl::ShaderDataType type)
 {
 	using namespace render::driver::gl;

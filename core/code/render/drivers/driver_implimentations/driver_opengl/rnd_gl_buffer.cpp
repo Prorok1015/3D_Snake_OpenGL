@@ -1,12 +1,11 @@
 #include "rnd_gl_buffer.h"
 
-//#include <common/open_gl_specific.h>
-#define CHECK_GL_ERROR()
+#include "open_gl_specific.h"
 
 render::driver::gl::vertex_buffer::vertex_buffer(std::size_t size)
 {
 	glCreateBuffers(1, &m_RendererID);
-	//m_RendererID = rnd::get_system().gen_buf();
+
 	CHECK_GL_ERROR();
 	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 	CHECK_GL_ERROR();
@@ -18,7 +17,7 @@ render::driver::gl::vertex_buffer::vertex_buffer(std::size_t size)
 render::driver::gl::vertex_buffer::vertex_buffer(float* vertices, std::size_t size)
 {
 	glCreateBuffers(1, &m_RendererID);
-	//m_RendererID = rnd::get_system().gen_buf();
+
 	CHECK_GL_ERROR();
 	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 	CHECK_GL_ERROR();
@@ -62,7 +61,7 @@ render::driver::gl::index_buffer::index_buffer(const unsigned int* indices, std:
 
 	glCreateBuffers(1, &m_RendererID);
 	CHECK_GL_ERROR();
-	//m_RendererID = rnd::get_system().gen_buf();
+
 	// GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
 	// Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state. 
 	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);

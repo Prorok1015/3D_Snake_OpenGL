@@ -1,6 +1,9 @@
 #pragma once
 #include "../../common/common.h"
 
+//TODO
+#include "open_gl_specific.h"
+
 namespace render
 {
 	class Shader {

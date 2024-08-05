@@ -1,7 +1,9 @@
 #include "open_gl_specific.h"
 
 #ifdef _DEBUG
-#include "common.h"
+#include <glad/glad.h>
+#include <string_view>
+#include <engine_log.h>
 
 void opengl::glCheckError_(const char* file, int line)
 {

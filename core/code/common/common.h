@@ -20,8 +20,7 @@
 #include <type_traits>
 
 #include "engine_assert.h"
-#include "engine_log.h"
-#include "open_gl_specific.h"
+#include "logger/engine_log.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>

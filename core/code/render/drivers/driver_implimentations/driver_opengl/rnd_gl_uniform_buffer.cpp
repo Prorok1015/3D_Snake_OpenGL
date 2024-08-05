@@ -1,6 +1,6 @@
 #include "rnd_gl_uniform_buffer.h"
 
-#define CHECK_GL_ERROR()
+#include "open_gl_specific.h"
 
 render::driver::gl::uniform_buffer::uniform_buffer(std::size_t size, std::size_t binding)
 {
