@@ -1,6 +1,6 @@
-#include "window_system.h"
-#include "window.h"
-#include "../input/inp_input_system.h"
+#include "wnd_window_system.h"
+#include "wnd_window.h"
+#include <input/inp_input_system.h>
 #include <rnd_gl_render_context.h>
 
 windows::WindowSystem* p_wnd_system = nullptr;

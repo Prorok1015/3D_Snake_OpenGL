@@ -1,13 +1,13 @@
-#include "game_system.h"
+#include "gs_game_system.h"
 
 #include "../input/inp_input_manager.h"
 #include "../input/inp_input_system.h"
 
 #include "../common/enums.h"
-#include "../scene/primitives.h"
-#include "../scene/model.h"
+#include <scene/scn_primitives.h>
+#include <scene/scn_model.h>
 
-#include "../windows/window_system.h"
+#include <windows/wnd_window_system.h>
 #include "../resource/res_resource_system.h"
 
 #include "../render/rnd_render_system.h"

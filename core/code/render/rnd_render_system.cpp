@@ -21,6 +21,7 @@ void render::RenderSystem::init()
 {
 	get_sh_manager().init_global_uniform();
 	get_renderer().init();
+	enable(GL_DEPTH_TEST);
 }
 
 void render::RenderSystem::term()

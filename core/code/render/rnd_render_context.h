@@ -24,8 +24,6 @@ namespace render
 		bool init(GLFWwindow* w);
 		void swap_buffers();
 
-		void init_hints();
-
 	protected:
 		void set_next_frame() { _frame += 1; }
 		void init_impl();

@@ -50,6 +50,7 @@ void render::Renderer3d::init()
 
     index_buffer = std::make_shared<render::driver::gl::index_buffer>(indeces);
     vertex_array->set_index_buffer(index_buffer);
+
 }
 
 void render::Renderer3d::term()

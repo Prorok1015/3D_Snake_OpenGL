@@ -1,5 +1,5 @@
 #include "application.h"
-#include "../windows/window_system.h"
+#include <windows/wnd_window_system.h>
 #include "../render/rnd_render_system.h"
 
 app::Application* p_app_system = nullptr;
@@ -21,7 +21,6 @@ application::Application::~Application()
 int application::Application::run()
 {
 	auto& wndCreator = wnd::get_system();
-	rnd::get_system().enable(GL_DEPTH_TEST);
 	rnd::get_system().clear_color(clear_color_);
 
 	while (!wndCreator.is_all_windows_close()) {

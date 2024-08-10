@@ -1,7 +1,7 @@
-#include "sphere.h"
+#include "scn_sphere.h"
 #include "../resource/res_resource_model.h"
 #include "../render/rnd_render_system.h"
-#include "model.h"
+#include "scn_model.h"
 
 std::vector<res::Vertex> get_sphere_data()
 {

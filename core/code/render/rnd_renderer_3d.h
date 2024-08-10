@@ -1,7 +1,7 @@
 #pragma once
 #include "../common/common.h"
-#include "../scene/model.h"
-#include "../scene/mesh.h"
+#include <scene/scn_model.h>
+#include <scene/scn_mesh.h>
 //#include "rnd_vertex_array.h"
 #include <rnd_gl_vertex_array.h>
 

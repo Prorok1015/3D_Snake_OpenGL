@@ -1,7 +1,6 @@
 #include "rnd_render_init.h"
 #include "rnd_render_system.h"
-#include "../application/application.h"
-#include "../windows/window_system.h"
+#include <windows/wnd_window_system.h>
 
 extern rnd::RenderSystem* p_render_system;
 

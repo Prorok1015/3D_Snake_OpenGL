@@ -3,7 +3,7 @@
 #include "../render/texture/rnd_texture.h"
 #include "../render/texture/rnd_texture_manager.h"
 #include "../resource/res_resource_model.h"
-#include "mesh.h"
+#include "scn_mesh.h"
 
 namespace scene {
 

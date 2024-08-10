@@ -1,10 +1,8 @@
-#include "window.h"
+#include "wnd_window.h"
 #include "../common/common.h"
 #include "../common/enums.h"
 #include "../render/rnd_render_system.h"
 #include "../common/timer.hpp"
-
-using namespace windows;
 
 windows::Window::Window(std::string_view title, glm::ivec2 size_)
     : size(size_)
@@ -22,26 +20,26 @@ windows::Window::~Window()
     //glfwDestroyWindow
 }
 
-void Window::on_update()
+void windows::Window::on_update()
 {
     _render_context.swap_buffers();
 }
 
-bool Window::is_shutdown() const
+bool windows::Window::is_shutdown() const
 {
     return glfwWindowShouldClose(id_);
 }
 
-void Window::shutdown(bool close)
+void windows::Window::shutdown(bool close)
 {
     glfwSetWindowShouldClose(id_, close);
 }
 
-void Window::set_cursor_mode(CursorMode mode) {
+void windows::Window::set_cursor_mode(CursorMode mode) {
     glfwSetInputMode(id_, GLFW_CURSOR, (int)mode);
 }
 
-void Window::update_frame()
+void windows::Window::update_frame()
 {
     double currentTime = Timer::now();
     delta = currentTime - lastTime;

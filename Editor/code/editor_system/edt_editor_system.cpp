@@ -1,11 +1,11 @@
 #include "edt_editor_system.h"
 #include <debug_ui/debug_ui_api.h>
 #include <application/application.h>
-#include <game_system/game_system.h>
+#include <game_system/gs_game_system.h>
 #include <resource/res_resource_system.h>
 #include <resource/res_resource_texture.h>
 #include <render/rnd_render_system.h>
-#include <scene/primitives.h>
+#include <scene/scn_primitives.h>
 
 editor::EditorSystem::EditorSystem()
 {

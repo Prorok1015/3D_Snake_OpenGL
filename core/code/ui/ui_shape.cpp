@@ -1,6 +1,6 @@
-#include "Shape.h"
+#include "ui_shape.h"
 #include "../common/common.h"
-#include "../windows/Window.h"
+#include <windows/wnd_window.h>
 
 
 Shape::Shape()

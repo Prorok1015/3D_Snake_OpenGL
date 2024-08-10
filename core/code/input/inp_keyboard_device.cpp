@@ -1,5 +1,5 @@
 #include "inp_keyboard_device.h"
-#include "../windows/window_system.h"
+#include <windows/wnd_window_system.h>
 #include "../common/timer.hpp"
 
 namespace {

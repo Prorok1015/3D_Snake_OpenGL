@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "model.h"
+#include "scn_model.h"
 namespace render {
 	class Shader;
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include "../common/common.h"
-#include "model.h"
+#include "scn_model.h"
 
 scene::Model generate_network(glm::ivec2 size);
 

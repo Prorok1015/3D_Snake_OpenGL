@@ -1,5 +1,5 @@
 #include "debug_ui_system.h"
-#include "../game_system/game_system.h"
+#include <game_system/gs_game_system.h>
 
 debug_ui::DebugUiSystem* p_dbgui_system = nullptr;
 

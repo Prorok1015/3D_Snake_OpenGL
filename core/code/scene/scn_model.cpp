@@ -1,4 +1,4 @@
-#include "model.h"
+#include "scn_model.h"
 #include <filesystem>
 #include "../resource/res_resource_system.h"
 #include "../render/rnd_render_system.h"

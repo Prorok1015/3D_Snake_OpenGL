@@ -1,8 +1,8 @@
-#include "cude.h"
+#include "scn_cude.h"
 #include "../common/common.h"
 #include "../render/shader/rnd_shader.h"
 #include "../render/rnd_render_system.h"
-#include "mesh.h"
+#include "scn_mesh.h"
 #include <numeric>
 
 float vertices[] = {

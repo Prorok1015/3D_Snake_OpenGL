@@ -21,13 +21,6 @@ void render::RenderContext::swap_buffers()
 	set_next_frame();
 }
 
-void render::RenderContext::init_hints()
-{	
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-}
-
 void render::RenderContext::init_impl()
 {
 	/* Make the window's context current */

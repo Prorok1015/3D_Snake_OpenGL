@@ -3,7 +3,7 @@
 
 #include "../render/shader/rnd_shader.h"
 #include "../render/camera/scene_camera.h"
-#include "../windows/window.h"
+#include <windows/wnd_window.h>
 
 namespace scene {
 	class Model;

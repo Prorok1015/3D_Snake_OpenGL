@@ -1,6 +1,6 @@
 #pragma once
 #include "../common/common.h"
-#include "window.h"
+#include "wnd_window.h"
 #include <rnd_render_contex_interface.h>
 
 namespace windows
