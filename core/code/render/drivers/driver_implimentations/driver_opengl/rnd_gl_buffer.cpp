@@ -1,5 +1,4 @@
 #include "rnd_gl_buffer.h"
-
 #include "open_gl_specific.h"
 
 render::driver::gl::vertex_buffer::vertex_buffer(std::size_t size)

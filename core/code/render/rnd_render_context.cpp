@@ -32,17 +32,4 @@ void render::RenderContext::init_impl()
 {
 	/* Make the window's context current */
 	glfwMakeContextCurrent(_window_id);
-	const bool success = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-	ASSERT_MSG(success, "glad didnt loaded in this process!");
-
-	egLOG("render_context/init", 
-		"OpenGL Info: \n"
-		"Vendor: {0}  \n"
-		"Renderer: {1}\n"
-		"Version: {2}", 
-		(const char*)glGetString(GL_VENDOR), 
-		(const char*)glGetString(GL_RENDERER),
-		(const char*)glGetString(GL_VERSION));
-
-	ASSERT_MSG(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "Engine requires at least OpenGL version 4.5!");
 }

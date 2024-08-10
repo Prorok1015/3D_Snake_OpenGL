@@ -1,67 +1,34 @@
 #include "rnd_texture_manager.h"
-#include "rnd_texture.h"
 
 std::shared_ptr<render::Texture> render::TextureManager::require_texture(const res::Tag& tag) const
 {
-	if (auto ptr = find_cache(tag)) {
-		return ptr;
+	auto it = _cache.find(tag);
+	if (it != _cache.end()) {
+		auto& texture = it->second;
+		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
 	}
 
-	return _cache[tag] = render::Texture::load(tag);
+	auto& texture = _cache[tag] = std::move(render::Texture::load(drv, tag));
+	return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
 }
 
 std::shared_ptr<render::Texture> render::TextureManager::generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data) const
 {
-	if (auto ptr = find_cache(tag)) {
-		return ptr;
-	}
-
-    Texture::FILTERING minfiltering = Texture::FILTERING::LINEAR_MIPMAP;
-    Texture::FILTERING magfiltering = Texture::FILTERING::LINEAR;
-    Texture::WRAPPING wrapping = Texture::WRAPPING::REPEAT;
-
-    GLsizei t_width = size.x;
-    GLsizei t_height = size.y;
-    GLenum format = 0;
-    if (channels == 1)
-        format = GL_RED;
-    else if (channels == 3)
-        format = GL_RGB;
-    else if (channels == 4)
-        format = GL_RGBA;
-    GLubyte* image_data = data.data();
-    GLuint texture;
-    glGenTextures(1, &texture);
-    CHECK_GL_ERROR();
-    glBindTexture(GL_TEXTURE_2D, texture);
-    CHECK_GL_ERROR();
-    //glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLint)minfiltering);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLint)magfiltering);
-    CHECK_GL_ERROR();
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (GLint)wrapping);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (GLint)wrapping);
-    CHECK_GL_ERROR();
-
-    glTexImage2D(GL_TEXTURE_2D, 0, format, t_width, t_height, 0, format, GL_UNSIGNED_BYTE, image_data);
-    CHECK_GL_ERROR();
-    glGenerateMipmap(GL_TEXTURE_2D);
-    CHECK_GL_ERROR();
-    glBindTexture(GL_TEXTURE_2D, 0);
-    CHECK_GL_ERROR();
-
-    return _cache[tag] = std::make_shared<Texture>(texture, t_width, t_height);
-
-}
-
-std::shared_ptr<render::Texture> render::TextureManager::find_cache(const res::Tag& tag) const
-{
 	auto it = _cache.find(tag);
 	if (it != _cache.end()) {
-		return it->second;
+		auto& texture = it->second;
+		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());;
 	}
 
-	return nullptr;
+    driver::texture_header header;
+    header.data = data.data();
+    header.channels = channels;
+    header.width = size.x;
+    header.height = size.y;
+    header.wrap = driver::texture_header::WRAPPING::REPEAT;
+    header.min = driver::texture_header::FILTERING::LINEAR_MIPMAP;
+    header.mag = driver::texture_header::FILTERING::LINEAR;
+	auto& texture = _cache[tag] = std::move(drv->create_texture(header));
+    return std::make_shared<Texture>(texture.get(), header.width, header.height);
 }
+ 

@@ -16,5 +16,10 @@ namespace render::driver::gl
 		virtual void draw_elements(RENDER_MODE render_mode, unsigned int count) override;
 
 		virtual void enable(int flags) override;
+
+		virtual void unuse() override;
+
+		virtual std::unique_ptr<shader_interface> create_shader(const std::vector<shader_header>& headers) override;
+		virtual std::unique_ptr<texture_interface> create_texture(const texture_header& header) override;
 	};
 }

@@ -9,9 +9,12 @@ render::RenderSystem& render::get_system()
 	return *p_render_system;
 }
 
-render::RenderSystem::RenderSystem()
+render::RenderSystem::RenderSystem(std::unique_ptr<render::driver::driver_interface> driver)
+	: pDrv(std::move(driver))
+	, shManager(pDrv.get())
+	, txrManager(pDrv.get())
 {
-	pDrv = std::make_unique<render::driver::gl::driver>();
+	init();
 }
 
 void render::RenderSystem::init()

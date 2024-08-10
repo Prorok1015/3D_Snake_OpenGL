@@ -1,22 +1,25 @@
 #pragma once
 #include "../../common/common.h"
 #include "../../resource/res_resource_tag.h"
+#include "rnd_texture.h"
+
+#include <rnd_driver_interface.h>
+#include <rnd_texture_interface.h>
 
 namespace render
 {
-	class Texture;
-
 	class TextureManager
 	{
 	public:
+		TextureManager(driver::driver_interface* driver)
+			: drv(driver) {}
+
 		std::shared_ptr<Texture> require_texture(const res::Tag& tag) const;
 		std::shared_ptr<Texture> generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data) const;
 
 	protected:
-		std::shared_ptr<Texture> find_cache(const res::Tag& tag) const;
-
-	protected:
-		mutable std::unordered_map<res::Tag, std::shared_ptr<Texture>, res::Tag::hash> _cache;
+		mutable std::unordered_map<res::Tag, std::unique_ptr<driver::texture_interface>, res::Tag::hash> _cache;
+		driver::driver_interface* drv = nullptr;
 	};
 
 }

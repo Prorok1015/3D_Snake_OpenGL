@@ -1,6 +1,7 @@
 #include "rnd_renderer_3d.h"
 #include "rnd_render_system.h"
 #include "rnd_material.h"
+//TODO
 #include <rnd_gl_buffer_layout.h>
 
 render::Renderer3d::Renderer3d()
@@ -59,7 +60,7 @@ void render::Renderer3d::term()
 void render::Renderer3d::draw(scene::Model& val)
 {
      auto shader = rnd::get_system().get_sh_manager().use("scene");
-     shader.uniform_matrix("model", val.model);
+     shader.uniform("model", val.model);
 
     for (auto& mesh : val.meshes)
     {

@@ -28,8 +28,6 @@ game::GameSystem::GameSystem()
 	window = wndCreator.make_window("Snake Engine", WIDTH, HEIGHT);
 	input = std::make_shared<inp::InputManager>();
 
-	rnd::get_system().init();
-
 	camera = std::make_shared<snakeengine::MouseCamera>(glm::vec3(4, 15, 80), window->get_size());
 	camera->look_at(glm::vec3{ 0 });
 	camera->enable_input_actions(input);
@@ -45,7 +43,6 @@ game::GameSystem::GameSystem()
 game::GameSystem::~GameSystem()
 {
 	camera->disable_input_actions(input);
-	rnd::get_system().term();
 }
 
 void game::GameSystem::capture()

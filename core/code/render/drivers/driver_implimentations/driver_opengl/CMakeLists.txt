@@ -9,6 +9,11 @@ add_subdirectory("${ENGINE_CORE_PATH}/code/common/logger" engine_logger)
 target_link_libraries(${PROJECT_NAME} engine_logger)
 # end tmp
 
+#glm
+add_subdirectory(${THIRD_PARTY_PATH}/glm glm)
+target_compile_definitions(${PROJECT_NAME} PUBLIC GLM_ENABLE_EXPERIMENTAL=1)
+target_link_libraries(${PROJECT_NAME} glm)
+
 add_subdirectory(${THIRD_PARTY_PATH}/glad glad)
 target_link_libraries(${PROJECT_NAME} glad)
 

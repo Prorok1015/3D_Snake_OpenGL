@@ -1,7 +1,7 @@
 #include "window_system.h"
 #include "window.h"
 #include "../input/inp_input_system.h"
-
+#include <rnd_gl_render_context.h>
 
 windows::WindowSystem* p_wnd_system = nullptr;
 
@@ -72,6 +72,11 @@ windows::WindowSystem::~WindowSystem()
 std::shared_ptr<windows::Window> windows::WindowSystem::make_window(std::string_view title, int width, int height)
 {
     auto shared_window = std::make_shared<Window>(title, glm::ivec2{ width, height });
+
+    if (!context) {
+        context = std::make_unique<render::driver::gl::render_context>((GLADloadproc)glfwGetProcAddress);
+    }
+
     auto window = shared_window->get_id();
     _windows[window] = shared_window;
 

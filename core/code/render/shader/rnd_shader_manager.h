@@ -2,6 +2,8 @@
 #include "../../common/common.h"
 #include "../../resource/res_resource_tag.h"
 #include "rnd_shader.h"
+
+#include <rnd_driver_interface.h>
 #include <rnd_gl_uniform_buffer.h>
 
 namespace render
@@ -16,7 +18,7 @@ namespace render
 	class ShaderManager
 	{
 	public:
-		ShaderManager();
+		ShaderManager(driver::driver_interface* ptr);
 		~ShaderManager();
 
 		ShaderManager(const ShaderManager&) = delete;
@@ -35,11 +37,12 @@ namespace render
 		void init_global_uniform() const;
 		void update_global_uniform(const GlobalUniform& val) const;
 	protected:
-		Shader load(const std::string& tag) const;
+		std::unique_ptr<render::driver::shader_interface> load(const std::string& tag) const;
 
 	private:
-		mutable std::unordered_map<std::string_view, Shader> _cache;
+		mutable std::unordered_map<std::string_view, std::unique_ptr<render::driver::shader_interface>> _cache;
 		mutable std::shared_ptr<render::driver::gl::uniform_buffer> _matrices;
+		driver::driver_interface* drv = nullptr;
 	};
 
 }

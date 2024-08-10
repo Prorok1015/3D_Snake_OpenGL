@@ -15,8 +15,6 @@ windows::Window::Window(std::string_view title, glm::ivec2 size_)
     ASSERT_MSG(id_, "Window didn't create!");
 
     _render_context.init(id_);
-
-    rnd::get_system().viewport({ glm::zero<glm::ivec2>(), size });
 }
 
 windows::Window::~Window()

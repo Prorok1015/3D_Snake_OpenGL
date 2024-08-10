@@ -13,7 +13,7 @@ namespace render
 	class RenderSystem
 	{
 	public:
-		RenderSystem();
+		RenderSystem(std::unique_ptr<render::driver::driver_interface> driver);
 		~RenderSystem() = default;
 		RenderSystem(const RenderSystem&) = delete;
 		RenderSystem(RenderSystem&&) = delete;
@@ -73,10 +73,10 @@ namespace render
 		RENDER_MODE render_mode() const { return _render_mode; }
 		void render_mode(RENDER_MODE val) { _render_mode = val; }
 	private:
+		std::unique_ptr<render::driver::driver_interface> pDrv = nullptr;
 		rnd::TextureManager txrManager;
 		rnd::ShaderManager shManager;
 		rnd::Renderer3d renderer;
-		std::unique_ptr<render::driver::driver_interface> pDrv = nullptr;
 
 		RENDER_MODE _render_mode = RENDER_MODE::TRIANGLE;
 	};
