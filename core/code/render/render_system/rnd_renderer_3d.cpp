@@ -1,6 +1,7 @@
 #include "rnd_renderer_3d.h"
 #include "rnd_render_system.h"
 #include "rnd_material.h"
+#include "res_resource_model.h"
 //TODO
 #include <rnd_gl_buffer_layout.h>
 

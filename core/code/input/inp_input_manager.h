@@ -1,5 +1,5 @@
 #pragma once
-#include "../common/common.h"
+#include <common.h>
 #include "inp_input_actions.h"
 
 namespace input

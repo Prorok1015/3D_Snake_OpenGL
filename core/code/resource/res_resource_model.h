@@ -1,6 +1,10 @@
 #pragma once
-#include "../common/common.h"
+#include <common.h>
 #include "res_resource_base.h"
+
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 namespace resource
 {

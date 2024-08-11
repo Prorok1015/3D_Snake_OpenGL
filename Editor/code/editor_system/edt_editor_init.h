@@ -1,5 +1,5 @@
 #pragma once
-#include <common/ds_store.hpp>
+#include <ds_store.hpp>
 
 namespace components {
 

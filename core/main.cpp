@@ -1,5 +1,5 @@
-#include "code/application/application.h"
-#include "code/application/components_init.h"
+#include <application.h>
+#include <components_init.h>
 
 int main()
 {

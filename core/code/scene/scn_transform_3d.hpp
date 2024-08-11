@@ -1,6 +1,7 @@
 #pragma once
 
 #include <glm/gtx/quaternion.hpp>
+
 namespace scene {
 	class Transform final
 	{

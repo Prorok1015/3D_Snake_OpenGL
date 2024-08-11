@@ -1,5 +1,6 @@
 #pragma once
-#include "../common/common.h"
+#include <common.h>
+#include <glm/glm.hpp>
 
 namespace application
 {

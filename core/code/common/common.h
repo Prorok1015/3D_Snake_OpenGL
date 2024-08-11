@@ -1,11 +1,4 @@
 #pragma once
-#include <GLFW/glfw3.h>
-
-#include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
 #include <iostream>
 #include <algorithm>
 #include <functional>
@@ -21,14 +14,6 @@
 
 #include "engine_assert.h"
 #include "logger/engine_log.h"
-
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
-#include "imgui.h"
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
 
 #include "ds_event.hpp"
 

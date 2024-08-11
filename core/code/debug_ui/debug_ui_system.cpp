@@ -1,5 +1,9 @@
 #include "debug_ui_system.h"
-#include <game_system/gs_game_system.h>
+#include <gs_game_system.h>
+#include <inp_input_system.h>
+
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
 
 debug_ui::DebugUiSystem* p_dbgui_system = nullptr;
 

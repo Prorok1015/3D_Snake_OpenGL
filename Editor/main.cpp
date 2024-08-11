@@ -1,5 +1,5 @@
-#include <application/application.h>
-#include <application/components_init.h>
+#include <application.h>
+#include <components_init.h>
 #include "code/editor_system/edt_editor_init.h"
 
 

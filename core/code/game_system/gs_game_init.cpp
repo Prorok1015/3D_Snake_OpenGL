@@ -1,8 +1,8 @@
 #include "gs_game_init.h"
 #include "gs_game_system.h"
-#include "../debug_ui/debug_ui_init.h"
-#include "../application/application.h"
-#include <render/rnd_render_init.h>
+#include <debug_ui_init.h>
+#include <application.h>
+#include <rnd_render_init.h>
 
 extern gm::GameSystem* p_game_system;
 

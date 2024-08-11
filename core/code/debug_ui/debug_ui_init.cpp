@@ -1,6 +1,6 @@
 #include "debug_ui_init.h"
 #include "debug_ui_system.h"
-#include "../application/application.h"
+#include <application.h>
 
 extern dbg_ui::DebugUiSystem* p_dbgui_system;
 

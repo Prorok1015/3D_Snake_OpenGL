@@ -1,5 +1,7 @@
 #pragma once
-#include "../common/common.h"
+#include <glm/glm.hpp>
+#include <string>
+#include <format>
 
 namespace resource
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include "../common/common.h"
+#include <common.h>
 #include "res_resource_tag.h"
 
 namespace resource

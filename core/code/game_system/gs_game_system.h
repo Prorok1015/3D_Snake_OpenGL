@@ -1,9 +1,9 @@
 #pragma once
-#include "../common/common.h"
+#include <common.h>
 
-#include "../render/shader/rnd_shader.h"
-#include "../render/camera/scene_camera.h"
-#include <windows/wnd_window.h>
+#include <shader/rnd_shader.h>
+#include <camera/scene_camera.h>
+#include <wnd_window.h>
 
 namespace scene {
 	class Model;

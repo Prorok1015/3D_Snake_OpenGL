@@ -1,7 +1,9 @@
 #pragma once
-#include "../common/common.h"
-#include "../resource/res_resource_texture.h"
-#include "../render/rnd_render_context.h"
+#include <res_resource_texture.h>
+//TODO rename file
+#include "rnd_render_context.h"
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 struct GLFWwindow;
 enum class CursorMode;
@@ -36,7 +38,7 @@ namespace windows
 		void on_resize_window(int width, int height);
 
 		void set_logo(res::ImageRef logo, res::ImageRef logo_small);
-		void set_vsync(bool v) { glfwSwapInterval(v ? 1 : 0); }
+		void set_vsync(bool v);
 
 		bool is_minimize_mode() const {
 			return size == glm::zero<glm::ivec2>();

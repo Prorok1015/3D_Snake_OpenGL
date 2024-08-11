@@ -1,5 +1,5 @@
 #pragma once
-#include "../../common/common.h"
+#include <common.h>
 #include <rnd_shader_interface.h>
 
 namespace render

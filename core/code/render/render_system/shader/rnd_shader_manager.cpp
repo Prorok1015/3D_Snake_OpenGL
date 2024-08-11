@@ -1,6 +1,6 @@
 #include "rnd_shader_manager.h"
-#include "../../resource/res_resource_system.h"
-#include "../../resource/res_resource_shader.h"
+#include <res_resource_system.h>
+#include <res_resource_shader.h>
 
 
 render::ShaderManager::ShaderManager(driver::driver_interface* ptr)

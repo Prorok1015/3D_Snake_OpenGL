@@ -1,5 +1,5 @@
 #include "scn_primitives.h"
-#include "../render/rnd_render_system.h"
+#include <rnd_render_system.h>
 
 #include <numeric>
 

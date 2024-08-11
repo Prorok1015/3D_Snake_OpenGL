@@ -1,9 +1,9 @@
 #pragma once
-#include "../common/common.h"
-#include "../render/shader/rnd_shader.h"
-#include "../render/texture/rnd_texture.h"
-#include "../resource/res_resource_model.h"
-#include "../render/rnd_material.h"
+#include <common.h>
+#include <shader/rnd_shader.h>
+#include <texture/rnd_texture.h>
+#include <res_resource_model.h>
+#include <rnd_material.h>
 
 namespace scene {
 

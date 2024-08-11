@@ -1,6 +1,7 @@
 #pragma once
-#include "../common/common.h"
+#include <common.h>
 #include "inp_key_enums.hpp"
+#include <glm/glm.hpp>
 
 namespace input
 {

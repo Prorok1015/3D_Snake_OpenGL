@@ -1,4 +1,5 @@
 #include "res_resource_tag.h"
+#include <engine_log.h>
 
 resource::Tag resource::operator+ (const resource::Tag& l, const resource::Tag& r)
 {

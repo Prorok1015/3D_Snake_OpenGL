@@ -2,9 +2,8 @@
 #ifndef WINDOW_CAMERA_H_
 #define WINDOW_CAMERA_H_
 
-#include "../../input/inp_input_manager.h"
-
-#include "../../scene/scn_transform_3d.hpp"
+#include <inp_input_manager.h>
+#include <scn_transform_3d.hpp>
 
 class Camera {
 public:

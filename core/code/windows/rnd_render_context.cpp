@@ -1,4 +1,5 @@
 #include "rnd_render_context.h"
+#include <GLFW/glfw3.h>
 
 bool render::RenderContext::init(GLFWwindow* window)
 {

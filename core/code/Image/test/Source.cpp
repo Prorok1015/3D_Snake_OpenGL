@@ -1,9 +1,10 @@
 #ifdef TESTLIB
-#include "Image.h"
+#include <image.h>
 #include <iostream>
 
 int main()
 {
+	using namespace stb_image;
 	Image img;
 	img.flip(Image::ImageFlip::VERTICAL);
 	img.open("test.jpg");

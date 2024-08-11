@@ -1,9 +1,8 @@
 #include "components_init.h"
-#include "../common/common.h"
 #include "application.h"
-#include "../input/inp_input_init.h"
-#include "../resource/res_resource_init.h"
-#include "../render/rnd_render_init.h"
+#include "inp_input_init.h"
+#include "res_resource_init.h"
+#include "rnd_render_init.h"
 
 extern app::Application* p_app_system;
 

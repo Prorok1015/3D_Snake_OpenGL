@@ -1,7 +1,8 @@
 #pragma once
-#include "../common/common.h"
 #include "wnd_window.h"
 #include <rnd_render_contex_interface.h>
+
+#include <string>
 
 namespace windows
 {

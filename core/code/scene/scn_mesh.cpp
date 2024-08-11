@@ -1,5 +1,5 @@
 #include "scn_mesh.h"
-#include "../render/rnd_render_system.h"
+#include <rnd_render_system.h>
 
 scene::Mesh::Mesh(std::vector<res::Vertex> vertices, std::vector<unsigned int> indices, const res::Tag& textures)
     : Mesh(vertices, indices)

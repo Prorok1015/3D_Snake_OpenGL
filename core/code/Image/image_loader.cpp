@@ -1,5 +1,5 @@
 #include "image_loader.h"
-#include "../common/common.h"
+#include <engine_assert.h>
 
 std::unique_ptr<stb_image::Image> load_image(const std::string_view file)
 {

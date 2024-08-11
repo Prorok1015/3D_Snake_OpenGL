@@ -1,10 +1,11 @@
 #pragma once
-#include "../common/common.h"
+#include <common.h>
+#include <rnd_driver_interface.h>
+
 #include "texture/rnd_texture_manager.h"
 #include "shader/rnd_shader_manager.h"
 #include "rnd_renderer_3d.h"
 
-#include <rnd_driver_interface.h>
 
 namespace render
 {

@@ -1,7 +1,7 @@
 #pragma once
-#include "../common/common.h"
-#include "../common/enums.h"
-#include "../input/inp_key_enums.hpp"
+#include "common.h"
+#include "enums.h"
+#include "inp_key_enums.hpp"
 #include "debug_ui_menu_layer.h"
 
 namespace debug_ui

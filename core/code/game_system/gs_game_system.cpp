@@ -1,17 +1,19 @@
 #include "gs_game_system.h"
 
-#include "../input/inp_input_manager.h"
-#include "../input/inp_input_system.h"
+#include <inp_input_manager.h>
+#include <inp_input_system.h>
 
-#include "../common/enums.h"
-#include <scene/scn_primitives.h>
-#include <scene/scn_model.h>
+#include <enums.h>
+#include <scn_primitives.h>
+#include <scn_model.h>
 
-#include <windows/wnd_window_system.h>
-#include "../resource/res_resource_system.h"
+#include <wnd_window_system.h>
+#include <res_resource_system.h>
 
-#include "../render/rnd_render_system.h"
-#include "../common/timer.hpp"
+#include <rnd_render_system.h>
+#include <timer.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/random.hpp>
 
 game::GameSystem* p_game_system = nullptr;
 

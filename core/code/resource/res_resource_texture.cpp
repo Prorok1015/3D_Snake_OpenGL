@@ -1,6 +1,6 @@
 #include "res_resource_texture.h"
 #include "res_resource_system.h"
-#include "../serialize/image_loader.h"
+#include <image_loader.h>
 
 
 resource::Image::Image(const resource::Tag& tag)

@@ -1,6 +1,6 @@
 #include "inp_keyboard_device.h"
-#include <windows/wnd_window_system.h>
-#include "../common/timer.hpp"
+#include <wnd_window_system.h>
+#include <timer.hpp>
 
 namespace {
     inp::KEY_ACTION to_action(int action)

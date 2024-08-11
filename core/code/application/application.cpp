@@ -1,6 +1,6 @@
 #include "application.h"
-#include <windows/wnd_window_system.h>
-#include "../render/rnd_render_system.h"
+#include <wnd_window_system.h>
+#include <rnd_render_system.h>
 
 app::Application* p_app_system = nullptr;
 

@@ -1,6 +1,6 @@
 #pragma once
-#include "../common/common.h"
-#include "../common/ds_type_id.hpp"
+#include <common.h>
+#include <ds_type_id.hpp>
 #include "inp_keyboard_device.h"
 #include "inp_mouse_device.h"
 

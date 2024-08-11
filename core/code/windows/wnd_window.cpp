@@ -1,8 +1,7 @@
 #include "wnd_window.h"
-#include "../common/common.h"
-#include "../common/enums.h"
-#include "../render/rnd_render_system.h"
-#include "../common/timer.hpp"
+#include <GLFW/glfw3.h>
+#include <enums.h>
+#include <timer.hpp>
 
 windows::Window::Window(std::string_view title, glm::ivec2 size_)
     : size(size_)
@@ -18,6 +17,11 @@ windows::Window::Window(std::string_view title, glm::ivec2 size_)
 windows::Window::~Window()
 {
     //glfwDestroyWindow
+}
+
+void windows::Window::set_vsync(bool val)
+{
+    glfwSwapInterval(val ? 1 : 0);
 }
 
 void windows::Window::on_update()
@@ -49,7 +53,6 @@ void windows::Window::update_frame()
 void windows::Window::on_resize_window(int width, int height)
 {
     size = { width, height };
-    rnd::get_system().viewport({ glm::zero<glm::ivec2>(), size});
     eventResizeWindow(*this, width, height);
 }
 

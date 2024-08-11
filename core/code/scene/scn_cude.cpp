@@ -1,9 +1,9 @@
 #include "scn_cude.h"
-#include "../common/common.h"
-#include "../render/shader/rnd_shader.h"
-#include "../render/rnd_render_system.h"
-#include "scn_mesh.h"
+#include <common.h>
+#include <shader/rnd_shader.h>
+#include <rnd_render_system.h>
 #include <numeric>
+#include "scn_mesh.h"
 
 float vertices[] = {
     -0.5f, -0.5f, -0.5f,  0.0f, 0.0f,

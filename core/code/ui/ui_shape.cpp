@@ -5,16 +5,12 @@
 
 Shape::Shape()
 {
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
+
 }
 
 Shape::~Shape()
 {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
+
 }
 
 
@@ -89,6 +85,4 @@ void Shape::prepare_data()
 
 void Shape::draw()
 {
-    glBindVertexArray(VAO);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }

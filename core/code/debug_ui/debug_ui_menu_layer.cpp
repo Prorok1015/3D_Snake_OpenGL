@@ -1,4 +1,7 @@
 #include "debug_ui_menu_layer.h"
+#include <imgui.h>
+#include <ranges>
+#include <engine_assert.h>
 
 namespace debug_ui
 {

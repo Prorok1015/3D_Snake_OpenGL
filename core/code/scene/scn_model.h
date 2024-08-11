@@ -1,8 +1,8 @@
 #pragma once
-#include "../common/common.h"
-#include "../render/texture/rnd_texture.h"
-#include "../render/texture/rnd_texture_manager.h"
-#include "../resource/res_resource_model.h"
+#include <common.h>
+#include <texture/rnd_texture.h>
+#include <texture/rnd_texture_manager.h>
+#include <res_resource_model.h>
 #include "scn_mesh.h"
 
 namespace scene {
