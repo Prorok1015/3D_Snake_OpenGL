@@ -3,6 +3,14 @@
 #include <res_resource_shader.h>
 
 
+namespace glm
+{
+	decltype(auto) value_ptr(auto&& v)
+	{
+		return std::addressof(v);
+	}
+}
+
 render::ShaderManager::ShaderManager(driver::driver_interface* ptr)
 	: drv(ptr)
 {
@@ -47,14 +55,14 @@ void render::ShaderManager::uniform(const std::string_view shader, const std::st
 
 void render::ShaderManager::init_global_uniform() const
 {
-	_matrices = std::make_shared<render::driver::gl::uniform_buffer>(sizeof(GlobalUniform), 0);
+	_matrices = drv->create_uniform_buffer(sizeof(GlobalUniform), 0);
 }
 
 void render::ShaderManager::update_global_uniform(const GlobalUniform& val) const
 {
-	_matrices->set_data(val.projection, offsetof(GlobalUniform, projection));
-	_matrices->set_data(val.view, offsetof(GlobalUniform, view));
-	_matrices->set_data(val.time, offsetof(GlobalUniform, time));
+	_matrices->set_data(glm::value_ptr(val.projection), sizeof(decltype(val.projection)), offsetof(GlobalUniform, projection));
+	_matrices->set_data(glm::value_ptr(val.view), sizeof(decltype(val.view)), offsetof(GlobalUniform, view));
+	_matrices->set_data(glm::value_ptr(val.time), sizeof(decltype(val.time)), offsetof(GlobalUniform, time));
 }
 
 std::unique_ptr<render::driver::shader_interface> render::ShaderManager::load(const std::string& name) const

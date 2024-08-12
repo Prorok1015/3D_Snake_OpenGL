@@ -32,13 +32,13 @@ namespace render
 			pDrv->set_viewport(rect[0], rect[1], rect[2], rect[3]);
 		}
 
-		void enable(int flag) const {
+		void enable(driver::ENABLE_FLAGS flag) const {
 			pDrv->enable(flag);
 		}
 		void clear_color(const glm::vec4& val) const {
 			pDrv->set_clear_color(val.r, val.g, val.b, val.a);
 		}
-		void clear(int flag) const { pDrv->clear(flag); }
+		void clear(driver::CLEAR_FLAGS flag) const { pDrv->clear(flag); }
 		void activate_texture_unit(int i) const {
 			pDrv->set_activate_texture(i);
 		}

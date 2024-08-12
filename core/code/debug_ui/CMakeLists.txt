@@ -17,4 +17,4 @@ target_sources(${PROJECT_NAME} PRIVATE
 )
 target_include_directories(${PROJECT_NAME} PUBLIC ${THIRD_PARTY_PATH}/imgui)
 
-target_link_libraries(${PROJECT_NAME} glm window game input_system application common)
+target_link_libraries(${PROJECT_NAME} common window game input_system application)

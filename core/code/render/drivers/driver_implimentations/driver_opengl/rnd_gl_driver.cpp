@@ -3,6 +3,9 @@
 #include <glad/glad.h>
 #include <rnd_gl_shader.h>
 #include <rnd_gl_texture.h>
+#include <rnd_gl_vertex_array.h>
+#include <rnd_gl_buffer.h>
+#include <rnd_gl_uniform_buffer.h>
 
 const GLenum gRenderModeToGLRenderMode[] =
 {
@@ -41,6 +44,17 @@ const GLint gTextureWrappingToGlWrapping[] =
 	GL_CLAMP_TO_BORDER,
 };
 
+const GLint gClearFlagsToGlClearFlags[] =
+{
+	GL_COLOR_BUFFER_BIT,
+	GL_DEPTH_BUFFER_BIT,
+};
+
+const GLint gEnableFlagsToGlEnableFlags[] =
+{
+	GL_DEPTH_TEST,
+};
+
 void render::driver::gl::driver::set_viewport(int x, int y, int w, int h)
 {
 	glViewport(x, y, w, h);
@@ -51,9 +65,9 @@ void render::driver::gl::driver::set_clear_color(float r, float g, float b, floa
 	glClearColor(r, g, b, a);
 }
 
-void render::driver::gl::driver::clear(int flags)
+void render::driver::gl::driver::clear(CLEAR_FLAGS flags)
 {
-	glClear(flags);
+	glClear(gClearFlagsToGlClearFlags[(int)flags]);
 }
 
 void render::driver::gl::driver::set_activate_texture(int idx)
@@ -93,9 +107,9 @@ void render::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned
 	CHECK_GL_ERROR();
 }
 
-void render::driver::gl::driver::enable(int flags)
+void render::driver::gl::driver::enable(ENABLE_FLAGS flags)
 {
-	glEnable(flags);
+	glEnable(gEnableFlagsToGlEnableFlags[(int)flags]);
 }
 
 void render::driver::gl::driver::unuse()
@@ -189,4 +203,19 @@ std::unique_ptr<render::driver::texture_interface> render::driver::gl::driver::c
 	CHECK_GL_ERROR();
 
 	return std::make_unique<render::driver::gl::texture>(texture, t_width, t_height);
+}
+
+std::unique_ptr<render::driver::vertex_array_interface> render::driver::gl::driver::create_vertex_array()
+{
+	return std::make_unique<gl::vertex_array>();
+}
+
+std::unique_ptr<render::driver::buffer_interface> render::driver::gl::driver::create_buffer()
+{
+	return std::make_unique<gl::buffer>();
+}
+
+std::unique_ptr<render::driver::uniform_buffer_interface> render::driver::gl::driver::create_uniform_buffer(std::size_t size, std::size_t binding)
+{
+	return std::make_unique<gl::uniform_buffer>(size, binding);
 }

@@ -10,7 +10,7 @@ namespace render::driver::gl
 	{
 	public:
 		vertex_array();
-		virtual ~vertex_array();
+		virtual ~vertex_array() override;
 
 		virtual void bind() override;
 		virtual void unbind() override;
@@ -19,12 +19,12 @@ namespace render::driver::gl
 		virtual void remove_vertex_buffer(const std::shared_ptr<render::driver::buffer_interface>& vertexBuffer) override;
 		virtual void set_index_buffer(const std::shared_ptr<render::driver::buffer_interface>& indexBuffer) override;
 
-		const std::vector<std::shared_ptr<vertex_buffer>>& get_vertex_buffers() const { return m_VertexBuffers; }
-		const std::shared_ptr<index_buffer>& get_index_buffer() const { return m_IndexBuffer; }
+		const std::vector<std::shared_ptr<buffer>>& get_vertex_buffers() const { return m_VertexBuffers; }
+		const std::shared_ptr<buffer>& get_index_buffer() const { return m_IndexBuffer; }
 		uint32_t m_RendererID;
 	private:
 		uint32_t m_VertexBufferIndex = 0;
-		std::vector<std::shared_ptr<vertex_buffer>> m_VertexBuffers;
-		std::shared_ptr<index_buffer> m_IndexBuffer;
+		std::vector<std::shared_ptr<buffer>> m_VertexBuffers;
+		std::shared_ptr<buffer> m_IndexBuffer;
 	};
 }

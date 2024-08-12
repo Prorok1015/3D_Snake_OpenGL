@@ -4,7 +4,7 @@
 #include "rnd_shader.h"
 
 #include <rnd_driver_interface.h>
-#include <rnd_gl_uniform_buffer.h>
+#include <rnd_uniform_buffer_interface.h>
 
 namespace render
 {
@@ -41,7 +41,7 @@ namespace render
 
 	private:
 		mutable std::unordered_map<std::string_view, std::unique_ptr<render::driver::shader_interface>> _cache;
-		mutable std::shared_ptr<render::driver::gl::uniform_buffer> _matrices;
+		mutable std::shared_ptr<render::driver::uniform_buffer_interface> _matrices;
 		driver::driver_interface* drv = nullptr;
 	};
 

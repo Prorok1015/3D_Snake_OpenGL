@@ -7,4 +7,4 @@ target_sources(${PROJECT_NAME} PRIVATE ${SE_RENDER_SOURCES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_link_libraries(${PROJECT_NAME} glm window drv_interface common scene resource_system input_system)
+target_link_libraries(${PROJECT_NAME} common window drv_interface scene resource_system input_system)

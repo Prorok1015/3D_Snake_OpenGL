@@ -57,7 +57,8 @@ void game::GameSystem::prepair_render()
 		return;
 	}
 
-	rnd::get_system().clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	rnd::get_system().clear(render::driver::CLEAR_FLAGS::COLOR_BUFFER);
+	rnd::get_system().clear(render::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
 	rnd::GlobalUniform val;
 

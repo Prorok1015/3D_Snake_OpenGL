@@ -13,7 +13,7 @@ render::driver::gl::uniform_buffer::uniform_buffer(std::size_t size, std::size_t
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	CHECK_GL_ERROR();
 
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, m_RendererID, 0, size);
+	glBindBufferRange(GL_UNIFORM_BUFFER, binding, m_RendererID, 0, size);
 	CHECK_GL_ERROR();
 }
 

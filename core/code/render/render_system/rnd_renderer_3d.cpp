@@ -2,8 +2,6 @@
 #include "rnd_render_system.h"
 #include "rnd_material.h"
 #include "res_resource_model.h"
-//TODO
-#include <rnd_gl_buffer_layout.h>
 
 render::Renderer3d::Renderer3d()
 {
@@ -15,19 +13,22 @@ render::Renderer3d::~Renderer3d()
 
 }
 
-void render::Renderer3d::init()
+void render::Renderer3d::init(render::driver::driver_interface* drv_)
 {    
-    vertex_array = std::make_shared<render::driver::gl::vertex_array>();
-    vertex_buffer = std::make_shared<render::driver::gl::vertex_buffer>(20000 * sizeof(res::Vertex));
+    drv = drv_;
+    vertex_array = drv->create_vertex_array();
+
+    vertex_buffer = drv->create_buffer();
+    vertex_buffer->set_data(nullptr, 20000 * sizeof(res::Vertex), render::driver::BUFFER_BINDING::DYNAMIC);
     vertex_buffer->set_layout(
         {
-            {render::driver::gl::ShaderDataType::Float3, "position"},
-            {render::driver::gl::ShaderDataType::Float3, "normal"},
-            {render::driver::gl::ShaderDataType::Float2, "texture_position"},
-            {render::driver::gl::ShaderDataType::Float3, "tangent"},
-            {render::driver::gl::ShaderDataType::Float3, "bitangent"},
-            {render::driver::gl::ShaderDataType::Int4,   "bones"},
-            {render::driver::gl::ShaderDataType::Float4, "bones_weight"},
+            {render::driver::ShaderDataType::Float3, "position"},
+            {render::driver::ShaderDataType::Float3, "normal"},
+            {render::driver::ShaderDataType::Float2, "texture_position"},
+            {render::driver::ShaderDataType::Float3, "tangent"},
+            {render::driver::ShaderDataType::Float3, "bitangent"},
+            {render::driver::ShaderDataType::Int4,   "bones"},
+            {render::driver::ShaderDataType::Float4, "bones_weight"},
         }
     );
 
@@ -49,9 +50,10 @@ void render::Renderer3d::init()
         offset += 4;
     }
 
-    index_buffer = std::make_shared<render::driver::gl::index_buffer>(indeces);
-    vertex_array->set_index_buffer(index_buffer);
+    index_buffer = drv->create_buffer();
+    index_buffer->set_data(indeces.data(), indeces.size() * sizeof(unsigned int), render::driver::BUFFER_BINDING::STATIC, render::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
 
+    vertex_array->set_index_buffer(index_buffer);
 }
 
 void render::Renderer3d::term()
@@ -76,13 +78,14 @@ void render::Renderer3d::draw(scene::Mesh& mesh)
     // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
     // again translates to 3/2 floats which translates to a byte array.
     vertex_array->bind();
-    vertex_buffer->set_data(mesh.vertices);
+    vertex_buffer->set_data(mesh.vertices.data(), mesh.vertices.size() * sizeof(res::Vertex), driver::BUFFER_BINDING::DYNAMIC);
 
     if (mesh.indices.empty() || mesh.material.is_self_indecex) {
         vertex_array->set_index_buffer(index_buffer);
-    }
-    else {
-        vertex_array->set_index_buffer(std::make_shared<render::driver::gl::index_buffer>(mesh.indices.data(), mesh.indices.size()));
+    } else {
+        auto tmp = drv->create_buffer();
+        tmp->set_data(mesh.indices.data(), mesh.indices.size() * sizeof(unsigned int), driver::BUFFER_BINDING::STATIC, render::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
+        vertex_array->set_index_buffer(std::move(tmp));
     }
 
     rnd::get_system().activate_texture_unit(0);

@@ -2,8 +2,9 @@
 #include "common.h"
 #include <scn_model.h>
 #include <scn_mesh.h>
-//#include "rnd_vertex_array.h"
-#include <rnd_gl_vertex_array.h>
+#include <rnd_vertex_array_interface.h>
+#include <rnd_buffer_interface.h>
+
 
 namespace render
 {
@@ -12,16 +13,16 @@ namespace render
 	public:
 		Renderer3d();
 		~Renderer3d();
-		void init();
+		void init(driver::driver_interface* drv);
 		void term();
 		void draw(scene::Model& val);
 		void draw(scene::Mesh& val);
 
 	private:
-		std::shared_ptr<render::driver::gl::vertex_array> vertex_array;
-		std::shared_ptr<render::driver::gl::vertex_buffer> vertex_buffer;
-
-		std::shared_ptr<render::driver::gl::index_buffer> index_buffer;
+		std::shared_ptr<driver::vertex_array_interface> vertex_array;
+		std::shared_ptr<driver::buffer_interface> vertex_buffer;
+		std::shared_ptr<driver::buffer_interface> index_buffer;
+		driver::driver_interface* drv = nullptr;
 	};
 }
 

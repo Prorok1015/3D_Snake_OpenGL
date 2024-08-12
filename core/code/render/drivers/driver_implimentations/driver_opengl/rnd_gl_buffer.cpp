@@ -1,88 +1,49 @@
 #include "rnd_gl_buffer.h"
 #include "open_gl_specific.h"
 
-render::driver::gl::vertex_buffer::vertex_buffer(std::size_t size)
+const GLint gBufferTypeToGlBufferType[] =
 {
-	glCreateBuffers(1, &m_RendererID);
+	GL_ARRAY_BUFFER,
+	GL_ELEMENT_ARRAY_BUFFER,
+};
 
-	CHECK_GL_ERROR();
-	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-	CHECK_GL_ERROR();
-
-	glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+render::driver::gl::buffer::buffer()
+{
+	glCreateBuffers(1, &buffer_id);
 	CHECK_GL_ERROR();
 }
 
-render::driver::gl::vertex_buffer::vertex_buffer(float* vertices, std::size_t size)
+render::driver::gl::buffer::~buffer()
 {
-	glCreateBuffers(1, &m_RendererID);
-
-	CHECK_GL_ERROR();
-	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-	CHECK_GL_ERROR();
-	glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
+	glDeleteBuffers(1, &buffer_id);
 	CHECK_GL_ERROR();
 }
 
-render::driver::gl::vertex_buffer::~vertex_buffer()
+void render::driver::gl::buffer::bind()
 {
-	glDeleteBuffers(1, &m_RendererID);
+	glBindBuffer(buffer_type, buffer_id);
 	CHECK_GL_ERROR();
 }
 
-void render::driver::gl::vertex_buffer::bind()
+void render::driver::gl::buffer::unbind()
 {
-	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
+	glBindBuffer(buffer_type, 0);
 	CHECK_GL_ERROR();
 }
 
-void render::driver::gl::vertex_buffer::unbind()
+void render::driver::gl::buffer::set_data(const void* data, std::size_t size, BUFFER_BINDING binding, BUFFER_TYPE type)
 {
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	CHECK_GL_ERROR();
-}
-
-void render::driver::gl::vertex_buffer::set_data(const void* data, std::size_t size)
-{
-	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-	CHECK_GL_ERROR();
-	glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
-	CHECK_GL_ERROR();
-}
-
-/////////////////////////////////////////////////////////////////////////////
-// index_buffer //////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////
-
-render::driver::gl::index_buffer::index_buffer(const unsigned int* indices, std::size_t count)
-	: m_Count(count)
-{
-
-	glCreateBuffers(1, &m_RendererID);
+	glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
 	CHECK_GL_ERROR();
 
-	// GL_ELEMENT_ARRAY_BUFFER is not valid without an actively bound VAO
-	// Binding with GL_ARRAY_BUFFER allows the data to be loaded regardless of VAO state. 
-	glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
-	CHECK_GL_ERROR();
-	glBufferData(GL_ARRAY_BUFFER, count * sizeof(unsigned int), indices, GL_STATIC_DRAW);
-	CHECK_GL_ERROR();
-}
+	buffer_type = gBufferTypeToGlBufferType[(int)type];
 
-render::driver::gl::index_buffer::~index_buffer()
-{
-	glDeleteBuffers(1, &m_RendererID);
-	CHECK_GL_ERROR();
-}
-
-void render::driver::gl::index_buffer::bind()
-{
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
-	CHECK_GL_ERROR();
-}
-
-void render::driver::gl::index_buffer::unbind()
-{
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	CHECK_GL_ERROR();
+	if (data && isAllocatedMemory) {
+		glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+		CHECK_GL_ERROR();
+	} else {
+		isAllocatedMemory = true;
+		glBufferData(GL_ARRAY_BUFFER, size, data, (binding == BUFFER_BINDING::DYNAMIC ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
+		CHECK_GL_ERROR();
+	}
 }

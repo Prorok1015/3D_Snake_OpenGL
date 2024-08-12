@@ -1,52 +1,28 @@
 #pragma once
-#include <rnd_buffer_interface.h>
-#include <glad/glad.h>
 #include <vector>
-#include <rnd_gl_buffer_layout.h>
+#include <glad/glad.h>
+#include <rnd_buffer_interface.h>
+#include <rnd_buffer_layout.h>
 
 namespace render::driver::gl
 {
-	class vertex_buffer : public render::driver::buffer_interface
+	class buffer : public render::driver::buffer_interface
 	{
 	public:
-		vertex_buffer(std::size_t size);
-		vertex_buffer(float* vertices, std::size_t size);
-		~vertex_buffer();
+		buffer();
+		virtual ~buffer() override;
 
-		virtual void bind() override;
-		virtual void unbind() override;
+		void bind();
+		void unbind();
+		virtual void set_data(const void* data, std::size_t size, BUFFER_BINDING binding, BUFFER_TYPE type) override;
 
-		virtual void set_data(const void* data, std::size_t size) override;
+		virtual const BufferLayout& get_layout() const override { return layout; }
+		virtual void set_layout(const BufferLayout& layout_) override { layout = layout_; }
 
-		template<class T>
-		void set_data(const std::vector<T>& data) {
-			set_data(data.data(), data.size() * sizeof(T));
-		}
-
-		const BufferLayout& get_layout() const { return m_Layout; }
-		void set_layout(const BufferLayout& layout) { m_Layout = layout; }
 	private:
-		GLuint m_RendererID = 0;
-		BufferLayout m_Layout;
-
-	};
-
-	class index_buffer : public render::driver::buffer_interface
-	{
-	public:
-		index_buffer(const unsigned int* indices, std::size_t count);
-		template<class T>
-		index_buffer(const std::vector<T>& indices)
-			:index_buffer(indices.data(), indices.size()) {}
-		virtual ~index_buffer();
-
-		virtual void bind() override;
-		virtual void unbind() override;
-		virtual void set_data(const void* data, std::size_t size) override {};
-
-		std::size_t get_count() const { return m_Count; }
-	private:
-		GLuint m_RendererID = 0;
-		std::size_t m_Count = 0;
+		bool isAllocatedMemory = false;
+		GLuint buffer_id = 0;
+		GLint buffer_type;
+		BufferLayout layout;
 	};
 }

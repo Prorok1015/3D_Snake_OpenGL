@@ -1,5 +1,5 @@
 #include "rnd_render_system.h"
-#include "rnd_gl_driver.h"
+#include <rnd_driver_interface.h>
 
 rnd::RenderSystem* p_render_system = nullptr;
 
@@ -20,8 +20,8 @@ render::RenderSystem::RenderSystem(std::unique_ptr<render::driver::driver_interf
 void render::RenderSystem::init()
 {
 	get_sh_manager().init_global_uniform();
-	get_renderer().init();
-	enable(GL_DEPTH_TEST);
+	get_renderer().init(pDrv.get());
+	enable(driver::ENABLE_FLAGS::DEPTH_TEST);
 }
 
 void render::RenderSystem::term()

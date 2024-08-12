@@ -61,7 +61,7 @@ namespace {
 windows::WindowSystem::WindowSystem()
 {
     glfwInit();
-    glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 }
 
 windows::WindowSystem::~WindowSystem()
