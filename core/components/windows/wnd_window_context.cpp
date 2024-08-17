@@ -1,29 +1,20 @@
-#include "wnd_window_context.h"
 #include <GLFW/glfw3.h>
-
-bool window::WindowContext::init(GLFWwindow* window)
+#include "wnd_window_context.h"
+ 
+wnd::context::context(wnd::context::header title_)
+	: title(std::move(title_))
 {
-	if (is_inited()) {
-		return true;
-	}
-
-	set_window_id(window);
-	set_is_inited(true);
-
-	init_impl();
-
-	return true;
+	internal_id = glfwCreateWindow(title.size.x, title.size.y, title.title.data(), NULL, NULL);
+	ASSERT_MSG(internal_id, "Window didn't create!");
 }
 
-void window::WindowContext::swap_buffers()
+wnd::context::~context() {
+	glfwDestroyWindow(internal_id);
+}
+
+void wnd::context::swap_buffers()
 {
-	ASSERT_MSG(is_inited(), "Render Context has had not inited!");
-	glfwSwapBuffers(_window_id);
+ 	glfwSwapBuffers(internal_id);
 	set_next_frame();
 }
-
-void window::WindowContext::init_impl()
-{
-	/* Make the window's context current */
-	glfwMakeContextCurrent(_window_id);
-}
+ 

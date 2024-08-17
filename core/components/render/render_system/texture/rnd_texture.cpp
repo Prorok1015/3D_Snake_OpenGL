@@ -4,7 +4,7 @@
 
 std::unique_ptr<render::driver::texture_interface> render::Texture::load(driver::driver_interface* drv, const res::Tag& tag)
 {
-	auto res = res::get_system().require_resource<res::Image>(tag);
+	auto res = res::get_system().require_resource<res::Picture>(tag);
     driver::texture_header header;
     header.data = res->data();
     header.channels = res->channels();

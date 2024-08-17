@@ -27,13 +27,13 @@ game::GameSystem::GameSystem()
 {
 	wnd::WindowSystem& wndCreator = wnd::get_system();
 
-	window = wndCreator.make_window("Snake Engine", WIDTH, HEIGHT);
+	window = wndCreator.get_active_window();
 	input = std::make_shared<inp::InputManager>();
 
 	camera = std::make_shared<snakeengine::MouseCamera>(glm::vec3(4, 15, 80), window->get_size());
 	camera->look_at(glm::vec3{ 0 });
 	camera->enable_input_actions(input);
-	window->eventResizeWindow.subscribe([this](wnd::Window&, int w, int h) { camera->on_viewport_size_change(glm::ivec2{ w, h }); });
+	window->eventResizeWindow.subscribe([this](wnd::window&, int w, int h) { camera->on_viewport_size_change(glm::ivec2{ w, h }); });
 
 	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
 	input->create_click_action(inp::KEYBOARD_BUTTONS::TAB, [this](float) {

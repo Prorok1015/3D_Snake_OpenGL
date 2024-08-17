@@ -3,37 +3,48 @@
 
 struct GLFWwindow;
 
-namespace window
+namespace wnd
 {
-	class WindowContext
+	class context final
 	{
 	public:
-		WindowContext() = default;
-		WindowContext(GLFWwindow* w)
-			: _window_id(w), _is_inited(true)
+		struct header
 		{
-			init_impl();
+			std::string title = "Default title";
+			glm::ivec2 size = glm::ivec2{ 1280, 720 }; 
 		};
-		~WindowContext() = default;
-		WindowContext(const WindowContext&) = delete;
-		WindowContext(WindowContext&&) = default;
-		WindowContext& operator= (const WindowContext&) = delete;
-		WindowContext& operator= (WindowContext&&) = default;
 
-		bool is_inited() const { return _is_inited; }
-		bool init(GLFWwindow* w);
+	public:
+		context() = default;
+		context(header title);
+		~context();
+
+		context(wnd::context&& ctx_) noexcept {
+			operator=(std::move(ctx_));
+		}
+
+		context(const wnd::context&) = delete;
+		context& operator= (const wnd::context&) = delete;
+		context& operator= (wnd::context&& ctx_) noexcept
+		{
+			std::swap(title, ctx_.title);
+			std::swap(frame_count, ctx_.frame_count);
+			std::swap(internal_id, ctx_.internal_id);
+
+			return *this;
+		}
+		 
 		void swap_buffers();
 
-	protected:
-		void set_next_frame() { _frame += 1; }
-		void init_impl();
+		const header& get_header() const { return title; }
+		GLFWwindow* get_id() const { return internal_id; }
 
-		void set_window_id(GLFWwindow* w) { _window_id = w; }
-		void set_is_inited(bool v) { _is_inited = v; }
+	protected:
+		void set_next_frame() { ++frame_count; } 
 
 	private:
-		std::uint64_t _frame = 0;
-		GLFWwindow* _window_id = nullptr;
-		bool _is_inited = false;
+		header title;
+		std::uint64_t frame_count = 0;
+		GLFWwindow* internal_id = nullptr; 
 	};
 }

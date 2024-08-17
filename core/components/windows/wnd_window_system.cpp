@@ -3,9 +3,9 @@
 #include <inp_input_system.h>
 #include <rnd_gl_render_context.h>
 
-window::WindowSystem* p_wnd_system = nullptr;
+wnd::WindowSystem* p_wnd_system = nullptr;
 
-window::WindowSystem& window::get_system()
+wnd::WindowSystem& wnd::get_system()
 {
     ASSERT_MSG(p_wnd_system, "Window system is nullptr!");
     return *p_wnd_system;
@@ -14,9 +14,8 @@ window::WindowSystem& window::get_system()
 namespace {
     void window_size_callback(GLFWwindow* window, int width, int height) {
         auto& wndCreator = wnd::get_system();
-        auto wnd = wndCreator.find_window({ window });
-        if (auto swnd = wnd.lock()) {
-            swnd->on_resize_window(width, height);
+        if (auto wnd = wndCreator.find_window({ window })) {
+            wnd->on_resize_window(width, height);
         }
     }
 
@@ -43,66 +42,66 @@ namespace {
 
     void window_refresh_callback(GLFWwindow* window) {
         auto& wndCreator = wnd::get_system();
-        auto wnd = wndCreator.find_window({ window });
-        if (auto swnd = wnd.lock()) {
-            swnd->eventRefreshWindow(*swnd);
+        if (auto wnd = wndCreator.find_window({ window })) {
+            wnd->eventRefreshWindow(*wnd);
         }
     }
 
     void window_move_callback(GLFWwindow* window, int xpos, int ypos) {
-        auto& wndCreator = wnd::get_system();
-        auto wnd = wndCreator.find_window({ window });
-        if (auto swnd = wnd.lock()) {
-            swnd->eventRefreshWindow(*swnd);
+        auto& wndCreator = wnd::get_system(); 
+        if (auto wnd = wndCreator.find_window({ window })) {
+            wnd->eventRefreshWindow(*wnd);
         }
     }
 }
 
-window::WindowSystem::WindowSystem()
+wnd::WindowSystem::WindowSystem()
 {
     glfwInit();
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+    active_window = make_window()->get_id();   
+    context = std::make_unique<render::driver::gl::render_context>((GLADloadproc)glfwGetProcAddress);
 }
 
-window::WindowSystem::~WindowSystem()
+wnd::WindowSystem::~WindowSystem()
 {
     glfwTerminate();
 }
 
-std::shared_ptr<window::Window> window::WindowSystem::make_window(std::string_view title, int width, int height)
+std::shared_ptr<wnd::window> wnd::WindowSystem::make_window()
 {
-    auto shared_window = std::make_shared<Window>(title, glm::ivec2{ width, height });
+    auto shared_window = std::make_shared<window>(wnd::context{ title });
 
-    if (!context) {
-        context = std::make_unique<render::driver::gl::render_context>((GLADloadproc)glfwGetProcAddress);
-    }
+    window::short_id wid = shared_window->get_id();
+    windows_list[wid] = shared_window;
 
-    auto window = shared_window->get_id();
-    _windows[window] = shared_window;
-
-    glfwSetKeyCallback(window, key_callback);
-    glfwSetWindowSizeCallback(window, window_size_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
-    glfwSetCursorPosCallback(window, cursor_position_callback);
-    glfwSetWindowRefreshCallback(window, window_refresh_callback);
-    glfwSetWindowPosCallback(window, window_move_callback);
+    glfwSetKeyCallback(wid, key_callback);
+    glfwSetWindowSizeCallback(wid, window_size_callback);
+    glfwSetMouseButtonCallback(wid, mouse_button_callback);
+    glfwSetCursorPosCallback(wid, cursor_position_callback);
+    glfwSetWindowRefreshCallback(wid, window_refresh_callback);
+    glfwSetWindowPosCallback(wid, window_move_callback);
     return shared_window;
 }
 
-std::weak_ptr<window::Window> window::WindowSystem::find_window(Window::Id win)
+std::shared_ptr<wnd::window> wnd::WindowSystem::get_active_window()
 {
-    return _windows[win];
+    return find_window(active_window);
 }
 
-bool window::WindowSystem::is_all_windows_close()
+std::shared_ptr<wnd::window> wnd::WindowSystem::find_window(window::short_id win)
 {
-    for (const auto& [_, win] : _windows)
-    {
-        if (auto swin = win.lock()) {
-            if (!swin->is_shutdown()) {
-                return false;
-            }
-        }
+    return windows_list[win];
+}
+
+bool wnd::WindowSystem::is_all_windows_close()
+{
+    for (const auto& [_, win] : windows_list)
+    { 
+        if (!win->is_shutdown()) {
+            return false;
+        } 
     }
     return true;
 }

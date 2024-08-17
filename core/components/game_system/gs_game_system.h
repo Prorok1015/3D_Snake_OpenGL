@@ -29,7 +29,7 @@ namespace game
 
 		void set_enable_input(bool enable);
 
-		std::shared_ptr<wnd::Window> get_window() { return window; };
+		std::shared_ptr<wnd::window> get_window() { return window; };
 		void load_model(std::string_view path);
 		void reload_shaders();
 
@@ -45,7 +45,7 @@ namespace game
 		std::shared_ptr<scene::Model> ourModel;
 		std::shared_ptr<Camera> camera;
 
-		std::shared_ptr<wnd::Window> window;
+		std::shared_ptr<wnd::window> window;
 		std::shared_ptr<inp::InputManager> input;
 
 		static constexpr int WIDTH = 1280;

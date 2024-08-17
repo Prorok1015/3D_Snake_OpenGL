@@ -11,9 +11,10 @@
 #include <numbers>
 #include <filesystem>
 #include <type_traits>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 #include "engine_assert.h"
-#include "logger/engine_log.h"
 
 #include "ds_event.hpp"
 

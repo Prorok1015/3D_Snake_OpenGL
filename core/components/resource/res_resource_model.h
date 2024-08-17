@@ -4,7 +4,7 @@
 
 namespace resource
 {
-	class Image;
+	class Picture;
 
 	struct Vertex
 	{

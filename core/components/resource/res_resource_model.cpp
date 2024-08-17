@@ -1,6 +1,7 @@
 #include "res_resource_model.h"
 #include "res_resource_texture.h"
 #include "res_resource_system.h"
+#include <engine_log.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>

@@ -1,6 +1,6 @@
 #pragma once
+#include <common.h>
 #include <scn_model.h>
-#include <glm/glm.hpp>
 
 namespace editor
 {

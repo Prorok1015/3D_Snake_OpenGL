@@ -2,61 +2,69 @@
 #include <GLFW/glfw3.h>
 #include <enums.h>
 #include <timer.hpp>
+#include <engine_log.h>
 
-window::Window::Window(std::string_view title, glm::ivec2 size_)
-    : size(size_)
-{   
-    /* Create a windowed mode window */
-    id_.id_ = glfwCreateWindow(size.x, size.y, title.data(), NULL, NULL);
-
-    ASSERT_MSG(id_, "Window didn't create!");
-
-    _render_context.init(id_);
+wnd::window::window(wnd::context ctx_)
+    : ctx(std::move(ctx_)), size(ctx.get_header().size)
+{
+    /* Make the window's context current */
+    glfwMakeContextCurrent(ctx.get_id());
 }
 
-window::Window::~Window()
-{
-    //glfwDestroyWindow
-}
 
-void window::Window::set_vsync(bool val)
+wnd::window::~window()
+{}
+
+void wnd::window::set_vsync(bool val)
 {
+    /* Make the window's context current */
+    glfwMakeContextCurrent(ctx.get_id());
     glfwSwapInterval(val ? 1 : 0);
 }
 
-void window::Window::on_update()
+void wnd::window::on_update()
 {
-    _render_context.swap_buffers();
+    ctx.swap_buffers();
 }
 
-bool window::Window::is_shutdown() const
+bool wnd::window::is_shutdown() const
 {
-    return glfwWindowShouldClose(id_);
+    return glfwWindowShouldClose(ctx.get_id());
 }
 
-void window::Window::shutdown(bool close)
+void wnd::window::shutdown(bool close)
 {
-    glfwSetWindowShouldClose(id_, close);
+    glfwSetWindowShouldClose(ctx.get_id(), close);
 }
 
-void window::Window::set_cursor_mode(CursorMode mode) {
-    glfwSetInputMode(id_, GLFW_CURSOR, (int)mode);
+void wnd::window::set_cursor_mode(CursorMode mode) {
+    glfwSetInputMode(ctx.get_id(), GLFW_CURSOR, (int)mode);
 }
 
-void window::Window::update_frame()
+void wnd::window::update_frame()
 {
     double currentTime = Timer::now();
     delta = currentTime - lastTime;
     lastTime = currentTime;
 }
 
-void window::Window::on_resize_window(int width, int height)
+void wnd::window::on_resize_window(int width, int height)
 {
     size = { width, height };
     eventResizeWindow(*this, width, height);
 }
 
-void window::Window::set_logo(res::ImageRef logo, res::ImageRef logo_small)
+void wnd::window::set_title(std::string_view title)
+{
+    if (title.empty()) {
+        egLOG("window/title", "Trying to set empty title");
+        return;
+    }
+
+    glfwSetWindowTitle(ctx.get_id(), title.data());
+}
+
+void wnd::window::set_logo(res::ImageRef logo, res::ImageRef logo_small)
 {
     if (logo->channels() != 4) {
         egLOG("window/logo", "Logo should be rgba image");
@@ -72,9 +80,9 @@ void window::Window::set_logo(res::ImageRef logo, res::ImageRef logo_small)
         images[1].pixels = logo_small->data();
         images[1].width = logo_small->size().x;
         images[1].height = logo_small->size().y;
-        glfwSetWindowIcon(id_, 2, images);
+        glfwSetWindowIcon(ctx.get_id(), 2, images);
         return;
     }
 
-    glfwSetWindowIcon(id_, 1, images);
+    glfwSetWindowIcon(ctx.get_id(), 1, images);
 }

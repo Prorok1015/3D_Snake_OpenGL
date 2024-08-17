@@ -2,6 +2,7 @@
 #include "res_resource_texture.h"
 #include "res_resource_shader.h"
 #include "res_resource_model.h"
+#include <engine_log.h>
 
 using namespace resource;
 

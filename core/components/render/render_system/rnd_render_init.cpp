@@ -6,7 +6,7 @@ extern rnd::RenderSystem* p_render_system;
 
 void components::render_init(ds::AppDataStorage& data)
 {
-	auto& window_system = data.require<window::WindowSystem>();
+	auto& window_system = data.require<wnd::WindowSystem>();
 	p_render_system = &data.construct<rnd::RenderSystem>(window_system.get_context()->create_driver());
 }
 

@@ -3,7 +3,7 @@
 #include <image_loader.h>
 
 
-resource::Image::Image(const resource::Tag& tag)
+resource::Picture::Picture(const resource::Tag& tag)
 	: resource::Resource(tag)
 {
 	std::string path = ResourceSystem::get_absolut_path(tag);
@@ -19,7 +19,7 @@ resource::Image::Image(const resource::Tag& tag)
 	}
 }
 
-resource::Image::~Image()
+resource::Picture::~Picture()
 {
 	stb_image::Image::free_image_data(data_);
 }

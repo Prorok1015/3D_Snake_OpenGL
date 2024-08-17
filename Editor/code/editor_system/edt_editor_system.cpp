@@ -6,7 +6,6 @@
 #include <res_resource_texture.h>
 #include <rnd_render_system.h>
 #include <scn_primitives.h>
-#include <glm/ext.hpp>
 #include <imgui.h>
 
 editor::EditorSystem::EditorSystem()
@@ -14,8 +13,9 @@ editor::EditorSystem::EditorSystem()
 	DBG_UI_REG_LAMBDA("GAME/UI/TOOLBAR", [this] { return show_toolbar(); });
 	DBG_UI_SET_ITEM_CHECKED("GAME/UI/TOOLBAR", true);
 
-	auto logo = res::get_system().require_resource<res::Image>(res::Tag::make("icons/editor_engine_logo.png"));
-	gm::get_system().get_window()->set_logo(logo, nullptr);
+	auto logo = res::get_system().require_resource<res::Picture>(res::Tag::make("icons/editor_engine_logo.png"));
+	gm::get_system().get_window()->set_logo(logo);
+	gm::get_system().get_window()->set_title("Editor");
 
 	g_Scene = generate_network({ 50, 50 });
 

@@ -4,11 +4,11 @@
 
 namespace resource
 {
-	class Image : public Resource
+	class Picture : public Resource
 	{
 	public:
-		Image(const Tag& tag);
-		~Image();
+		Picture(const Tag& tag);
+		~Picture();
 
 		unsigned char* data() const { return data_; }
 		int channels() const { return channels_; }
@@ -20,7 +20,7 @@ namespace resource
 		glm::ivec2 size_{ 0, 0 };
 	};
 
-	using ImageRef = std::shared_ptr<Image>;
+	using ImageRef = std::shared_ptr<Picture>;
 }
 
 namespace res = resource;
