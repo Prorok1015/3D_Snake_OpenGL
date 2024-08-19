@@ -27,6 +27,7 @@ int application::Application::run()
 	wndCreator.init_all_windows_frame();
 
 	while (!wndCreator.is_stop_running()) {
+		//TODO move to input system
 		beginFrame();
 		rnd::get_system().produce_renderers();
 		endFrame();
