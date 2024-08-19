@@ -1,12 +1,13 @@
 #pragma once
 #include "camera.h"
+#include <inp_input_manager.h>
 
 namespace snakeengine
 {
-	class WASDCamera : public Camera
+	class WASDCamera : public camera_static
 	{
 	public:
-		WASDCamera(glm::vec3 position, glm::ivec2 size) : Camera(position, size) {}
+		WASDCamera(glm::vec3 position, glm::ivec2 size) : camera_static(position, size) {}
 
 		virtual void enable_input_actions(inp::InputManagerRef manager);
 		virtual void disable_input_actions(inp::InputManagerRef manager);
@@ -20,10 +21,10 @@ namespace snakeengine
 		float speed_ = 15;
 	};
 
-	class MouseCamera : public Camera 
+	class MouseCamera : public camera_static 
 	{
 	public:
-		MouseCamera(glm::vec3 position, glm::ivec2 size) : Camera(position, size) {}
+		MouseCamera(glm::vec3 position, glm::ivec2 size) : camera_static(position, size) {}
 
 		virtual void enable_input_actions(inp::InputManagerRef manager);
 		virtual void disable_input_actions(inp::InputManagerRef manager) {};

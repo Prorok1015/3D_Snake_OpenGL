@@ -1,6 +1,6 @@
 #pragma once
 
-namespace render::driver
+namespace rnd::driver
 {
 	class texture_interface
 	{

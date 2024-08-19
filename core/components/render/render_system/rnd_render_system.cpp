@@ -3,28 +3,56 @@
 
 rnd::RenderSystem* p_render_system = nullptr;
 
-render::RenderSystem& render::get_system()
+rnd::RenderSystem& rnd::get_system()
 {
 	ASSERT_MSG(p_render_system, "Render system is nullptr!");
 	return *p_render_system;
 }
 
-render::RenderSystem::RenderSystem(std::unique_ptr<render::driver::driver_interface> driver)
-	: pDrv(std::move(driver))
-	, shManager(pDrv.get())
-	, txrManager(pDrv.get())
+rnd::RenderSystem::RenderSystem(std::unique_ptr<rnd::driver::driver_interface> driver)
+	: drv(std::move(driver))
+	, shader_manager(drv.get())
+	, texture_manager(drv.get())
 {
-	init();
-}
-
-void render::RenderSystem::init()
-{
-	get_sh_manager().init_global_uniform();
-	get_renderer().init(pDrv.get());
+	//TODO move to renderer
 	enable(driver::ENABLE_FLAGS::DEPTH_TEST);
 }
 
-void render::RenderSystem::term()
+void rnd::RenderSystem::registrate_renderer(std::weak_ptr<renderer_base> renderer_)
 {
-	get_renderer().term();
+	auto pred = [](auto& lhs, auto& rhs) {
+		auto lhs_r = lhs.lock();
+		auto rhs_r = rhs.lock();
+		if (!lhs_r || !rhs_r) {
+			return false;
+		}
+
+		return lhs_r->get_render_priority() > rhs_r->get_render_priority();
+	};
+
+	renderers_list.insert(std::lower_bound(renderers_list.begin(), renderers_list.end(), renderer_, pred), renderer_);
+}
+
+void rnd::RenderSystem::unregistrate_renderer(std::weak_ptr<renderer_base> renderer)
+{
+	auto pred = [find = renderer.lock()](auto& lhs) {
+		auto lhs_r = lhs.lock(); 
+		if (!lhs_r) {
+			return false;
+		}
+
+		return lhs_r == find;
+	};
+
+	auto it = std::find_if(renderers_list.begin(), renderers_list.end(), pred);
+	renderers_list.erase(it);
+}
+
+void rnd::RenderSystem::produce_renderers() const
+{
+	for (auto& weak_renderer : renderers_list) {
+		if (auto renderer = weak_renderer.lock()) {
+			renderer->on_render(drv.get());
+		}
+	}
 }

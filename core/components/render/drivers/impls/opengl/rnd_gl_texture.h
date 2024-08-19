@@ -2,9 +2,9 @@
 #include <rnd_texture_interface.h>
 #include <glad/glad.h>
 
-namespace render::driver::gl
+namespace rnd::driver::gl
 {
-	class texture : public render::driver::texture_interface
+	class texture : public rnd::driver::texture_interface
 	{
 	public:
 		texture(GLuint id, int w, int h); 

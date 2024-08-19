@@ -11,7 +11,8 @@ namespace editor
 		~EditorSystem();
 		bool show_toolbar();
 
-		void pre_render();
+		//TODO change to renderer
+		bool show_web();
 
 	private:
 		//char buf[64] = "objects/getaur/scene.gltf";

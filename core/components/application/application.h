@@ -25,11 +25,11 @@ namespace application
 
 	public:
 		Event<> beginFrame;
-		Event<> capture;
+		/*Event<> capture;
 		Event<> prepair_render;
 		Event<> pre_render;
 		Event<> render;
-		Event<> post_render;
+		Event<> post_render;*/
 		Event<> endFrame;
 
 	private:

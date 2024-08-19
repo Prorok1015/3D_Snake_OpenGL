@@ -2,19 +2,25 @@
 #ifndef WINDOW_CAMERA_H_
 #define WINDOW_CAMERA_H_
 
-#include <inp_input_manager.h>
+//#include <inp_input_manager.h>
 #include <scn_transform_3d.hpp>
+#include <common.h>
 
-class Camera {
+namespace input {
+	class InputManager;
+	using InputManagerRef = std::shared_ptr<InputManager>;
+}
+
+class camera_static {
 public:
-	Camera(glm::vec3 position, glm::ivec2 size, float fov = glm::radians(45.0f));
-	virtual ~Camera() {};
+	camera_static(glm::vec3 position, glm::ivec2 size, float fov = glm::radians(45.0f));
+	virtual ~camera_static() {};
 
 	glm::mat4 projection() const;
 	glm::mat4 view() const;
 
-	virtual void enable_input_actions(inp::InputManagerRef manager) {};
-	virtual void disable_input_actions(inp::InputManagerRef manager) {};
+	virtual void enable_input_actions(input::InputManagerRef manager) {};
+	virtual void disable_input_actions(input::InputManagerRef manager) {};
 
 	void on_viewport_size_change(glm::ivec2 size);
 
@@ -28,6 +34,8 @@ public:
 	void look_at(glm::vec3 at) {
 		transform.look_at(at);
 	}
+
+	glm::ivec4 get_viewport() const { return glm::ivec4{ glm::ivec2{0,0}, window_size }; }
 
 public:
 	scn::Transform transform;

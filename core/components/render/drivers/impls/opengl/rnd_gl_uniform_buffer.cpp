@@ -1,7 +1,7 @@
 #include "rnd_gl_uniform_buffer.h"
 #include "open_gl_specific.h"
 
-render::driver::gl::uniform_buffer::uniform_buffer(std::size_t size, std::size_t binding)
+rnd::driver::gl::uniform_buffer::uniform_buffer(std::size_t size, std::size_t binding)
 {
 	glGenBuffers(1, &m_RendererID);
 
@@ -17,13 +17,13 @@ render::driver::gl::uniform_buffer::uniform_buffer(std::size_t size, std::size_t
 	CHECK_GL_ERROR();
 }
 
-render::driver::gl::uniform_buffer::~uniform_buffer()
+rnd::driver::gl::uniform_buffer::~uniform_buffer()
 {
 	glDeleteBuffers(1, &m_RendererID);
 	CHECK_GL_ERROR();
 }
 
-void render::driver::gl::uniform_buffer::set_data(const void* data, std::size_t size, std::size_t offset)
+void rnd::driver::gl::uniform_buffer::set_data(const void* data, std::size_t size, std::size_t offset)
 {
 	glBindBuffer(GL_UNIFORM_BUFFER, m_RendererID);
 	CHECK_GL_ERROR();

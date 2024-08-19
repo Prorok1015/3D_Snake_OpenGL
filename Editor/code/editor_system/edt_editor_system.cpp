@@ -10,18 +10,21 @@
 
 editor::EditorSystem::EditorSystem()
 {
-	DBG_UI_REG_LAMBDA("GAME/UI/TOOLBAR", [this] { return show_toolbar(); });
-	DBG_UI_SET_ITEM_CHECKED("GAME/UI/TOOLBAR", true);
+	DBG_UI_REG_LAMBDA("EDITOR/GUI/TOOLBAR", [this] { return show_toolbar(); });
+	DBG_UI_SET_ITEM_CHECKED("EDITOR/GUI/TOOLBAR", true);
+
+	DBG_UI_REG_LAMBDA("EDITOR/SHOW_WEP", [this] { return show_web(); });
+	DBG_UI_SET_ITEM_CHECKED("EDITOR/SHOW_WEP", true);
 
 	auto logo = res::get_system().require_resource<res::Picture>(res::Tag::make("icons/editor_engine_logo.png"));
-	gm::get_system().get_window()->set_logo(logo);
-	gm::get_system().get_window()->set_title("Editor");
+	gs::get_system().get_window()->set_logo(logo);
+	gs::get_system().get_window()->set_title("Editor");
 
 	g_Scene = generate_network({ 50, 50 });
 
-	auto txt = rnd::get_system().get_txr_manager().generate_texture(res::Tag::make("__black"), { 1,1 }, 3, { 0, 0, 0 });
+	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag::make("__black"), { 1,1 }, 3, { 0, 0, 0 });
 
-	g_Scene.meshes.back().material.texture = res::Tag::make("__black");
+	g_Scene.meshes.back().material.texture_tag = res::Tag::make("__black");
 	g_Scene.model = glm::scale(g_Scene.model, glm::vec3(20, 0, 20));
 	rnd::get_system().set_line_size(2);
 }
@@ -50,10 +53,10 @@ bool editor::EditorSystem::show_toolbar()
 		ImGui::Text("Shader");
 		ImGui::Separator();
 
-		ImGui::Checkbox("Show normals", &gm::get_system().is_show_normal);
+		ImGui::Checkbox("Show normals", &gs::get_system().is_show_normal);
 
 		if (ImGui::Button("Reload Shaders")) {
-			gm::get_system().reload_shaders();
+			gs::get_system().reload_shaders();
 		}
 
 		ImGui::Separator();
@@ -66,15 +69,15 @@ bool editor::EditorSystem::show_toolbar()
 
 		ImGui::InputText("Name", buf, 64);
 		if (ImGui::Button("Reload")) {
-			gm::get_system().load_model(buf);
+			gs::get_system().load_model(buf);
 		}
 		static int cube_count_add = 1;
 		static int cube_count_remove = 1;
 		static int cube_count = 0;
-		ImGui::SliderFloat("Object scale", &gm::get_system().cube_scale, 0.1f, 10.f);
+		ImGui::SliderFloat("Object scale", &gs::get_system().cube_scale, 0.1f, 10.f);
 		if (ImGui::Button("add cube")) {
 			for (int i = 0; i < cube_count_add; ++i) {
-				gm::get_system().add_cube_to_scene(10.f);
+				gs::get_system().add_cube_to_scene(10.f);
 				cube_count++;
 			}
 		}		
@@ -84,7 +87,7 @@ bool editor::EditorSystem::show_toolbar()
 
 		if (ImGui::Button("remove cube")) {
 			for (int i = 0; i < cube_count_remove; ++i) {
-				gm::get_system().remove_cube();
+				gs::get_system().remove_cube();
 				if (cube_count > 0)
 					cube_count--;
 			}
@@ -109,11 +112,11 @@ bool editor::EditorSystem::show_toolbar()
 				{items[4], rnd::RENDER_MODE::LINE},
 				{items[5], rnd::RENDER_MODE::POINT},
 			};
-			rnd::get_system().render_mode(mmap[items[item_current]]);
+			rnd::get_system().set_render_mode(mmap[items[item_current]]);
 			item_old = item_current;
 		}
 
-		scn::Transform ct = game::get_system().get_camera_transform();
+		scn::Transform ct = gs::get_system().get_camera_transform();
 		ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
 		auto pos = ct.get_pos();
 		ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
@@ -124,15 +127,13 @@ bool editor::EditorSystem::show_toolbar()
 	return is_open;
 }
 
-void editor::EditorSystem::pre_render()
+bool editor::EditorSystem::show_web()
 {
-	if (is_draw_scene_net) {
-		auto tmp = rnd::get_system().render_mode();
-		rnd::get_system().render_mode(rnd::RENDER_MODE::LINE);
+	auto tmp = rnd::get_system().get_render_mode();
+	rnd::get_system().set_render_mode(rnd::RENDER_MODE::LINE);
 
+	gs::get_system().get_renderer()->draw(g_Scene, rnd::get_system().get_driver());
 
-		rnd::get_system().get_renderer().draw(g_Scene);
-
-		rnd::get_system().render_mode(tmp);
-	}
+	rnd::get_system().set_render_mode(tmp);
+	return true;
 }

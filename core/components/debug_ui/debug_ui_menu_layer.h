@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 
-namespace debug_ui
+namespace dbg_ui
 {
 	class DebugUiMainMenu
 	{
@@ -65,5 +65,3 @@ namespace debug_ui
 	};
 
 }
-
-namespace dbg_ui = debug_ui;

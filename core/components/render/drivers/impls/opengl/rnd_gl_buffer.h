@@ -4,9 +4,9 @@
 #include <rnd_buffer_interface.h>
 #include <rnd_buffer_layout.h>
 
-namespace render::driver::gl
+namespace rnd::driver::gl
 {
-	class buffer : public render::driver::buffer_interface
+	class buffer : public rnd::driver::buffer_interface
 	{
 	public:
 		buffer();

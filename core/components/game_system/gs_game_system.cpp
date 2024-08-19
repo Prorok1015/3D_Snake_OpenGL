@@ -15,24 +15,28 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
 
-game::GameSystem* p_game_system = nullptr;
+gs::GameSystem* p_game_system = nullptr;
 
-game::GameSystem& game::get_system()
+gs::GameSystem& gs::get_system()
 {
 	ASSERT_MSG(p_game_system, "Game system is nullptr!");
 	return *p_game_system;
 }
 
-game::GameSystem::GameSystem()
+gs::GameSystem::GameSystem()
 {
-	wnd::WindowSystem& wndCreator = wnd::get_system();
-
-	window = wndCreator.get_active_window();
+	window = wnd::get_system().get_active_window();
 	input = std::make_shared<inp::InputManager>();
 
 	camera = std::make_shared<snakeengine::MouseCamera>(glm::vec3(4, 15, 80), window->get_size());
 	camera->look_at(glm::vec3{ 0 });
 	camera->enable_input_actions(input);
+
+	renderer = std::make_shared<renderer_3d>();
+	renderer->camera = camera.get();
+
+	rnd::get_system().registrate_renderer(renderer);
+
 	window->eventResizeWindow.subscribe([this](wnd::window&, int w, int h) { camera->on_viewport_size_change(glm::ivec2{ w, h }); });
 
 	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
@@ -40,101 +44,57 @@ game::GameSystem::GameSystem()
 		camera->set_enabled(!camera->is_enabled()); 
 		window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal); 
 		});
+
 }
 
-game::GameSystem::~GameSystem()
+gs::GameSystem::~GameSystem()
 {
 	camera->disable_input_actions(input);
+	rnd::get_system().unregistrate_renderer(renderer);
 }
 
-void game::GameSystem::capture()
+void gs::GameSystem::begin_frame()
 {
-}
-
-void game::GameSystem::prepair_render()
-{
-	if (window->is_minimize_mode()) {
-		return;
-	}
-
-	rnd::get_system().clear(render::driver::CLEAR_FLAGS::COLOR_BUFFER);
-	rnd::get_system().clear(render::driver::CLEAR_FLAGS::DEPTH_BUFFER);
-
-	rnd::GlobalUniform val;
-
-	val.projection = camera->projection();
-	val.view = camera->view();
-	val.time = (float)Timer::now();
-
-	rnd::get_system().get_sh_manager().update_global_uniform(val);
-
-}
-
-void game::GameSystem::render()
-{
-	if (window->is_minimize_mode()) {
-		return;
-	}
-
-	// render the loaded model
-	for (auto& model : scene_objects) {
-		rnd::get_system().get_renderer().draw(model);
-	}
-
-	// temporary off while geom shader dont use
-	if (is_show_normal && ourModel)
-	{		
-		rnd::get_system().get_renderer().draw(*ourModel);
-		//for (auto& model : scene_objects) {
-		//	rnd::get_system().get_sh_manager().uniform("normal", "model", glm::scale(model.model, glm::vec3(cube_scale)));
-		//	model.draw(rnd::get_system().get_sh_manager().use("normal"));
-		//}
-	}
-}
-
-void game::GameSystem::begin_frame()
-{
-	window->update_frame();
+	// temporary here
 	input->notify_listeners(window->get_delta());
 }
 
-void game::GameSystem::end_frame()
-{
-	window->on_update();
-}
-
-void game::GameSystem::set_enable_input(bool enable)
+void gs::GameSystem::set_enable_input(bool enable)
 {
 	input->set_enabled(enable);
 	window->set_cursor_mode(camera->is_enabled() ? CursorMode::Disable : CursorMode::Normal);
 }
 
-void game::GameSystem::load_model(std::string_view path)
+void gs::GameSystem::load_model(std::string_view path)
 {
-	ourModel = std::make_shared<scene::Model>(path);
-}
+	renderer->scene_objects.push_back(scene::Model(path));
+	auto rand_pos = glm::diskRand(20.f);
 
-void game::GameSystem::reload_shaders()
-{
-	rnd::get_system().get_sh_manager().clear_cache();
-}
-
-void game::GameSystem::add_cube_to_scene(float radius)
-{
-	static bool is_gen_cube = true;
-	scene_objects.push_back(is_gen_cube ? generate_cube() : generate_sphere());
-	is_gen_cube = !is_gen_cube;
-	auto rand_pos = glm::diskRand(radius);
-
-	auto& m = scene_objects.back();
+	auto& m = renderer->scene_objects.back();
 	m.model = glm::translate(m.model, glm::vec3{ rand_pos.x, 1.f, rand_pos.y });
 }
 
-void game::GameSystem::remove_cube()
+void gs::GameSystem::reload_shaders()
 {
-	if (scene_objects.empty()) {
+	rnd::get_system().get_shader_manager().clear_cache();
+}
+
+void gs::GameSystem::add_cube_to_scene(float radius)
+{
+	static bool is_gen_cube = true;
+	renderer->scene_objects.push_back(is_gen_cube ? generate_cube() : generate_sphere());
+	is_gen_cube = !is_gen_cube;
+	auto rand_pos = glm::diskRand(radius);
+
+	auto& m = renderer->scene_objects.back();
+	m.model = glm::translate(m.model, glm::vec3{ rand_pos.x, 1.f, rand_pos.y });
+}
+
+void gs::GameSystem::remove_cube()
+{
+	if (renderer->scene_objects.empty()) {
 		return;
 	}
-	scene_objects.pop_back();
+	renderer->scene_objects.pop_back();
 }
 

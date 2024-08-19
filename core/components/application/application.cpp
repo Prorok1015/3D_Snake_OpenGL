@@ -21,18 +21,17 @@ application::Application::~Application()
 int application::Application::run()
 {
 	auto& wndCreator = wnd::get_system();
+	//TODO move to renderer
 	rnd::get_system().clear_color(clear_color_);
 
-	while (!wndCreator.is_all_windows_close()) {
+	wndCreator.init_all_windows_frame();
+
+	while (!wndCreator.is_stop_running()) {
 		beginFrame();
-		capture();
-
-		prepair_render();
-		pre_render();
-		render();
-		post_render();
-
+		rnd::get_system().produce_renderers();
 		endFrame();
+
+		wndCreator.produce_windows();
 	}
 
 	return 0;

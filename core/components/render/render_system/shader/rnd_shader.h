@@ -2,7 +2,7 @@
 #include <common.h>
 #include <rnd_shader_interface.h>
 
-namespace render
+namespace rnd
 {
 	class Shader {
 	public:

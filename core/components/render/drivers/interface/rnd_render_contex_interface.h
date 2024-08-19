@@ -2,7 +2,7 @@
 #include <memory>
 #include "rnd_driver_interface.h"
 
-namespace render::driver
+namespace rnd::driver
 {
 	enum class RENDER_CONTEXT_TYPE { OPENGL, /*VULKAN*/ };
 

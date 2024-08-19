@@ -76,12 +76,12 @@ void init_cude()
 
     inc.resize(vex.size());
     std::iota(inc.begin(), inc.end(), 0);
-    auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
+    auto txt = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("block.png"));
     txt->tmp_type = "texture_diffuse";
     tex.push_back(txt);
 }
 
-void draw_cude(const render::Shader& ourShader)
+void draw_cude(const rnd::Shader& ourShader)
 {
 
 }
@@ -116,7 +116,7 @@ scene::Model create_cube()
 
     inc.resize(vex.size());
     std::iota(inc.begin(), inc.end(), 0);
-    //auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
+    //auto txt = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("block.png"));
     //txt->tmp_type = "texture_diffuse";
     //tex.push_back(txt);
 

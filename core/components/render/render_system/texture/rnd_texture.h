@@ -4,7 +4,7 @@
 #include <rnd_texture_interface.h>
 #include <rnd_driver_interface.h>
 
-namespace render
+namespace rnd
 {
 	class Texture
 	{
@@ -32,5 +32,3 @@ namespace render
 		int height_;
 	};
 }
-
-namespace rnd = render;

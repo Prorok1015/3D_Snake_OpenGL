@@ -15,7 +15,7 @@ std::vector<std::shared_ptr<rnd::Texture>> make_texture(std::vector<res::Materia
 {
     std::vector<std::shared_ptr<rnd::Texture>> result;
     for (const auto& mat : vec) {
-        auto txt = rnd::get_system().get_txr_manager().require_texture(mat.tag_);
+        auto txt = rnd::get_system().get_texture_manager().require_texture(mat.tag_);
         txt->tmp_type = mat.type_;
         result.push_back(txt);
     }

@@ -1,6 +1,7 @@
 #pragma once
 #include <common.h>
 
+#include <gs_renderer_3d.h>
 #include <camera/scene_camera.h>
 #include <wnd_window.h>
 
@@ -8,7 +9,7 @@ namespace scene {
 	class Model;
 }
 
-namespace game 
+namespace gs 
 {
 	class GameSystem
 	{
@@ -20,12 +21,7 @@ namespace game
 		GameSystem(GameSystem&&) = default;
 		GameSystem& operator= (GameSystem&&) = default;
 
-		void capture();
-		void prepair_render();
-		void render();
-
 		void begin_frame();
-		void end_frame();
 
 		void set_enable_input(bool enable);
 
@@ -38,18 +34,16 @@ namespace game
 
 		scn::Transform get_camera_transform() const { return camera->transform; }
 
+		std::shared_ptr<renderer_3d> get_renderer() const { return renderer; }
+
 		float cube_scale = 1.f;
 		bool is_show_normal = false;
 	private:
-		std::vector<scene::Model> scene_objects;
-		std::shared_ptr<scene::Model> ourModel;
-		std::shared_ptr<Camera> camera;
+		std::shared_ptr<renderer_3d> renderer;
+		std::shared_ptr<camera_static> camera;
 
 		std::shared_ptr<wnd::window> window;
 		std::shared_ptr<inp::InputManager> input;
-
-		static constexpr int WIDTH = 1280;
-		static constexpr int HEIGHT = 720;
 
 		float camX = 0.0f;
 		float camY = 0.0f;
@@ -58,5 +52,3 @@ namespace game
 
 	GameSystem& get_system();
 }
-
-namespace gm = game;

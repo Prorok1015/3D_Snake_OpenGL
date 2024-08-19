@@ -1,7 +1,7 @@
 #pragma once
 #include "rnd_buffer_layout.h"
 
-namespace render::driver
+namespace rnd::driver
 {
 	enum class BUFFER_BINDING
 	{

@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <string_view>
 
-namespace render::driver
+namespace rnd::driver
 {
 	class shader_interface
 	{

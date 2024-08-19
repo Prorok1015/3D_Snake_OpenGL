@@ -3,7 +3,7 @@
 #include <ranges>
 #include <engine_assert.h>
 
-namespace debug_ui
+namespace dbg_ui
 {
 
 void DebugUiMainMenu::process()

@@ -3,7 +3,7 @@
 #include "rnd_gl_driver.h"
 #include <engine_log.h>
 
-render::driver::gl::render_context::render_context(GLADloadproc load)
+rnd::driver::gl::render_context::render_context(GLADloadproc load)
 	: loader(load) 
 {
 	const bool success = gladLoadGLLoader(load);
@@ -21,7 +21,7 @@ render::driver::gl::render_context::render_context(GLADloadproc load)
 	ASSERT_MSG(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "Engine requires at least OpenGL version 4.5!");
 }
 
-std::unique_ptr<render::driver::driver_interface> render::driver::gl::render_context::create_driver()
+std::unique_ptr<rnd::driver::driver_interface> rnd::driver::gl::render_context::create_driver()
 {
 	return std::make_unique<gl::driver>();
 }

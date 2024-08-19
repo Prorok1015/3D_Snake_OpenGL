@@ -17,6 +17,7 @@ namespace input
 		InputSystem(const InputSystem&) = delete;
 		InputSystem& operator= (const InputSystem&) = delete;
 
+		// change
 		void end_frame();
 
 		Key get_key_state(KEYBOARD_BUTTONS) const;

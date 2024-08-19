@@ -6,7 +6,7 @@
 #include <rnd_driver_interface.h>
 #include <rnd_texture_interface.h>
 
-namespace render
+namespace rnd
 {
 	class TextureManager
 	{
@@ -23,5 +23,3 @@ namespace render
 	};
 
 }
-
-namespace rnd = render;

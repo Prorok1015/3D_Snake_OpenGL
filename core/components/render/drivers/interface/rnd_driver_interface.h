@@ -4,7 +4,7 @@
 #include <memory>
 #include <glm/glm.hpp>
 
-namespace render::driver
+namespace rnd::driver
 {
 	class shader_interface;
 	class texture_interface;
@@ -19,7 +19,7 @@ namespace render::driver
 	struct shader_header
 	{
 		enum class TYPE { VERTEX, FRAGMENT, GEOM };
-
+		std::string title;
 		std::string body;
 		TYPE type;
 	};

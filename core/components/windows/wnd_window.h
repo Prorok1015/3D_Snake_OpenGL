@@ -34,6 +34,7 @@ namespace wnd
 		void shutdown(bool close = true);
 		void set_cursor_mode(CursorMode mode);
 		void update_frame();
+		void init_frame();
 
 		void on_resize_window(int width, int height);
 

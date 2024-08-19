@@ -160,7 +160,7 @@ scene::Model generate_cube()
     }
 
     //std::vector<std::shared_ptr<rnd::Texture>> tex;
-    //auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
+    //auto txt = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("block.png"));
     //txt->tmp_type = "texture_diffuse";
     //tex.push_back(txt);
 
@@ -273,7 +273,7 @@ scene::Model generate_sphere()
         v.tex_uv_ = v.tex_uv_ / glm::vec2(16, -16);
     }
 
-    //auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
+    //auto txt = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("block.png"));
     //txt->tmp_type = "texture_diffuse";
 
     scene::Model m;

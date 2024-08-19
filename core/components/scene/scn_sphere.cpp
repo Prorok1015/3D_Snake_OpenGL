@@ -112,12 +112,12 @@ void init_sphere()
         v.tex_uv_ = glm::vec2(v.tex_uv_.x / 16, -v.tex_uv_.y / 16);
     }
 
-    auto txt = rnd::get_system().get_txr_manager().require_texture(res::Tag::make("block.png"));
+    auto txt = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("block.png"));
     txt->tmp_type = "texture_diffuse";
 
 }
 
-void draw_sphere(const render::Shader& ourShader)
+void draw_sphere(const rnd::Shader& ourShader)
 {
 }
 

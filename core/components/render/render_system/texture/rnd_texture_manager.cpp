@@ -1,6 +1,6 @@
 #include "rnd_texture_manager.h"
 
-std::shared_ptr<render::Texture> render::TextureManager::require_texture(const res::Tag& tag) const
+std::shared_ptr<rnd::Texture> rnd::TextureManager::require_texture(const res::Tag& tag) const
 {
 	auto it = _cache.find(tag);
 	if (it != _cache.end()) {
@@ -8,11 +8,11 @@ std::shared_ptr<render::Texture> render::TextureManager::require_texture(const r
 		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
 	}
 
-	auto& texture = _cache[tag] = std::move(render::Texture::load(drv, tag));
+	auto& texture = _cache[tag] = std::move(rnd::Texture::load(drv, tag));
 	return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
 }
 
-std::shared_ptr<render::Texture> render::TextureManager::generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data) const
+std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data) const
 {
 	auto it = _cache.find(tag);
 	if (it != _cache.end()) {

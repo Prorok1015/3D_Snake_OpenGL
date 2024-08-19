@@ -11,16 +11,17 @@ namespace glm
 	}
 }
 
-render::ShaderManager::ShaderManager(driver::driver_interface* ptr)
+rnd::ShaderManager::ShaderManager(driver::driver_interface* ptr)
 	: drv(ptr)
+	, _matrices(drv->create_uniform_buffer(sizeof(GlobalUniform), 0))
 {
 }
 
-render::ShaderManager::~ShaderManager()
+rnd::ShaderManager::~ShaderManager()
 {
 }
 
-render::Shader render::ShaderManager::use(std::string_view shader) const
+rnd::Shader rnd::ShaderManager::use(std::string_view shader) const
 {
 	auto it = _cache.find(shader);
 	if (it == _cache.end()) {
@@ -34,46 +35,41 @@ render::Shader render::ShaderManager::use(std::string_view shader) const
 	return Shader(it->second.get());
 }
 
-void render::ShaderManager::unuse() const
+void rnd::ShaderManager::unuse() const
 {
 	drv->unuse();
 }
 
-void render::ShaderManager::uniform(const std::string_view shader, const std::string_view field, glm::mat4 val) const
+void rnd::ShaderManager::uniform(const std::string_view shader, const std::string_view field, glm::mat4 val) const
 {
 	auto sh = use(shader);
 	sh.uniform(field, val);
 	unuse();
 }
 
-void render::ShaderManager::uniform(const std::string_view shader, const std::string_view field, int val) const
+void rnd::ShaderManager::uniform(const std::string_view shader, const std::string_view field, int val) const
 {
 	auto sh = use(shader);
 	sh.uniform(field, val);
 	unuse();
 }
 
-void render::ShaderManager::init_global_uniform() const
-{
-	_matrices = drv->create_uniform_buffer(sizeof(GlobalUniform), 0);
-}
-
-void render::ShaderManager::update_global_uniform(const GlobalUniform& val) const
+void rnd::ShaderManager::update_global_uniform(const GlobalUniform& val) const
 {
 	_matrices->set_data(glm::value_ptr(val.projection), sizeof(decltype(val.projection)), offsetof(GlobalUniform, projection));
 	_matrices->set_data(glm::value_ptr(val.view), sizeof(decltype(val.view)), offsetof(GlobalUniform, view));
 	_matrices->set_data(glm::value_ptr(val.time), sizeof(decltype(val.time)), offsetof(GlobalUniform, time));
 }
 
-std::unique_ptr<render::driver::shader_interface> render::ShaderManager::load(const std::string& name) const
+std::unique_ptr<rnd::driver::shader_interface> rnd::ShaderManager::load(const std::string& name) const
 {
 	auto vertexCode = res::get_system().require_resource<res::Shader>(res::Tag::make(name + ".vert"), true);
 	auto fragmentCode = res::get_system().require_resource<res::Shader>(res::Tag::make(name + ".frag"), true);
 	//auto geomCode = res::get_system().require_resource<res::Shader>(res::Tag::make(name + ".geom"), true);
 	std::vector<driver::shader_header> headers
 	{
-		driver::shader_header{vertexCode->c_str(), driver::shader_header::TYPE::VERTEX},
-		driver::shader_header{fragmentCode->c_str(), driver::shader_header::TYPE::FRAGMENT},
+		driver::shader_header{.title = name + ".vert", .body = vertexCode->c_str(), .type = driver::shader_header::TYPE::VERTEX},
+		driver::shader_header{.title = name + ".frag", .body = fragmentCode->c_str(), .type = driver::shader_header::TYPE::FRAGMENT},
 	};
 
 	return drv->create_shader(headers);

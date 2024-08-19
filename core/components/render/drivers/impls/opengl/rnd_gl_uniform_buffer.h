@@ -4,7 +4,7 @@
 #include <rnd_uniform_buffer_interface.h>
 
 
-namespace render::driver::gl
+namespace rnd::driver::gl
 {
 	class uniform_buffer : public uniform_buffer_interface
 	{

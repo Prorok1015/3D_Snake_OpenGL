@@ -1,6 +1,6 @@
 #pragma once
 
-namespace render::driver
+namespace rnd::driver
 {
 	class uniform_buffer_interface
 	{

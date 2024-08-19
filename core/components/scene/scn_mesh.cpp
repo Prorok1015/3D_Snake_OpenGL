@@ -4,7 +4,7 @@
 scene::Mesh::Mesh(std::vector<res::Vertex> vertices, std::vector<unsigned int> indices, const res::Tag& textures)
     : Mesh(vertices, indices)
 {
-    material.texture = textures;
+    material.texture_tag = textures;
 }
 
 scene::Mesh::Mesh(std::vector<res::Vertex> vertices, std::vector<unsigned int> indices)

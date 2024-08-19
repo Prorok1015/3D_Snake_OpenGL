@@ -2,7 +2,7 @@
 #include <vector>
 #include <string>
 
-namespace render::driver
+namespace rnd::driver
 {
 	enum class ShaderDataType
 	{

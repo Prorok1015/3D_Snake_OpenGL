@@ -18,15 +18,18 @@ namespace wnd
 
 		std::shared_ptr<window> get_active_window();
 		std::shared_ptr<window> find_window(window::short_id win);
-		render::driver::render_context_interface* get_context() const { return context.get(); }
-		bool is_all_windows_close();
+		rnd::driver::render_context_interface* get_context() const { return context.get(); }
+		bool is_stop_running();
+
+		void init_all_windows_frame() const;
+		void produce_windows() const;
 
 	private:
 		std::shared_ptr<window> make_window(); 
 
 	private:
 		std::unordered_map<window::short_id, std::shared_ptr<window>, window::short_id::hasher> windows_list;
-		std::unique_ptr<render::driver::render_context_interface> context = nullptr;
+		std::unique_ptr<rnd::driver::render_context_interface> context = nullptr;
 
 		window::short_id active_window;
 		wnd::context::header title;

@@ -3,9 +3,9 @@
 #include <glad/glad.h>
 #include <glm/ext/matrix_float4x4.hpp>
 
-namespace render::driver::gl
+namespace rnd::driver::gl
 {
-	class shader : public render::driver::shader_interface
+	class shader : public rnd::driver::shader_interface
 	{
 	public:
 		shader(GLuint shader_id) : id(shader_id) {}

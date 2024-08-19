@@ -1,9 +1,9 @@
 #pragma once
 #include <rnd_driver_interface.h>
 
-namespace render::driver::gl
+namespace rnd::driver::gl
 {
-	class driver : public render::driver::driver_interface
+	class driver : public rnd::driver::driver_interface
 	{
 	public:
 		virtual void set_viewport(glm::ivec4 rect) override;
@@ -24,5 +24,7 @@ namespace render::driver::gl
 		virtual std::unique_ptr<vertex_array_interface> create_vertex_array() override;
 		virtual std::unique_ptr<buffer_interface> create_buffer() override;
 		virtual std::unique_ptr<uniform_buffer_interface> create_uniform_buffer(std::size_t size, std::size_t binding) override;
+	private:
+		glm::ivec4 viewport;
 	};
 }

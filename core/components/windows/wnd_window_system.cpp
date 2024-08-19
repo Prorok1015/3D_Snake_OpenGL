@@ -61,7 +61,7 @@ wnd::WindowSystem::WindowSystem()
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
     active_window = make_window()->get_id();   
-    context = std::make_unique<render::driver::gl::render_context>((GLADloadproc)glfwGetProcAddress);
+    context = std::make_unique<rnd::driver::gl::render_context>((GLADloadproc)glfwGetProcAddress);
 }
 
 wnd::WindowSystem::~WindowSystem()
@@ -95,7 +95,22 @@ std::shared_ptr<wnd::window> wnd::WindowSystem::find_window(window::short_id win
     return windows_list[win];
 }
 
-bool wnd::WindowSystem::is_all_windows_close()
+void wnd::WindowSystem::init_all_windows_frame() const
+{
+    for (const auto& [_, win] : windows_list) {
+        win->init_frame();
+    }
+}
+
+void wnd::WindowSystem::produce_windows() const
+{
+    for (const auto& [_, win] : windows_list) {
+        win->update_frame();
+        win->on_update();
+    }
+}
+
+bool wnd::WindowSystem::is_stop_running()
 {
     for (const auto& [_, win] : windows_list)
     { 

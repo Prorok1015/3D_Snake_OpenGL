@@ -1,9 +1,9 @@
 #include "rnd_gl_vertex_array.h"
 #include "glad/glad.h"
 
-static GLenum ShaderDataTypeToOpenGLBaseType(render::driver::ShaderDataType type)
+static GLenum ShaderDataTypeToOpenGLBaseType(rnd::driver::ShaderDataType type)
 {
-	using namespace render::driver;
+	using namespace rnd::driver;
 	switch (type)
 	{
 	case ShaderDataType::Float:    return GL_FLOAT;
@@ -22,27 +22,27 @@ static GLenum ShaderDataTypeToOpenGLBaseType(render::driver::ShaderDataType type
 	return 0;
 }
 
-render::driver::gl::vertex_array::vertex_array()
+rnd::driver::gl::vertex_array::vertex_array()
 {
 	glCreateVertexArrays(1, &m_RendererID);
 }
 
-render::driver::gl::vertex_array::~vertex_array()
+rnd::driver::gl::vertex_array::~vertex_array()
 {
 	glDeleteVertexArrays(1, &m_RendererID);
 }
 
-void render::driver::gl::vertex_array::bind()
+void rnd::driver::gl::vertex_array::bind()
 {
 	glBindVertexArray(m_RendererID);
 }
 
-void render::driver::gl::vertex_array::unbind()
+void rnd::driver::gl::vertex_array::unbind()
 {
 	glBindVertexArray(0);
 }
 
-void render::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<render::driver::buffer_interface>& vertexBuffer_in)
+void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd::driver::buffer_interface>& vertexBuffer_in)
 {
 	bind();
 	auto vertexBuffer = std::static_pointer_cast<gl::buffer>(vertexBuffer_in);
@@ -108,11 +108,11 @@ void render::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<r
 	m_VertexBuffers.push_back(vertexBuffer);
 }
 
-void render::driver::gl::vertex_array::remove_vertex_buffer(const std::shared_ptr<render::driver::buffer_interface>& vertexBuffer)
+void rnd::driver::gl::vertex_array::remove_vertex_buffer(const std::shared_ptr<rnd::driver::buffer_interface>& vertexBuffer)
 {
 }
 
-void render::driver::gl::vertex_array::set_index_buffer(const std::shared_ptr<render::driver::buffer_interface>& indexBuffer)
+void rnd::driver::gl::vertex_array::set_index_buffer(const std::shared_ptr<rnd::driver::buffer_interface>& indexBuffer)
 {
 	bind();
 	m_IndexBuffer = std::static_pointer_cast<gl::buffer>(indexBuffer);

@@ -9,6 +9,7 @@ wnd::window::window(wnd::context ctx_)
 {
     /* Make the window's context current */
     glfwMakeContextCurrent(ctx.get_id());
+    init_frame();
 }
 
 
@@ -39,6 +40,12 @@ void wnd::window::shutdown(bool close)
 
 void wnd::window::set_cursor_mode(CursorMode mode) {
     glfwSetInputMode(ctx.get_id(), GLFW_CURSOR, (int)mode);
+}
+
+void wnd::window::init_frame()
+{
+    lastTime = Timer::now();
+    delta = 0;
 }
 
 void wnd::window::update_frame()

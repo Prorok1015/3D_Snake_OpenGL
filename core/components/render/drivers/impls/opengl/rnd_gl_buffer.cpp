@@ -7,31 +7,31 @@ const GLint gBufferTypeToGlBufferType[] =
 	GL_ELEMENT_ARRAY_BUFFER,
 };
 
-render::driver::gl::buffer::buffer()
+rnd::driver::gl::buffer::buffer()
 {
 	glCreateBuffers(1, &buffer_id);
 	CHECK_GL_ERROR();
 }
 
-render::driver::gl::buffer::~buffer()
+rnd::driver::gl::buffer::~buffer()
 {
 	glDeleteBuffers(1, &buffer_id);
 	CHECK_GL_ERROR();
 }
 
-void render::driver::gl::buffer::bind()
+void rnd::driver::gl::buffer::bind()
 {
 	glBindBuffer(buffer_type, buffer_id);
 	CHECK_GL_ERROR();
 }
 
-void render::driver::gl::buffer::unbind()
+void rnd::driver::gl::buffer::unbind()
 {
 	glBindBuffer(buffer_type, 0);
 	CHECK_GL_ERROR();
 }
 
-void render::driver::gl::buffer::set_data(const void* data, std::size_t size, BUFFER_BINDING binding, BUFFER_TYPE type)
+void rnd::driver::gl::buffer::set_data(const void* data, std::size_t size, BUFFER_BINDING binding, BUFFER_TYPE type)
 {
 	glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
 	CHECK_GL_ERROR();

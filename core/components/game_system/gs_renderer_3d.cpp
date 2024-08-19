@@ -1,12 +1,16 @@
-#include "rnd_renderer_3d.h"
-#include "rnd_render_system.h"
-#include "rnd_material.h"
-#include "res_resource_model.h"
-#include <engine_log.h>
+#include "gs_renderer_3d.h"
+#include <rnd_driver_interface.h>
+#include <rnd_vertex_array_interface.h>
+#include <rnd_buffer_interface.h>
+#include <rnd_render_system.h>
 
-rnd::renderer_3d::renderer_3d(driver::driver_interface* drv_)
-    :drv(drv_)
+#include <timer.hpp>
+
+gs::renderer_3d::renderer_3d()
+	: rnd::renderer_base(1) 
 {
+    rnd::driver::driver_interface* drv = rnd::get_system().get_driver();
+
     vertex_array = drv->create_vertex_array();
 
     vertex_buffer = drv->create_buffer();
@@ -47,36 +51,57 @@ rnd::renderer_3d::renderer_3d(driver::driver_interface* drv_)
     vertex_array->set_index_buffer(index_buffer);
 }
 
-rnd::renderer_3d::~renderer_3d()
+void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
+	if (!camera || (camera && camera->aspect < 0.01f)) {
+		return;
+	}
 
-}
+    drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
+    drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
-void rnd::renderer_3d::draw(scene::Model& val)
-{
-    drv->set_viewport(camera->get_viewport());
-    auto shader = rnd::get_system().get_shader_manager().use("scene");
-    shader.uniform("model", val.model);
-
-    for (auto& mesh : val.meshes)
+    rnd::GlobalUniform val
     {
-        draw(mesh);
-    }
+        .projection = camera->projection(),
+        .view = camera->view(),
+        .time = (float)Timer::now()
+    };
+
+    rnd::get_system().get_shader_manager().update_global_uniform(val);
+
+	drv->set_viewport(camera->get_viewport());
+
+	// render the loaded model
+	for (auto& model : scene_objects) {
+		draw(model, drv);
+	}
+
 }
 
-void rnd::renderer_3d::draw(scene::Mesh& mesh)
+void gs::renderer_3d::draw(scene::Model& val, rnd::driver::driver_interface* drv)
+{
+	auto shader = rnd::get_system().get_shader_manager().use("scene");
+	shader.uniform("model", val.model);
+
+	for (auto& mesh : val.meshes) {
+		draw(mesh, drv);
+	}
+}
+
+void gs::renderer_3d::draw(scene::Mesh& mesh, rnd::driver::driver_interface* drv)
 {
     // A great thing about structs is that their memory layout is sequential for all its items.
     // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
     // again translates to 3/2 floats which translates to a byte array.
     vertex_array->bind();
-    vertex_buffer->set_data(mesh.vertices.data(), mesh.vertices.size() * sizeof(res::Vertex), driver::BUFFER_BINDING::DYNAMIC);
+    vertex_buffer->set_data(mesh.vertices.data(), mesh.vertices.size() * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
 
     if (mesh.indices.empty() || mesh.material.is_self_indecex) {
         vertex_array->set_index_buffer(index_buffer);
-    } else {
+    }
+    else {
         auto tmp = drv->create_buffer();
-        tmp->set_data(mesh.indices.data(), mesh.indices.size() * sizeof(unsigned int), driver::BUFFER_BINDING::STATIC, rnd::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
+        tmp->set_data(mesh.indices.data(), mesh.indices.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::STATIC, rnd::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
         vertex_array->set_index_buffer(std::move(tmp));
     }
 

@@ -2,7 +2,7 @@
 #include <res_resource_system.h>
 #include <res_resource_texture.h>
 
-std::unique_ptr<render::driver::texture_interface> render::Texture::load(driver::driver_interface* drv, const res::Tag& tag)
+std::unique_ptr<rnd::driver::texture_interface> rnd::Texture::load(driver::driver_interface* drv, const res::Tag& tag)
 {
 	auto res = res::get_system().require_resource<res::Picture>(tag);
     driver::texture_header header;
