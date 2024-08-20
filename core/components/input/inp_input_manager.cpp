@@ -1,8 +1,8 @@
 #include "inp_input_manager.h"
 
-void input::InputManager::notify_listeners(float dt)
+void inp::InputManager::notify_listeners(float dt)
 {
-    if (!is_enabled()) {
+    if (!get_is_enabled()) {
         return;
     }
 
@@ -10,7 +10,7 @@ void input::InputManager::notify_listeners(float dt)
     std::for_each(commands.begin(), commands.end(), [dt](auto cmd) { cmd->update(dt); });
 }
 
-void input::InputManager::unregistrate(std::shared_ptr<inp::InputActionBase> command)
+void inp::InputManager::unregistrate(std::shared_ptr<inp::InputActionBase> command)
 {
     auto& commands = get_active_commands();
     commands.erase(std::remove(commands.begin(), commands.end(), command));

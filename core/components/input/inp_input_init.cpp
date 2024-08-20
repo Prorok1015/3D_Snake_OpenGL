@@ -7,10 +7,6 @@ extern inp::InputSystem* p_inp_system;
 void components::input_init(ds::AppDataStorage& data)
 {
 	p_inp_system = &data.construct<inp::InputSystem>();
-	auto& myApp = data.require<app::Application>();
-
-	myApp.endFrame += [] { inp::get_system().end_frame(); };
-
 }
 
 void components::input_term(ds::AppDataStorage& data)

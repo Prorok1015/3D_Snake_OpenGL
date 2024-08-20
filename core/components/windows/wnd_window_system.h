@@ -21,7 +21,7 @@ namespace wnd
 		rnd::driver::render_context_interface* get_context() const { return context.get(); }
 		bool is_stop_running();
 
-		void init_all_windows_frame() const;
+		void init_windows_frame_time() const;
 		void produce_windows() const;
 
 	private:

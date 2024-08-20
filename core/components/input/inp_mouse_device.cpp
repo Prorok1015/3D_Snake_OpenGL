@@ -13,14 +13,14 @@ namespace {
 	}
 }
 
-void input::MouseDevice::on_mouse_move(double xpos, double ypos)
+void inp::MouseDevice::on_mouse_move(double xpos, double ypos)
 {
 	prev_position_ = position_;
 	position_ = { xpos, ypos };
 	//egLOG("", "Mouse pos x:{}, y:{}; prev x:{}, y:{}", position_.x, position_.y, prev_position_.x, prev_position_.y);
 }
 
-void input::MouseDevice::on_mouse_button_action(int button, int action, int mode)
+void inp::MouseDevice::on_mouse_button_action(int button, int action, int mode)
 {
     KEY_ACTION act = to_action(action);
 
@@ -31,7 +31,7 @@ void input::MouseDevice::on_mouse_button_action(int button, int action, int mode
     keys_[button] = act;
 }
 
-input::Key input::MouseDevice::get_key(MOUSE_BUTTONS key) const
+inp::Key inp::MouseDevice::get_key(MOUSE_BUTTONS key) const
 {
 	KEY_ACTION action = keys_[std::size_t(key)];
 	return { action };

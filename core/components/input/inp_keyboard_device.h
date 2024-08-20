@@ -2,7 +2,7 @@
 #include <common.h>
 #include "inp_key_enums.hpp"
 
-namespace input
+namespace inp
 {
 	class KeyboardDevice
 	{
@@ -34,6 +34,4 @@ namespace input
 		KeyContainer keys_;
 		KeyContainer prev_keys_;
 	};
-}
-
-namespace inp = input;
+} 

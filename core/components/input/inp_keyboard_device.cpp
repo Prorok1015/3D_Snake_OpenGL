@@ -15,7 +15,7 @@ namespace {
         return inp::KEY_ACTION::NONE;
     }
 }
-void input::KeyboardDevice::on_key_action(int keycode, int scancode, int action, int mode)
+void inp::KeyboardDevice::on_key_action(int keycode, int scancode, int action, int mode)
 {
     KEY_ACTION act = to_action(action);
 
@@ -31,7 +31,7 @@ void input::KeyboardDevice::on_key_action(int keycode, int scancode, int action,
     egLOG("input/keyboard", "Key {}: action {}", keycode, action);
 }
 
-void input::KeyboardDevice::on_key_keyboard_action(KEYBOARD_BUTTONS keycode, KEY_ACTION action, float time)
+void inp::KeyboardDevice::on_key_keyboard_action(KEYBOARD_BUTTONS keycode, KEY_ACTION action, float time)
 {
     Key& state = keys_[keycode];
     prev_keys_[keycode] = state;
@@ -41,7 +41,7 @@ void input::KeyboardDevice::on_key_keyboard_action(KEYBOARD_BUTTONS keycode, KEY
     state.time_stamp_up = action == KEY_ACTION::UP ? time : state.time_stamp_up;
 }
 
-inp::Key input::KeyboardDevice::get_some_key(KEYBOARD_BUTTONS keycode, const KeyContainer& keys)
+inp::Key inp::KeyboardDevice::get_some_key(KEYBOARD_BUTTONS keycode, const KeyContainer& keys)
 {
     auto it = keys.find(keycode);
     if (it != keys.end())

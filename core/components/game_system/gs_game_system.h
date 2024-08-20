@@ -18,10 +18,8 @@ namespace gs
 		~GameSystem();
 		GameSystem(const GameSystem&) = delete;
 		GameSystem& operator= (const GameSystem&) = delete;
-		GameSystem(GameSystem&&) = default;
-		GameSystem& operator= (GameSystem&&) = default;
-
-		void begin_frame();
+		GameSystem(GameSystem&&) = delete;
+		GameSystem& operator= (GameSystem&&) = delete;
 
 		void set_enable_input(bool enable);
 

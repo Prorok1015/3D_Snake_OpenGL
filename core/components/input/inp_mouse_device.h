@@ -3,7 +3,7 @@
 #include "inp_key_enums.hpp"
 #include <glm/glm.hpp>
 
-namespace input
+namespace inp
 {
 
 	class MouseDevice
@@ -24,5 +24,3 @@ namespace input
 		std::array<KEY_ACTION, MOUSE_BUTTONS_COUNT> keys_;
 	};
 }
-
-namespace inp = input;

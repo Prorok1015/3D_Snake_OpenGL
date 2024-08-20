@@ -18,7 +18,7 @@ rnd::RenderSystem::RenderSystem(std::unique_ptr<rnd::driver::driver_interface> d
 	enable(driver::ENABLE_FLAGS::DEPTH_TEST);
 }
 
-void rnd::RenderSystem::registrate_renderer(std::weak_ptr<renderer_base> renderer_)
+void rnd::RenderSystem::activate_renderer(std::weak_ptr<renderer_base> renderer_)
 {
 	auto pred = [](auto& lhs, auto& rhs) {
 		auto lhs_r = lhs.lock();
@@ -33,7 +33,7 @@ void rnd::RenderSystem::registrate_renderer(std::weak_ptr<renderer_base> rendere
 	renderers_list.insert(std::lower_bound(renderers_list.begin(), renderers_list.end(), renderer_, pred), renderer_);
 }
 
-void rnd::RenderSystem::unregistrate_renderer(std::weak_ptr<renderer_base> renderer)
+void rnd::RenderSystem::deactivate_renderer(std::weak_ptr<renderer_base> renderer)
 {
 	auto pred = [find = renderer.lock()](auto& lhs) {
 		auto lhs_r = lhs.lock(); 

@@ -3,19 +3,25 @@
 #include <ds_type_id.hpp>
 #include "inp_keyboard_device.h"
 #include "inp_mouse_device.h"
+#include "inp_input_manager_base.h"
 
-namespace input
+namespace inp
 {
 	class InputSystem
 	{
 	public:
 		InputSystem();
 		~InputSystem() = default;
-		InputSystem(InputSystem&&) = default;
-		InputSystem& operator= (InputSystem&&) = default;
+		InputSystem(InputSystem&&) = delete;
+		InputSystem& operator= (InputSystem&&) = delete;
 
 		InputSystem(const InputSystem&) = delete;
 		InputSystem& operator= (const InputSystem&) = delete;
+
+		void process_input(float dt);
+
+		void activate_manager(std::weak_ptr<input_manager_base> inp_manager);
+		void deactivate_manager(std::weak_ptr<input_manager_base> inp_manager);
 
 		// change
 		void end_frame();
@@ -40,9 +46,9 @@ namespace input
 	private:
 		Event<void(KEYBOARD_BUTTONS keycode, KEY_ACTION action)> onKeyAction;
 
+		std::vector<std::weak_ptr<input_manager_base>> input_managers_list;
 	};
 
 	InputSystem& get_system();
 }
-
-namespace inp = input;
+ 

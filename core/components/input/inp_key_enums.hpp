@@ -2,7 +2,7 @@
 #include <common.h>
 #include <GLFW/glfw3.h>
 
-namespace input
+namespace inp
 {
 	enum class KEYBOARD_BUTTONS
 	{
@@ -157,5 +157,4 @@ namespace input
 	};
 
 }
-
-namespace inp = input;
+ 

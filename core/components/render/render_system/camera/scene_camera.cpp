@@ -16,7 +16,7 @@ void snakeengine::WASDCamera::disable_input_actions(inp::InputManagerRef manager
 
 void snakeengine::WASDCamera::mouse_move(glm::vec2 pos, glm::vec2 prev)
 {
-	if (!is_enabled()) {
+	if (!get_is_enabled()) {
 		return;
 	}
 
@@ -29,7 +29,7 @@ void snakeengine::WASDCamera::mouse_move(glm::vec2 pos, glm::vec2 prev)
 
 void snakeengine::WASDCamera::wasd_move(inp::KEYBOARD_BUTTONS key, float dt)
 {
-	if (!is_enabled()) {
+	if (!get_is_enabled()) {
 		return;
 	}
 

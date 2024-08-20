@@ -95,7 +95,7 @@ std::shared_ptr<wnd::window> wnd::WindowSystem::find_window(window::short_id win
     return windows_list[win];
 }
 
-void wnd::WindowSystem::init_all_windows_frame() const
+void wnd::WindowSystem::init_windows_frame_time() const
 {
     for (const auto& [_, win] : windows_list) {
         win->init_frame();

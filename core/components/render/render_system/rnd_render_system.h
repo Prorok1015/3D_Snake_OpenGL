@@ -64,8 +64,8 @@ namespace rnd
 			drv->draw_elements(get_render_mode(), count);
 		}
 
-		void registrate_renderer(std::weak_ptr<renderer_base> renderer);
-		void unregistrate_renderer(std::weak_ptr<renderer_base> renderer);
+		void activate_renderer(std::weak_ptr<renderer_base> renderer);
+		void deactivate_renderer(std::weak_ptr<renderer_base> renderer);
 
 		void produce_renderers() const;
 

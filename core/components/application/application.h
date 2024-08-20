@@ -23,15 +23,6 @@ namespace application
 
 		const glm::vec4& get_clear_color() const { return clear_color_; }
 
-	public:
-		Event<> beginFrame;
-		/*Event<> capture;
-		Event<> prepair_render;
-		Event<> pre_render;
-		Event<> render;
-		Event<> post_render;*/
-		Event<> endFrame;
-
 	private:
 		glm::vec4 clear_color_ = { 0.45f, 0.55f, 0.60f, 1.00f };
 	};

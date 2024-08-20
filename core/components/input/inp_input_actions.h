@@ -3,7 +3,7 @@
 #include "inp_key_enums.hpp"
 #include "inp_input_system.h"
 
-namespace input
+namespace inp
 {
 	class InputActionBase
 	{
@@ -177,5 +177,4 @@ namespace input
 		glm::vec2 position{ 0.f };
 	};
 }
-
-namespace inp = input;
+ 

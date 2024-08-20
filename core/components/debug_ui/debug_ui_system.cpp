@@ -41,12 +41,12 @@ dbg_ui::DebugUiSystem::DebugUiSystem()
 
 	renderer = std::make_shared<dbg_ui::renderer>();
 	renderer->render_event += [this] { render_menues(); };
-	rnd::get_system().registrate_renderer(renderer);
+	rnd::get_system().activate_renderer(renderer);
 }
 
 dbg_ui::DebugUiSystem::~DebugUiSystem()
 {
-	rnd::get_system().unregistrate_renderer(renderer);
+	rnd::get_system().deactivate_renderer(renderer);
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGlfw_Shutdown();
 	ImGui::DestroyContext();

@@ -6,7 +6,7 @@
 #include <scn_transform_3d.hpp>
 #include <common.h>
 
-namespace input {
+namespace inp {
 	class InputManager;
 	using InputManagerRef = std::shared_ptr<InputManager>;
 }
@@ -19,13 +19,13 @@ public:
 	glm::mat4 projection() const;
 	glm::mat4 view() const;
 
-	virtual void enable_input_actions(input::InputManagerRef manager) {};
-	virtual void disable_input_actions(input::InputManagerRef manager) {};
+	virtual void enable_input_actions(inp::InputManagerRef manager) {};
+	virtual void disable_input_actions(inp::InputManagerRef manager) {};
 
 	void on_viewport_size_change(glm::ivec2 size);
 
-	void set_enabled(bool enable) { enabled_ = enable; }
-	bool is_enabled() const { return enabled_; }
+	void set_enabled(bool enable) { is_enabled = enable; }
+	bool get_is_enabled() const { return is_enabled; }
 
 	void move_to(glm::vec3 pos) {
 		transform.move_to(pos);
@@ -47,7 +47,7 @@ public:
 	float distance = 100.f;
 	float aspect = 0.f;
 
-	bool enabled_ = false;
+	bool is_enabled = false;
 };
 
 #endif /* WINDOW_CAMERA_H_ */
