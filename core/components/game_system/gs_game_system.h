@@ -2,8 +2,9 @@
 #include <common.h>
 
 #include <gs_renderer_3d.h>
-#include <camera/scene_camera.h>
+#include <camera/rnd_camera.h>
 #include <wnd_window.h>
+#include <scn_camera_controller.h>
 
 namespace scene {
 	class Model;
@@ -30,22 +31,14 @@ namespace gs
 		void add_cube_to_scene(float radius);
 		void remove_cube();
 
-		scn::Transform get_camera_transform() const { return camera->transform; }
-
 		std::shared_ptr<renderer_3d> get_renderer() const { return renderer; }
+		std::shared_ptr<inp::input_manager> get_input_manager() const { return input; }
 
-		float cube_scale = 1.f;
-		bool is_show_normal = false;
 	private:
 		std::shared_ptr<renderer_3d> renderer;
-		std::shared_ptr<camera_static> camera;
 
 		std::shared_ptr<wnd::window> window;
-		std::shared_ptr<inp::InputManager> input;
-
-		float camX = 0.0f;
-		float camY = 0.0f;
-
+		std::shared_ptr<inp::input_manager> input;
 	};
 
 	GameSystem& get_system();

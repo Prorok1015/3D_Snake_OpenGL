@@ -2,17 +2,17 @@
 
 #include <glm/gtx/quaternion.hpp>
 
-namespace scene {
-	class Transform final
+namespace eng {
+	class transform3d final
 	{
 	public:
-		Transform() = default;
-		Transform(glm::vec3 position) : pos(position) {}
-		~Transform() = default;
-		Transform(const Transform&) = default;
-		Transform(Transform&&) = default;
-		Transform& operator= (const Transform&) = default;
-		Transform& operator= (Transform&&) = default;
+		transform3d() = default;
+		transform3d(glm::vec3 position) : pos(position) {}
+		~transform3d() = default;
+		transform3d(const transform3d&) = default;
+		transform3d(transform3d&&) = default;
+		transform3d& operator= (const transform3d&) = default;
+		transform3d& operator= (transform3d&&) = default;
 
 		glm::vec3 forward() const { return glm::rotate(get_orientation(), glm::vec3(0.0f, 0.0f, 1.0f)); }
 		glm::vec3 back() const { return -forward(); }
@@ -27,26 +27,6 @@ namespace scene {
 			result *= glm::toMat4(get_orientation());
 			result *= glm::scale(glm::mat4(1.0), get_scale());
 			return result;
-		}
-
-		void add_rotate(float pitch_, float yaw_ = 0.f, float roll_ = 0.f) {
-			pitch += pitch_;
-			yaw += yaw_;
-			roll += roll_;
-		}
-
-		void add_position(glm::vec3 addition) {
-			pos += addition;
-		}
-
-		void move_to(glm::vec3 n_pos) {
-			pos = n_pos;
-		}
-
-		void look_at(glm::vec3 at) {
-			auto tf = glm::lookAt(pos, at, down());
-
-			orintation = glm::eulerAngles(glm::quat_cast(inverse(tf)));
 		}
 
 		float get_pitch() const { return pitch; }
@@ -64,9 +44,7 @@ namespace scene {
 		glm::vec3 get_scale() const { return scale; }
 		void set_scale(glm::vec3 val) { scale = val; }
 
-		glm::quat get_orientation() const {
-			return glm::quat(orintation);
-		}
+		glm::quat get_orientation() const { return glm::quat(orintation); }
 
 	private:
 		union
@@ -84,5 +62,3 @@ namespace scene {
 	};
 
 }
-
-namespace scn = scene;

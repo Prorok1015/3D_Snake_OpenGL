@@ -1,3 +1,5 @@
+#if 0
+
 #include "rnd_renderer_3d.h"
 #include "rnd_render_system.h"
 #include "rnd_material.h"
@@ -91,3 +93,4 @@ void rnd::renderer_3d::draw(scene::Mesh& mesh)
 
     vertex_array->unbind();
 }
+#endif

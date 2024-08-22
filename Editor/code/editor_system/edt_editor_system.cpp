@@ -6,6 +6,7 @@
 #include <res_resource_texture.h>
 #include <rnd_render_system.h>
 #include <scn_primitives.h>
+#include <camera/rnd_camera.h>
 #include <imgui.h>
 
 editor::EditorSystem::EditorSystem()
@@ -20,6 +21,17 @@ editor::EditorSystem::EditorSystem()
 	gs::get_system().get_window()->set_logo(logo);
 	gs::get_system().get_window()->set_title("Editor");
 
+	glm::ivec4 viewport{ glm::zero<glm::ivec2>(), gs::get_system().get_window()->get_size() };
+
+	gs::get_system().get_renderer()->camera = std::make_shared<rnd::camera>(glm::vec3(0), viewport);
+	camera_controller = std::make_shared<scn::mouse_camera_controller>(gs::get_system().get_renderer()->camera.get());
+	camera_controller->enable_input_actions(gs::get_system().get_input_manager());
+
+	gs::get_system().get_window()->eventResizeWindow.subscribe(
+		[camera = gs::get_system().get_renderer()->camera]
+		(wnd::window&, int w, int h) { camera->set_viewport(glm::ivec2{ 0 }, glm::ivec2{ w, h }); }
+	);
+
 	g_Scene = generate_network({ 50, 50 });
 
 	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag::make("__black"), { 1,1 }, 3, { 0, 0, 0 });
@@ -32,7 +44,7 @@ editor::EditorSystem::EditorSystem()
 
 editor::EditorSystem::~EditorSystem()
 {
-
+	camera_controller->disable_input_actions(gs::get_system().get_input_manager());
 }
 
 
@@ -53,8 +65,6 @@ bool editor::EditorSystem::show_toolbar()
 		ImGui::Text("Shader");
 		ImGui::Separator();
 
-		ImGui::Checkbox("Show normals", &gs::get_system().is_show_normal);
-
 		if (ImGui::Button("Reload Shaders")) {
 			gs::get_system().reload_shaders();
 		}
@@ -72,7 +82,12 @@ bool editor::EditorSystem::show_toolbar()
 		static int cube_count_add = 1;
 		static int cube_count_remove = 1;
 		static int cube_count = 0;
-		ImGui::SliderFloat("Object scale", &gs::get_system().cube_scale, 0.1f, 10.f);
+		static float distance = gs::get_system().get_renderer()->camera->get_visible_distance();
+
+		ImGui::SliderFloat("Object scale", &distance, -0.9f, 400.f);
+
+		gs::get_system().get_renderer()->camera->set_visible_distance(distance);
+
 		if (ImGui::Button("add cube")) {
 			for (int i = 0; i < cube_count_add; ++i) {
 				gs::get_system().add_cube_to_scene(10.f);
@@ -114,7 +129,7 @@ bool editor::EditorSystem::show_toolbar()
 			item_old = item_current;
 		}
 
-		scn::Transform ct = gs::get_system().get_camera_transform();
+		eng::transform3d ct;
 		ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
 		auto pos = ct.get_pos();
 		ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);

@@ -7,3 +7,4 @@ add_executable(${PROJECT_NAME} "main.cpp")
 
 add_subdirectory("code/editor_system")
 target_link_libraries(${PROJECT_NAME} editor_system)
+

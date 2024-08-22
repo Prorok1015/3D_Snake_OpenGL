@@ -1,3 +1,4 @@
+#if 0
 #include "scene_camera.h"
 
 void snakeengine::WASDCamera::enable_input_actions(inp::InputManagerRef manager)
@@ -21,9 +22,9 @@ void snakeengine::WASDCamera::mouse_move(glm::vec2 pos, glm::vec2 prev)
 	}
 
 	glm::vec2 delta = glm::vec3(pos - prev, 0);
-	delta = -delta / (glm::vec2)window_size * 2.f;
+	delta = -delta / (glm::vec2)viewport_size * 2.f;
 
-	transform.add_rotate(delta.y, delta.x);
+	//transform.add_rotate(delta.y, delta.x);
 	transform.set_pitch(std::clamp(transform.get_pitch(), -glm::radians(89.0f), glm::radians(89.0f)));
 }
 
@@ -34,21 +35,21 @@ void snakeengine::WASDCamera::wasd_move(inp::KEYBOARD_BUTTONS key, float dt)
 	}
 
 
-	switch (key)
-	{
-	case inp::KEYBOARD_BUTTONS::W:
-		transform.add_position(transform.forward() * dt * move_speed());
-		break;
-	case inp::KEYBOARD_BUTTONS::A:
-		transform.add_position(transform.left() * dt * move_speed());
-		break;
-	case inp::KEYBOARD_BUTTONS::S:
-		transform.add_position(transform.back() * dt * move_speed());
-		break;
-	case inp::KEYBOARD_BUTTONS::D:
-		transform.add_position(transform.right() * dt * move_speed());
-		break;
-	}
+	//switch (key)
+	//{
+	//case inp::KEYBOARD_BUTTONS::W:
+	//	transform.add_position(transform.forward() * dt * move_speed());
+	//	break;
+	//case inp::KEYBOARD_BUTTONS::A:
+	//	transform.add_position(transform.left() * dt * move_speed());
+	//	break;
+	//case inp::KEYBOARD_BUTTONS::S:
+	//	transform.add_position(transform.back() * dt * move_speed());
+	//	break;
+	//case inp::KEYBOARD_BUTTONS::D:
+	//	transform.add_position(transform.right() * dt * move_speed());
+	//	break;
+	//}
 }
 
 void snakeengine::MouseCamera::enable_input_actions(inp::InputManagerRef manager)
@@ -84,23 +85,26 @@ void snakeengine::MouseCamera::on_mouse_right(float dt, inp::KEY_ACTION act)
 void snakeengine::MouseCamera::on_mouse_move(glm::vec2 cur, glm::vec2 prev)
 {
 	glm::vec2 delta = cur - prev;
-	delta = -delta / glm::vec2(window_size) * 2.f;
+	delta = -delta / glm::vec2(viewport_size) * 2.f;
 
 	if (isLookAt) {
-		world.add_rotate(delta.y, delta.x);
-		world.set_pitch(std::clamp(world.get_pitch(), -glm::radians(90.0f), glm::radians(90.0f)));
+		float pitch = delta.y;
+		float yaw = delta.x;
+		
+		anchor.set_yaw(anchor.get_yaw() + yaw);
+		anchor.set_pitch(std::clamp(anchor.get_pitch() + pitch, -glm::radians(90.0f), glm::radians(90.0f)));
 	}
 
 	if (isMove) {
 		glm::vec3 addition = glm::vec3(delta.x, 0, delta.y);
-		world.add_position(glm::rotateY(addition, world.get_yaw()) * get_move_speed());
+		glm::vec3 new_position = anchor.get_pos() + (glm::rotateY(addition, anchor.get_yaw()) * get_move_speed());
+		anchor.set_pos(new_position);
 	}
 }
 
-
 glm::mat4 snakeengine::MouseCamera::get_world_matrix() const
 {
-	return world.to_matrix() * transform.to_matrix();
+	return anchor.to_matrix() * transform.to_matrix();
 }
 
 glm::mat4 snakeengine::MouseCamera::view() const
@@ -114,3 +118,4 @@ void snakeengine::MouseCamera::on_mouse_whell(glm::vec2 cur, glm::vec2 prev)
 	distance = std::clamp(distance, 0.f, visible_distance);
 	transform.set_pos(glm::vec3(0, 0, distance));
 }
+#endif

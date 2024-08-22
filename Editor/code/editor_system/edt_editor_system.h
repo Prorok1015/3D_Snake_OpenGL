@@ -1,6 +1,7 @@
 #pragma once
 #include <common.h>
 #include <scn_model.h>
+#include <scn_camera_controller.h>
 
 namespace editor
 {
@@ -22,6 +23,7 @@ namespace editor
 
 		scene::Model g_Scene;
 		bool is_draw_scene_net = true;
+		std::shared_ptr<scn::mouse_camera_controller> camera_controller;
 	};
 
 }

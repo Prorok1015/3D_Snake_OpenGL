@@ -6,8 +6,6 @@
 
 #include <timer.hpp>
 
-#include <camera/scene_camera.h>
-
 gs::renderer_3d::renderer_3d()
 	: rnd::renderer_base(1) 
 {
@@ -55,7 +53,7 @@ gs::renderer_3d::renderer_3d()
 
 void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
-	if (!camera || (camera && camera->window_size == glm::zero<glm::ivec2>())) {
+	if (!camera || (camera && camera->get_viewport() == glm::zero<glm::ivec4>())) {
 		return;
 	}
 

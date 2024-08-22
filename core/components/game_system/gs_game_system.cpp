@@ -12,7 +12,6 @@
 
 #include <rnd_render_system.h>
 #include <timer.hpp>
-#include <glm/glm.hpp>
 #include <glm/gtc/random.hpp>
 
 gs::GameSystem* p_game_system = nullptr;
@@ -26,28 +25,21 @@ gs::GameSystem& gs::get_system()
 gs::GameSystem::GameSystem()
 {
 	window = wnd::get_system().get_active_window();
-	input = std::make_shared<inp::InputManager>();
+	input = std::make_shared<inp::input_manager>();
 	inp::get_system().activate_manager(input);
 
-	camera = std::make_shared<snakeengine::MouseCamera>(glm::vec3(4, 0, 20), window->get_size());
-	camera->enable_input_actions(input);
-
 	renderer = std::make_shared<renderer_3d>();
-	renderer->camera = camera.get();
 	rnd::get_system().activate_renderer(renderer);
-
-	window->eventResizeWindow.subscribe([this](wnd::window&, int w, int h) { camera->on_viewport_size_change(glm::ivec2{ w, h }); });
 
 	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
 	input->create_click_action(inp::KEYBOARD_BUTTONS::TAB, [this](float) {
-		camera->set_enabled(!camera->get_is_enabled()); 
-		window->set_cursor_mode(camera->get_is_enabled() ? CursorMode::Disable : CursorMode::Normal); 
+		renderer->camera->set_enabled(!renderer->camera->get_is_enabled());
+		window->set_cursor_mode(renderer->camera->get_is_enabled() ? CursorMode::Disable : CursorMode::Normal);
 	});
 }
 
 gs::GameSystem::~GameSystem()
 {
-	camera->disable_input_actions(input);
 	rnd::get_system().deactivate_renderer(renderer);
 	inp::get_system().deactivate_manager(input);
 }
@@ -55,7 +47,7 @@ gs::GameSystem::~GameSystem()
 void gs::GameSystem::set_enable_input(bool enable)
 {
 	input->set_enabled(enable);
-	window->set_cursor_mode(camera->get_is_enabled() ? CursorMode::Disable : CursorMode::Normal);
+	window->set_cursor_mode(renderer->camera->get_is_enabled() ? CursorMode::Disable : CursorMode::Normal);
 }
 
 void gs::GameSystem::load_model(std::string_view path)
@@ -65,7 +57,7 @@ void gs::GameSystem::load_model(std::string_view path)
 
 	auto& m = renderer->scene_objects.back();
 	m.model = glm::translate(m.model, glm::vec3{ rand_pos.x, 1.f, rand_pos.y });
-	m.model = glm::scale(m.model, glm::vec3{ std::abs(cube_scale) });
+	m.model = glm::scale(m.model, glm::vec3{ std::abs(rand_pos.x) });
 }
 
 void gs::GameSystem::reload_shaders()

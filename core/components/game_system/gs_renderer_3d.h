@@ -1,7 +1,7 @@
 #pragma once
 #include <rnd_renderer_base.h>
 #include <scn_model.h>
-#include <camera/Camera.h>
+#include <camera/rnd_camera.h>
 
 namespace rnd::driver
 {
@@ -24,7 +24,7 @@ namespace gs
 		void draw(scene::Mesh& mesh, rnd::driver::driver_interface* drv);
 		void draw_line(rnd::driver::driver_interface* drv);
 	public:
-		camera_static* camera = nullptr;
+		std::shared_ptr<rnd::camera> camera = nullptr;
 		std::vector<scene::Model> scene_objects;
 		std::shared_ptr<rnd::driver::vertex_array_interface> vertex_array;
 		std::shared_ptr<rnd::driver::buffer_interface> vertex_buffer;

@@ -5,13 +5,13 @@
 
 namespace inp
 {
-	class InputManager : public input_manager_base
+	class input_manager : public input_manager_base
 	{
 		using Commands = std::vector<std::shared_ptr<inp::InputActionBase>>;
 	public:
-		InputManager() = default;
+		input_manager() = default;
 
-		virtual ~InputManager() override {};
+		virtual ~input_manager() override {};
 		virtual void on_notify_listeners(float dt) override
 		{
 			notify_listeners(dt);
@@ -78,6 +78,6 @@ namespace inp
 		bool is_enabled = true;
 	};
 
-	using InputManagerRef = std::shared_ptr<InputManager>;
+	using InputManagerRef = std::shared_ptr<input_manager>;
 }
  

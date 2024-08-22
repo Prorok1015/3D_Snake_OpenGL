@@ -4,7 +4,6 @@
 
 #include "texture/rnd_texture_manager.h"
 #include "shader/rnd_shader_manager.h"
-#include "rnd_renderer_3d.h"
 
 #include "rnd_renderer_base.h"
 
