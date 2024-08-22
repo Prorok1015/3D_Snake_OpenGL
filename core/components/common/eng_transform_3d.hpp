@@ -1,5 +1,5 @@
 #pragma once
-
+#include "common.h"
 #include <glm/gtx/quaternion.hpp>
 
 namespace eng {
@@ -7,7 +7,16 @@ namespace eng {
 	{
 	public:
 		transform3d() = default;
-		transform3d(glm::vec3 position) : pos(position) {}
+		explicit transform3d(glm::mat4 matrix)
+		{
+			glm::vec3 skew;
+			glm::vec4 perspective;
+			glm::quat direction;
+
+			glm::decompose(matrix, scale, direction, pos, skew, perspective);
+
+			orintation = glm::eulerAngles(direction);
+		}
 		~transform3d() = default;
 		transform3d(const transform3d&) = default;
 		transform3d(transform3d&&) = default;

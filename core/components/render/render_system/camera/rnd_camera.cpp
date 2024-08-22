@@ -1,7 +1,7 @@
 #include "rnd_camera.h"
 
 rnd::camera::camera(glm::vec3 pos, glm::ivec4 viewport, float fov_)
-	:  transform(pos), fov(fov_), viewport_offset(viewport[0], viewport[1]), viewport_size(viewport[2], viewport[3])
+	:  fov(fov_), viewport_offset(viewport[0], viewport[1]), viewport_size(viewport[2], viewport[3])
 {
 	world = glm::translate(world, pos);
 }

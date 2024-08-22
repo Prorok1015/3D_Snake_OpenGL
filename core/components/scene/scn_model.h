@@ -5,7 +5,7 @@
 #include <res_resource_model.h>
 #include "scn_mesh.h"
 
-namespace scene {
+namespace scn {
 
     class Model
     {

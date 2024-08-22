@@ -7,6 +7,7 @@
 #include <rnd_render_system.h>
 #include <scn_primitives.h>
 #include <camera/rnd_camera.h>
+#include <ecs/ecs_common_system.h>
 #include <imgui.h>
 
 editor::EditorSystem::EditorSystem()
@@ -39,6 +40,13 @@ editor::EditorSystem::EditorSystem()
 	g_Scene.meshes.back().material.texture_tag = res::Tag::make("__black");
 	g_Scene.model = glm::scale(g_Scene.model, glm::vec3(20, 0, 20));
 	rnd::get_system().set_line_size(2);
+
+	ecs::entity first = ecs::create_entity();
+	eng::transform3d* trn = ecs::add_component(first, eng::transform3d{});
+	trn->set_pos(glm::vec3{ 6, 6, 6 });
+	ecs::entity second = ecs::create_entity();
+	eng::transform3d* trn2 = ecs::add_component(second, eng::transform3d{ glm::translate(glm::mat4{1.0}, glm::vec3(3)) });
+	trn2->set_yaw(45.f);
 }
 
 
@@ -67,6 +75,20 @@ bool editor::EditorSystem::show_toolbar()
 
 		if (ImGui::Button("Reload Shaders")) {
 			gs::get_system().reload_shaders();
+		}
+
+		ImGui::Separator();
+		ImGui::NewLine();
+
+		for (auto ent : ecs::filter<eng::transform3d>()) {
+			eng::transform3d* trn = ecs::get_component<eng::transform3d>(ent);
+			if (trn == nullptr) {
+				ImGui::Text("entity: %d, null", ent.index);
+				continue;
+			}
+			ImGui::Text("entity: %d, pitch: %.3f, yaw: %.3f, roll: %.3f", ent.index, trn->get_pitch(), trn->get_yaw(), trn->get_roll());
+			auto pos = trn->get_pos();
+			ImGui::Text("\t\tx: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
 		}
 
 		ImGui::Separator();

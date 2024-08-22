@@ -3,7 +3,7 @@
 
 #include <numeric>
 
-scene::Model generate_network(glm::ivec2 size)
+scn::Model generate_network(glm::ivec2 size)
 {
     std::vector<res::Vertex> vex;
     std::vector<unsigned int> inc;
@@ -32,12 +32,12 @@ scene::Model generate_network(glm::ivec2 size)
         inc.push_back((unsigned)vex.size() - 1);
     }
 
-    scene::Model m;
+    scn::Model m;
     m.meshes.emplace_back(vex, inc);
     return m;
 }
 
-scene::Model generate_cube()
+scn::Model generate_cube()
 {
     std::vector<res::Vertex> vex
     {
@@ -164,7 +164,7 @@ scene::Model generate_cube()
     //txt->tmp_type = "texture_diffuse";
     //tex.push_back(txt);
 
-    scene::Model m;
+    scn::Model m;
     m.meshes.emplace_back(vex, inc, res::Tag::make("block.png"));
     return m;
 }
@@ -217,7 +217,7 @@ std::vector<res::Vertex> generate_sphere_data(float radius, float sectorCount, f
     return result;
 }
 
-scene::Model generate_sphere()
+scn::Model generate_sphere()
 {
     float radius = 1.0f;
     float sectorCount = 72.f;
@@ -276,7 +276,7 @@ scene::Model generate_sphere()
     //auto txt = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("block.png"));
     //txt->tmp_type = "texture_diffuse";
 
-    scene::Model m;
+    scn::Model m;
     m.meshes.emplace_back(vex, inc, res::Tag::make("block.png"));
     return m;
 }

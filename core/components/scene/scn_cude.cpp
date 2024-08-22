@@ -1,3 +1,4 @@
+#if 0
 #include "scn_cude.h"
 #include <common.h>
 #include <shader/rnd_shader.h>
@@ -90,7 +91,7 @@ void term_cude()
 {
 }
 
-scene::Model create_cube()
+scn::Model create_cube()
 {
     std::vector<res::Vertex> vex;
     std::vector<unsigned int> inc;
@@ -120,7 +121,8 @@ scene::Model create_cube()
     //txt->tmp_type = "texture_diffuse";
     //tex.push_back(txt);
 
-    scene::Model m;
+    scn::Model m;
     m.meshes.emplace_back(vex, inc, res::Tag::make("block.png"));
     return m;
 }
+#endif

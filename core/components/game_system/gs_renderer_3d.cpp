@@ -107,7 +107,7 @@ void gs::renderer_3d::draw_line(rnd::driver::driver_interface* drv)
     //vertex_array->unbind();
 }
 
-void gs::renderer_3d::draw(scene::Model& val, rnd::driver::driver_interface* drv)
+void gs::renderer_3d::draw(scn::Model& val, rnd::driver::driver_interface* drv)
 {
 	auto shader = rnd::get_system().get_shader_manager().use("scene");
 	shader.uniform("model", val.model);
@@ -117,7 +117,7 @@ void gs::renderer_3d::draw(scene::Model& val, rnd::driver::driver_interface* drv
 	}
 }
 
-void gs::renderer_3d::draw(scene::Mesh& mesh, rnd::driver::driver_interface* drv)
+void gs::renderer_3d::draw(scn::Mesh& mesh, rnd::driver::driver_interface* drv)
 {
     // A great thing about structs is that their memory layout is sequential for all its items.
     // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which

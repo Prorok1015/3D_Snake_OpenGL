@@ -21,7 +21,7 @@ namespace editor
 
 		glm::vec4 clear_color_ {1};
 
-		scene::Model g_Scene;
+		scn::Model g_Scene;
 		bool is_draw_scene_net = true;
 		std::shared_ptr<scn::mouse_camera_controller> camera_controller;
 	};

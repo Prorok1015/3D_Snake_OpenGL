@@ -52,7 +52,7 @@ void gs::GameSystem::set_enable_input(bool enable)
 
 void gs::GameSystem::load_model(std::string_view path)
 {
-	renderer->scene_objects.push_back(scene::Model(path));
+	renderer->scene_objects.push_back(scn::Model(path));
 	auto rand_pos = glm::diskRand(20.f);
 
 	auto& m = renderer->scene_objects.back();

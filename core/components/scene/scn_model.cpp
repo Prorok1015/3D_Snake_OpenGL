@@ -3,10 +3,8 @@
 #include <res_resource_system.h>
 #include <rnd_render_system.h>
 
-using namespace scene;
 
-
-scene::Model::Model(std::string_view path, bool gamma)
+scn::Model::Model(std::string_view path, bool gamma)
 {
     loadModel(path);
 }
@@ -23,7 +21,7 @@ std::vector<std::shared_ptr<rnd::Texture>> make_texture(std::vector<res::Materia
     return result;
 }
 
-void scene::Model::loadModel(std::string_view path)
+void scn::Model::loadModel(std::string_view path)
 {
     res_ = res::get_system().require_resource<res::Model>(res::Tag::make(path));
     meshes.clear();

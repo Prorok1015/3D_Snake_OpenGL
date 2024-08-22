@@ -1,3 +1,4 @@
+#if 0
 #include "scn_sphere.h"
 #include <res_resource_model.h>
 #include <rnd_render_system.h>
@@ -124,3 +125,4 @@ void draw_sphere(const rnd::Shader& ourShader)
 void term_sphere()
 {
 }
+#endif

@@ -6,7 +6,7 @@
 #include <wnd_window.h>
 #include <scn_camera_controller.h>
 
-namespace scene {
+namespace scn {
 	class Model;
 }
 
