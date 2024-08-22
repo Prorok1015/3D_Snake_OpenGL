@@ -6,6 +6,8 @@
 
 #include <timer.hpp>
 
+#include <camera/scene_camera.h>
+
 gs::renderer_3d::renderer_3d()
 	: rnd::renderer_base(1) 
 {
@@ -53,7 +55,7 @@ gs::renderer_3d::renderer_3d()
 
 void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
-	if (!camera || (camera && camera->aspect < 0.01f)) {
+	if (!camera || (camera && camera->window_size == glm::zero<glm::ivec2>())) {
 		return;
 	}
 
@@ -71,11 +73,40 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
 	drv->set_viewport(camera->get_viewport());
 
-	// render the loaded model
+	// render
 	for (auto& model : scene_objects) {
 		draw(model, drv);
 	}
 
+}
+
+void gs::renderer_3d::draw_line(rnd::driver::driver_interface* drv)
+{
+    //auto shader = rnd::get_system().get_shader_manager().use("scene");
+    //glm::mat4 lineModel = camera->transform.to_matrix();
+    //shader.uniform("model", /*lineModel * */glm::scale(glm::translate(glm::mat4{ 1 }, glm::vec3{ 0 }), glm::vec3{ 1 }));
+
+    //res::Vertex line[2];
+    //line[0].position_ = { 0.f, 0.f, 0.f };
+    //line[1].position_ = { 0.f, 50.f, 0.f };
+
+    //line[1].position_ = camera->transform.get_pos();
+    ////line[1].position_ = /*camera->transform.get_pos() + */(camera->transform.back() * 50.f);
+
+    //vertex_array->bind();
+    //vertex_buffer->set_data(line, 2 * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
+    //vertex_array->set_index_buffer(index_buffer);
+
+    //drv->set_activate_texture(0);
+    //rnd::get_system().get_texture_manager().require_texture(res::Tag::make("__black"))->bind();
+
+    //// draw mesh
+    //drv->draw_elements(rnd::RENDER_MODE::LINE, 2);
+
+    //// always good practice to set everything back to defaults once configured.
+    //drv->set_activate_texture(0);
+
+    //vertex_array->unbind();
 }
 
 void gs::renderer_3d::draw(scene::Model& val, rnd::driver::driver_interface* drv)

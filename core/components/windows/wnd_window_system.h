@@ -11,8 +11,8 @@ namespace wnd
 	public:
 		WindowSystem();
 		~WindowSystem();
-		WindowSystem(WindowSystem&&) = default;
-		WindowSystem& operator= (WindowSystem&&) = default;
+		WindowSystem(WindowSystem&&) = delete;
+		WindowSystem& operator= (WindowSystem&&) = delete;
 		WindowSystem(const WindowSystem&) = delete;
 		WindowSystem& operator= (const WindowSystem&) = delete;
 
@@ -22,7 +22,7 @@ namespace wnd
 		bool is_stop_running();
 
 		void init_windows_frame_time() const;
-		void produce_windows() const;
+		void process_windows() const;
 
 	private:
 		std::shared_ptr<window> make_window(); 

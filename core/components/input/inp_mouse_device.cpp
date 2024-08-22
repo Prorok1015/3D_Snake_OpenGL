@@ -15,9 +15,15 @@ namespace {
 
 void inp::MouseDevice::on_mouse_move(double xpos, double ypos)
 {
-	prev_position_ = position_;
-	position_ = { xpos, ypos };
-	//egLOG("", "Mouse pos x:{}, y:{}; prev x:{}, y:{}", position_.x, position_.y, prev_position_.x, prev_position_.y);
+	prev_position = position;
+	position = { xpos, ypos };
+	//egLOG("", "Mouse pos x:{}, y:{}; prev x:{}, y:{}", position.x, position.y, prev_position.x, prev_position.y);
+}
+
+void inp::MouseDevice::on_mouse_scroll(double xpos, double ypos)
+{
+	scroll_direction = { xpos, ypos };
+	//egLOG("", "Mouse pos x:{}, y:{}; prev x:{}, y:{}", position.x, position.y, prev_position.x, prev_position.y);
 }
 
 void inp::MouseDevice::on_mouse_button_action(int button, int action, int mode)

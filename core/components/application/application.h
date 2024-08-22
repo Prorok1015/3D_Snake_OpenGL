@@ -10,21 +10,13 @@ namespace application
 	public:
 		Application();
 		virtual ~Application();
-		Application(Application&&) = default;
-		Application& operator= (Application&&) = default;
+		Application(Application&&) = delete;
+		Application& operator= (Application&&) = delete;
 		Application(const Application&) = delete;
 		Application& operator= (const Application&) = delete;
 
 		virtual int run();
 
-		void set_clear_color(const glm::vec4& clear_color) {
-			clear_color_ = clear_color;
-		}
-
-		const glm::vec4& get_clear_color() const { return clear_color_; }
-
-	private:
-		glm::vec4 clear_color_ = { 0.45f, 0.55f, 0.60f, 1.00f };
 	};
 
 	Application& get_app_system();

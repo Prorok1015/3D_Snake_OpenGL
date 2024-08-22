@@ -22,18 +22,15 @@ application::Application::~Application()
 int application::Application::run()
 {
 	auto& window_system_ref = wnd::get_system();
-	//TODO move to renderer
-	rnd::get_system().clear_color(clear_color_);
 
 	window_system_ref.init_windows_frame_time();
 
 	while (!window_system_ref.is_stop_running()) {
-		//TODO move to input system
 		inp::get_system().process_input(window_system_ref.get_active_window()->get_delta());
 		 
-		rnd::get_system().produce_renderers();
+		rnd::get_system().process_renderers();
  
-		window_system_ref.produce_windows();
+		window_system_ref.process_windows();
 	}
 
 	return 0;

@@ -65,10 +65,8 @@ bool editor::EditorSystem::show_toolbar()
 		ImGui::Text("Scene");
 		ImGui::Separator();
 
-		ImGui::Checkbox("Is Draw Scene Net", &is_draw_scene_net);
-
 		ImGui::InputText("Name", buf, 64);
-		if (ImGui::Button("Reload")) {
+		if (ImGui::Button("Add model")) {
 			gs::get_system().load_model(buf);
 		}
 		static int cube_count_add = 1;

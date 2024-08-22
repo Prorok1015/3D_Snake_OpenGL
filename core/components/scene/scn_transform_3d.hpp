@@ -14,26 +14,18 @@ namespace scene {
 		Transform& operator= (const Transform&) = default;
 		Transform& operator= (Transform&&) = default;
 
-		glm::vec3 forward() const { return glm::rotate(get_orientation(), glm::vec3(0.0f, 0.0f, -1.0f)); }
+		glm::vec3 forward() const { return glm::rotate(get_orientation(), glm::vec3(0.0f, 0.0f, 1.0f)); }
 		glm::vec3 back() const { return -forward(); }
 		glm::vec3 right() const { return glm::rotate(get_orientation(), glm::vec3(1.0f, 0.0f, 0.0f)); }
 		glm::vec3 left() const { return -right(); }
 		glm::vec3 up() const { return glm::rotate(get_orientation(), glm::vec3(0.0f, 1.0f, 0.0f)); }
 		glm::vec3 down() const { return -up(); }
 
-		glm::mat4 get_view() const {
-
-			glm::quat orientation = get_orientation();
-			auto m_ViewMatrix = glm::toMat4(orientation) * glm::translate(glm::mat4(1.0f), pos);
-			return glm::inverse(m_ViewMatrix);
-		}
-
-		glm::mat4 get_transform() const {
-			glm::mat4 result{ 1.f };
-			result = glm::translate(result, pos);
-			result = glm::rotate(result, roll, glm::vec3(0, 0, 1));
-			result = glm::rotate(result, yaw, glm::vec3(0, 1, 0));
-			result = glm::rotate(result, pitch, glm::vec3(1, 0, 0));
+		glm::mat4 to_matrix() const {
+			glm::mat4 result{ 1.0 };
+			result *= glm::translate(glm::mat4(1.0), get_pos());
+			result *= glm::toMat4(get_orientation());
+			result *= glm::scale(glm::mat4(1.0), get_scale());
 			return result;
 		}
 
@@ -52,9 +44,9 @@ namespace scene {
 		}
 
 		void look_at(glm::vec3 at) {
-			auto tf = glm::lookAt(pos, at, up());
+			auto tf = glm::lookAt(pos, at, down());
 
-			orintation = glm::eulerAngles(glm::quat_cast(glm::inverse(tf)));
+			orintation = glm::eulerAngles(glm::quat_cast(inverse(tf)));
 		}
 
 		float get_pitch() const { return pitch; }
@@ -68,6 +60,9 @@ namespace scene {
 
 		glm::vec3 get_pos() const { return pos; }
 		void set_pos(glm::vec3 val) { pos = val; }
+
+		glm::vec3 get_scale() const { return scale; }
+		void set_scale(glm::vec3 val) { scale = val; }
 
 		glm::quat get_orientation() const {
 			return glm::quat(orintation);
@@ -84,7 +79,7 @@ namespace scene {
 			glm::vec3 orintation{ 0 };
 		};
 
-		glm::vec3 scale{ 0 };
+		glm::vec3 scale{ 1 };
 		glm::vec3 pos{ 0 };
 	};
 

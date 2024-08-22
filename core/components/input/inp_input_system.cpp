@@ -23,6 +23,8 @@ void inp::InputSystem::process_input(float dt)
 			inp_mng->on_notify_listeners(dt);
 		}
 	}
+
+	mouse.clear_scroll();
 }
 
 void inp::InputSystem::activate_manager(std::weak_ptr<input_manager_base> inp_manager)

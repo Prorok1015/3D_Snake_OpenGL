@@ -18,7 +18,7 @@ namespace rnd
 		std::shared_ptr<Texture> generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data) const;
 
 	protected:
-		mutable std::unordered_map<res::Tag, std::unique_ptr<driver::texture_interface>, res::Tag::hash> _cache;
+		mutable std::unordered_map<res::Tag, std::unique_ptr<driver::texture_interface>, res::Tag::hash> cache;
 		driver::driver_interface* drv = nullptr;
 	};
 

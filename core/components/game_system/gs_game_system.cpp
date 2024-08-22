@@ -29,8 +29,7 @@ gs::GameSystem::GameSystem()
 	input = std::make_shared<inp::InputManager>();
 	inp::get_system().activate_manager(input);
 
-	camera = std::make_shared<snakeengine::MouseCamera>(glm::vec3(4, 15, 80), window->get_size());
-	camera->look_at(glm::vec3{ 0 });
+	camera = std::make_shared<snakeengine::MouseCamera>(glm::vec3(4, 0, 20), window->get_size());
 	camera->enable_input_actions(input);
 
 	renderer = std::make_shared<renderer_3d>();
@@ -66,7 +65,7 @@ void gs::GameSystem::load_model(std::string_view path)
 
 	auto& m = renderer->scene_objects.back();
 	m.model = glm::translate(m.model, glm::vec3{ rand_pos.x, 1.f, rand_pos.y });
-	m.model = glm::scale(m.model, glm::vec3{ std::abs(rand_pos.x) });
+	m.model = glm::scale(m.model, glm::vec3{ std::abs(cube_scale) });
 }
 
 void gs::GameSystem::reload_shaders()

@@ -19,6 +19,11 @@ namespace {
         }
     }
 
+    void device_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
+        inp::InputSystem& inpSys = inp::get_system();
+        inpSys.mouse.on_mouse_scroll(xoffset, yoffset);
+    }
+
     void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
         auto& wndCreator = wnd::get_system();
 
@@ -79,6 +84,7 @@ std::shared_ptr<wnd::window> wnd::WindowSystem::make_window()
     glfwSetKeyCallback(wid, key_callback);
     glfwSetWindowSizeCallback(wid, window_size_callback);
     glfwSetMouseButtonCallback(wid, mouse_button_callback);
+    glfwSetScrollCallback(wid, device_scroll_callback);
     glfwSetCursorPosCallback(wid, cursor_position_callback);
     glfwSetWindowRefreshCallback(wid, window_refresh_callback);
     glfwSetWindowPosCallback(wid, window_move_callback);
@@ -102,7 +108,7 @@ void wnd::WindowSystem::init_windows_frame_time() const
     }
 }
 
-void wnd::WindowSystem::produce_windows() const
+void wnd::WindowSystem::process_windows() const
 {
     for (const auto& [_, win] : windows_list) {
         win->update_frame();

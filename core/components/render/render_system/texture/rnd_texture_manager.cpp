@@ -2,22 +2,22 @@
 
 std::shared_ptr<rnd::Texture> rnd::TextureManager::require_texture(const res::Tag& tag) const
 {
-	auto it = _cache.find(tag);
-	if (it != _cache.end()) {
+	auto it = cache.find(tag);
+	if (it != cache.end()) {
 		auto& texture = it->second;
 		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
 	}
 
-	auto& texture = _cache[tag] = std::move(rnd::Texture::load(drv, tag));
+	auto& texture = cache[tag] = rnd::Texture::load(drv, tag);
 	return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
 }
 
 std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data) const
 {
-	auto it = _cache.find(tag);
-	if (it != _cache.end()) {
+	auto it = cache.find(tag);
+	if (it != cache.end()) {
 		auto& texture = it->second;
-		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());;
+		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
 	}
 
     driver::texture_header header;
@@ -28,7 +28,7 @@ std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::T
     header.wrap = driver::texture_header::WRAPPING::REPEAT;
     header.min = driver::texture_header::FILTERING::LINEAR_MIPMAP;
     header.mag = driver::texture_header::FILTERING::LINEAR;
-	auto& texture = _cache[tag] = std::move(drv->create_texture(header));
+	auto& texture = cache[tag] = drv->create_texture(header);
     return std::make_shared<Texture>(texture.get(), header.width, header.height);
 }
  

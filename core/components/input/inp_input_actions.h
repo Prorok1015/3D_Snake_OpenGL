@@ -26,84 +26,87 @@ namespace inp
 		virtual void update(float dt)
 		{
 			InputSystem& inpSys = inp::get_system();
-			const auto& action = inpSys.get_key_state(tag_);
+			const auto& action = inpSys.get_key_state(button);
 
 			if (action.action == inp::KEY_ACTION::DOWN) {
-				actual_time += dt;
+				action_time += dt;
 			}
 
 			if (action.action == inp::KEY_ACTION::UP) {
-				if (actual_time > 0.f && actual_time < activate_time) {
-					onAction(dt);
+				if (action_time > 0.f && action_time < START_CLICK_TIME) {
+					on_action(dt);
 				}
-				actual_time = 0.f;
+				action_time = 0.f;
 			}
 		}
 
 	private:
 		template <typename HANDLER>
 		InputActionClickT(KEY_BUTTON tag, HANDLER&& callback)
-			: tag_(tag)
+			: button(tag)
 		{
-			onAction += callback;
+			on_action += callback;
 		}
 
 
 	public:
-		Event<void(float)> onAction;
-		KEY_BUTTON tag_;
-		float actual_time = 0.f;
+		Event<void(float)> on_action;
+		KEY_BUTTON button;
+		float action_time = 0.f;
 
-		static constexpr float activate_time = 0.2f;
+		static constexpr float START_CLICK_TIME = 0.2f;
 	};
 
-	//template<typename KEY_BUTTON>
-	//class InputAction : public InputActionBase
-	//{
-	//public:
-	//	~InputAction() = default;
-	//	template <typename KB, typename HANDLER>
-	//	static auto create(KB tag, HANDLER&& callback)
-	//	{
-	//		return std::shared_ptr<InputAction<KB>>(new InputAction<KB>(tag, std::forward<HANDLER>(callback)));
-	//	}
+	template<typename KEY_BUTTON>
+	class InputAction : public InputActionBase
+	{
+	public:
+		~InputAction() = default;
+		template <typename KB, typename HANDLER>
+		static auto create(KB tag, HANDLER&& callback)
+		{
+			return std::shared_ptr<InputAction<KB>>(new InputAction<KB>(tag, std::forward<HANDLER>(callback)));
+		}
 
-	//	virtual void update(float dt)
-	//	{
-	//		InputSystem& inpSys = inp::get_system();
-	//		const auto& action = inpSys.keyboard.get_key(tag_);
-	//		if (action.action == inp::KEY_ACTION::DOWN) {
-	//			actual_time += dt;
-	//			actual_step_time += dt;
+		virtual void update(float dt)
+		{
+			InputSystem& inpSys = inp::get_system();
+			const auto& action = inpSys.get_key_state(button);
 
-	//			if (actual_time > activate_time && actual_step_time > step_time) {
-	//				onAction(dt);
-	//				actual_step_time = 0.f;
-	//			}
-	//		}
+			if (action.action == inp::KEY_ACTION::DOWN) {
+				action_time += dt;
+				action_hold_time += dt;
 
-	//		if (action.action == inp::KEY_ACTION::UP) {
-	//			actual_time = 0.f;
-	//			actual_step_time = -activate_time;
-	//		}
-	//	}
-	//private:
-	//	template <typename HANDLER>
-	//	InputAction(KEY_BUTTON tag, HANDLER&& callback)
-	//		: tag_(tag)
-	//	{
-	//		onAction += callback;
-	//	}
+				if (action_time - dt < 0.0001f){
+					on_action(dt, inp::KEY_ACTION::DOWN);
+				} else if (action_time > STARTS_HOLD_TIME && action_hold_time > REPEAT_HOLD_TIME) {
+					action_hold_time = 0.f;
+					on_action(dt, inp::KEY_ACTION::NONE);
+				}
+			}
 
+			if (action.action == inp::KEY_ACTION::UP) {
+				action_time = 0.f;
+				action_hold_time = -STARTS_HOLD_TIME;
+				on_action(dt, inp::KEY_ACTION::UP);
+			}
+		}
+	private:
+		template <typename HANDLER>
+		InputAction(KEY_BUTTON button_tag, HANDLER&& callback)
+			: button(button_tag)
+		{
+			on_action += callback;
+		}
 
-	//public:
-	//	Event<void(float)> onAction;
-	//	KEY_BUTTON tag_;
-	//	float actual_time = 0.f;
-	//	float actual_step_time = -activate_time;
-	//	static constexpr float step_time = 0.f;
-	//	static constexpr float activate_time = 0.2f;
-	//};
+	public:
+		Event<void(float, inp::KEY_ACTION)> on_action;
+		KEY_BUTTON button;
+		float action_time = 0.f;
+		float action_hold_time = -STARTS_HOLD_TIME;
+		static constexpr float REPEAT_HOLD_TIME = 0.f;
+		static constexpr float STARTS_HOLD_TIME = 0.2f;
+	};
 
 	template<typename KEY_BUTTON>
 	class InputActionHoldT : public InputActionBase
@@ -119,13 +122,13 @@ namespace inp
 		virtual void update(float dt)
 		{
 			InputSystem& inpSys = inp::get_system();
-			const auto& action = inpSys.get_key_state(tag_);
+			const auto& action = inpSys.get_key_state(button);
 			if (action.action == inp::KEY_ACTION::DOWN) {
 				actual_time += dt;
 				actual_step_time += dt;
 
 				if (actual_time > activate_time && actual_step_time > step_time) {
-					onAction(dt);
+					on_action(dt);
 					actual_step_time = 0.f;
 				}
 			}
@@ -139,15 +142,15 @@ namespace inp
 	private:
 		template <typename HANDLER>
 		InputActionHoldT(KEY_BUTTON tag, HANDLER&& callback)
-			: tag_(tag)
+			: button(tag)
 		{
-			onAction += callback;
+			on_action += callback;
 		}
 
 
 	public:
-		Event<void(float)> onAction;
-		KEY_BUTTON tag_;
+		Event<void(float)> on_action;
+		KEY_BUTTON button;
 		float actual_time = 0.f;
 		float actual_step_time = -activate_time;
 		static constexpr float step_time = 0.f;
@@ -169,12 +172,35 @@ namespace inp
 	private:
 		template <typename HANDLER>
 		InputActionMouseMove(HANDLER&& callback) {
-			onAction += callback;
+			on_action += callback;
 		}
 
 	private:
-		Event<void(glm::vec2, glm::vec2)> onAction;
-		glm::vec2 position{ 0.f };
+		Event<void(glm::vec2, glm::vec2)> on_action;
+		glm::vec2 last_position{ 0.f };
+	};
+
+	class InputMouseWhell : public InputActionBase
+	{
+	public:
+		~InputMouseWhell() = default;
+		template <typename HANDLER>
+		static std::shared_ptr<InputMouseWhell> create(HANDLER&& callback)
+		{
+			return std::shared_ptr<InputMouseWhell>(new InputMouseWhell(std::forward<HANDLER>(callback)));
+		}
+
+		virtual void update(float dt);
+
+	private:
+		template <typename HANDLER>
+		InputMouseWhell(HANDLER&& callback) {
+			on_action += callback;
+		}
+
+	private:
+		Event<void(glm::vec2, glm::vec2)> on_action;
+		glm::vec2 last_position{ 0.f };
 	};
 }
  

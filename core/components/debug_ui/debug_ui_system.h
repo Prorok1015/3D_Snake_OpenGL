@@ -20,8 +20,8 @@ namespace dbg_ui
 		DebugUiSystem();
 		~DebugUiSystem();
 
-		DebugUiSystem(DebugUiSystem&&) = default;
-		DebugUiSystem& operator= (DebugUiSystem&&) = default;
+		DebugUiSystem(DebugUiSystem&&) = delete;
+		DebugUiSystem& operator= (DebugUiSystem&&) = delete;
 
 		DebugUiSystem(const DebugUiSystem&) = delete;
 		DebugUiSystem& operator= (const DebugUiSystem&) = delete;

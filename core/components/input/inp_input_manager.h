@@ -29,6 +29,14 @@ namespace inp
 		bool get_is_enabled() const { return is_enabled; }
 
 		template<typename KB, typename HANDLER>
+		std::shared_ptr<InputActionBase> create_action(KB&& tag, HANDLER&& callback)
+		{
+			auto handler = InputAction<KB>::create(tag, std::forward<HANDLER>(callback));
+			registrate(handler);
+			return handler;
+		}
+
+		template<typename KB, typename HANDLER>
 		std::shared_ptr<InputActionBase> create_click_action(KB&& tag, HANDLER&& callback)
 		{
 			auto handler = InputActionClickT<KB>::create(tag, std::forward<HANDLER>(callback));
@@ -48,6 +56,14 @@ namespace inp
 		std::shared_ptr<InputActionBase> create_mouse_move_action(HANDLER&& callback)
 		{
 			auto handler = InputActionMouseMove::create(std::forward<HANDLER>(callback));
+			registrate(handler);
+			return handler;
+		}
+
+		template<typename HANDLER>
+		std::shared_ptr<InputActionBase> create_mouse_scroll_action(HANDLER&& callback)
+		{
+			auto handler = InputMouseWhell::create(std::forward<HANDLER>(callback));
 			registrate(handler);
 			return handler;
 		}

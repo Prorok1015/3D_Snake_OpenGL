@@ -28,7 +28,7 @@ void scene::Model::loadModel(std::string_view path)
     res_ = res::get_system().require_resource<res::Model>(res::Tag::make(path));
     meshes.clear();
     for (const auto& mesh : res_->get_meshes()) {
-        meshes.push_back(Mesh{ mesh.vertexes_, mesh.indeces_, mesh.textures_.front().tag_/*make_texture(mesh.textures_)*/ });
+        meshes.push_back(Mesh{ mesh.vertexes_, mesh.indeces_, mesh.textures_.empty() ? res::Tag::make("__black") : mesh.textures_.front().tag_});
     }
 }
 

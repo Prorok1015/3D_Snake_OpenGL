@@ -16,8 +16,8 @@ namespace resource
 		~ResourceSystem() = default;
 		ResourceSystem(const ResourceSystem&) = delete;
 		ResourceSystem& operator= (const ResourceSystem&) = delete;
-		ResourceSystem(ResourceSystem&&) = default;
-		ResourceSystem& operator= (ResourceSystem&&) = default;
+		ResourceSystem(ResourceSystem&&) = delete;
+		ResourceSystem& operator= (ResourceSystem&&) = delete;
 
 		template<class RESOURCE>
 		std::shared_ptr<RESOURCE> require_resource(const Tag& tag, bool hard_reload = false)

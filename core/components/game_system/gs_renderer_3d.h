@@ -22,7 +22,7 @@ namespace gs
 
 		void draw(scene::Model& val, rnd::driver::driver_interface* drv);
 		void draw(scene::Mesh& mesh, rnd::driver::driver_interface* drv);
-
+		void draw_line(rnd::driver::driver_interface* drv);
 	public:
 		camera_static* camera = nullptr;
 		std::vector<scene::Model> scene_objects;
