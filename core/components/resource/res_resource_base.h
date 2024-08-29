@@ -1,7 +1,7 @@
 #pragma once
 #include "res_resource_tag.h"
 
-namespace resource
+namespace res
 {
 	class Resource
 	{
@@ -16,5 +16,3 @@ namespace resource
 
 	using RecourceRef = std::shared_ptr<Resource>;
 }
-
-namespace res = resource;

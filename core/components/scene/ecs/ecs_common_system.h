@@ -5,6 +5,8 @@ namespace ecs
 {
 	entity create_entity();
 
+	void remove_entity(entity ent);
+
 	template<typename COMPONENT>
 	bool is_able_component(entity ent);
 
@@ -15,6 +17,9 @@ namespace ecs
 	COMPONENT* add_component(entity ent, COMPONENT component);
 
 	template<typename COMPONENT>
+	void remove_component(entity ent);
+
+	template<typename... COMPONENTS>
 	std::vector<entity> filter();
 }
 

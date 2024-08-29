@@ -11,6 +11,8 @@
 #include <res_resource_system.h>
 
 #include <rnd_render_system.h>
+#include <ecs/ecs_common_system.h>
+
 #include <timer.hpp>
 #include <glm/gtc/random.hpp>
 
@@ -32,10 +34,6 @@ gs::GameSystem::GameSystem()
 	rnd::get_system().activate_renderer(renderer);
 
 	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
-	input->create_click_action(inp::KEYBOARD_BUTTONS::TAB, [this](float) {
-		renderer->camera->set_enabled(!renderer->camera->get_is_enabled());
-		window->set_cursor_mode(renderer->camera->get_is_enabled() ? CursorMode::Disable : CursorMode::Normal);
-	});
 }
 
 gs::GameSystem::~GameSystem()
@@ -47,17 +45,21 @@ gs::GameSystem::~GameSystem()
 void gs::GameSystem::set_enable_input(bool enable)
 {
 	input->set_enabled(enable);
-	window->set_cursor_mode(renderer->camera->get_is_enabled() ? CursorMode::Disable : CursorMode::Normal);
 }
 
 void gs::GameSystem::load_model(std::string_view path)
 {
-	renderer->scene_objects.push_back(scn::Model(path));
+	scn::Model m(path);
 	auto rand_pos = glm::diskRand(20.f);
-
-	auto& m = renderer->scene_objects.back();
 	m.model = glm::translate(m.model, glm::vec3{ rand_pos.x, 1.f, rand_pos.y });
 	m.model = glm::scale(m.model, glm::vec3{ std::abs(rand_pos.x) });
+
+	ecs::entity obj = ecs::create_entity();
+	ecs::add_component(obj, scn::model_comonent{ m.meshes });
+	ecs::add_component(obj, glm::mat4{ m.model });
+	ecs::add_component(obj, scn::is_render_component_flag{});
+
+	renderer->scene_objects.push_back(obj);
 }
 
 void gs::GameSystem::reload_shaders()
@@ -68,12 +70,17 @@ void gs::GameSystem::reload_shaders()
 void gs::GameSystem::add_cube_to_scene(float radius)
 {
 	static bool is_gen_cube = true;
-	renderer->scene_objects.push_back(is_gen_cube ? generate_cube() : generate_sphere());
+	scn::Model m = is_gen_cube ? generate_cube() : generate_sphere();
 	is_gen_cube = !is_gen_cube;
-	auto rand_pos = glm::diskRand(radius);
-
-	auto& m = renderer->scene_objects.back();
+	glm::vec2 rand_pos = glm::diskRand(radius);
 	m.model = glm::translate(m.model, glm::vec3{ rand_pos.x, 1.f, rand_pos.y });
+
+	ecs::entity obj = ecs::create_entity();
+	ecs::add_component(obj, scn::model_comonent{ m.meshes });
+	ecs::add_component(obj, glm::mat4{ m.model });
+	ecs::add_component(obj, scn::is_render_component_flag{});
+
+	renderer->scene_objects.push_back(obj);
 }
 
 void gs::GameSystem::remove_cube()
@@ -81,6 +88,8 @@ void gs::GameSystem::remove_cube()
 	if (renderer->scene_objects.empty()) {
 		return;
 	}
+
+	ecs::remove_entity(renderer->scene_objects.back());
+
 	renderer->scene_objects.pop_back();
 }
-

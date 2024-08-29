@@ -3,7 +3,7 @@
 
 #include <numeric>
 
-scn::Model generate_network(glm::ivec2 size)
+scn::Model generate_web(glm::ivec2 size)
 {
     std::vector<res::Vertex> vex;
     std::vector<unsigned int> inc;

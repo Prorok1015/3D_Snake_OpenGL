@@ -3,6 +3,7 @@
 #include <rnd_vertex_array_interface.h>
 #include <rnd_buffer_interface.h>
 #include <rnd_render_system.h>
+#include <ecs/ecs_common_system.h>
 
 #include <timer.hpp>
 
@@ -25,7 +26,7 @@ gs::renderer_3d::renderer_3d()
             {rnd::driver::ShaderDataType::Int4,   "bones"},
             {rnd::driver::ShaderDataType::Float4, "bones_weight"},
         }
-        );
+    );
 
     vertex_array->add_vertex_buffer(vertex_buffer);
 
@@ -53,28 +54,49 @@ gs::renderer_3d::renderer_3d()
 
 void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
-	if (!camera || (camera && camera->get_viewport() == glm::zero<glm::ivec4>())) {
-		return;
-	}
+    drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
 
-    drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
-    drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
+    rnd::GlobalUniform common_matrix{ .time = (float)Timer::now() };
 
-    rnd::GlobalUniform val
+    for (ecs::entity& ent : ecs::filter<rnd::camera_component, scn::is_render_component_flag>())
     {
-        .projection = camera->projection(),
-        .view = camera->view(),
-        .time = (float)Timer::now()
-    };
+        rnd::camera_component* camera = ecs::get_component<rnd::camera_component>(ent);
+        if (camera->viewport[2] == 0 || camera->viewport[3] == 0) {
+            continue;
+        }
 
-    rnd::get_system().get_shader_manager().update_global_uniform(val);
+        common_matrix.projection = rnd::make_projection(*camera);
+        common_matrix.view = rnd::make_view(*camera);
 
-	drv->set_viewport(camera->get_viewport());
+        rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
 
-	// render
-	for (auto& model : scene_objects) {
-		draw(model, drv);
-	}
+        drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
+        drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
+
+	    drv->set_viewport(camera->viewport);
+
+        auto shader = rnd::get_system().get_shader_manager().use("scene");
+
+        for (auto ent : ecs::filter<scn::is_render_component_flag, scn::model_comonent, glm::mat4>()) {
+            auto* model = ecs::get_component<glm::mat4>(ent);
+            shader.uniform("model", *model);
+
+            rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
+
+            if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
+                rnd::get_system().set_render_mode(rnd_mode->mode);
+            }
+
+            auto* meshes = ecs::get_component<scn::model_comonent>(ent);
+            for (auto& mesh : meshes->meshes) {
+                draw(mesh, drv);
+            }
+
+            rnd::get_system().set_render_mode(tmp);
+
+        }
+    }
+
 
 }
 
@@ -145,3 +167,4 @@ void gs::renderer_3d::draw(scn::Mesh& mesh, rnd::driver::driver_interface* drv)
 
     vertex_array->unbind();
 }
+

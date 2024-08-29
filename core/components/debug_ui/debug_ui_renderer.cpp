@@ -12,8 +12,11 @@ dbg_ui::renderer::renderer()
 void dbg_ui::renderer::on_render(rnd::driver::driver_interface* drv)
 {
 	// Start the Dear ImGui frame
+	//TODO: maybe Call once on init?
 	ImGui_ImplOpenGL3_NewFrame();
+	//TODO: move to input update step
 	ImGui_ImplGlfw_NewFrame();
+	//TODO: this too
 	ImGui::NewFrame();
 
 	render_event();

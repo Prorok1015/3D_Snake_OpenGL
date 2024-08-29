@@ -2,7 +2,7 @@
 #include <common.h>
 #include "res_resource_base.h"
 
-namespace resource
+namespace res
 {
 	class Picture : public Resource
 	{
@@ -22,5 +22,3 @@ namespace resource
 
 	using ImageRef = std::shared_ptr<Picture>;
 }
-
-namespace res = resource;

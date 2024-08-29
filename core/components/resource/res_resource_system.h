@@ -2,7 +2,7 @@
 #include <common.h>
 #include "res_resource_tag.h"
 
-namespace resource
+namespace res
 {
 	class Resource;
 
@@ -45,5 +45,3 @@ namespace resource
 
 	ResourceSystem& get_system();
 }
-
-namespace res = resource;

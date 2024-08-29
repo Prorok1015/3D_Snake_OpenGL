@@ -6,6 +6,7 @@ namespace ecs
 	class entity
 	{
 	public:
+		entity() = default;
 		entity(std::uint64_t idx)
 			: index(idx) {};
 		~entity() = default;

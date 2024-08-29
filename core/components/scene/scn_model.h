@@ -7,6 +7,14 @@
 
 namespace scn {
 
+    struct model_comonent {
+        std::vector<Mesh> meshes;
+    };
+
+    struct is_render_component_flag {
+
+    };
+
     class Model
     {
     public:

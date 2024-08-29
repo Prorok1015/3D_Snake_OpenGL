@@ -1,16 +1,23 @@
 #include "scn_camera_controller.h"
 #include <wnd_window_system.h>
+#include <ecs/ecs_common_system.h>
 
 scn::mouse_camera_controller::mouse_camera_controller(rnd::camera* camera_)
 	: camera(camera_)
 {
 	anchor.set_pitch(-glm::radians(45.0f));
-	//anchor.set_pos(position);
+	ecs_connected_entity = camera->ecs_entity;
 	calculate_world_matrix();
 }
 
 void scn::mouse_camera_controller::enable_input_actions(inp::InputManagerRef manager)
 {
+	if (is_input_enabled) {
+		return;
+	}
+
+	is_input_enabled = true;
+
 	on_is_rotate_handler = manager->create_action(inp::MOUSE_BUTTONS::RIGHT,
 		std::bind(&mouse_camera_controller::on_is_rotate, this, std::placeholders::_1, std::placeholders::_2));
 	on_is_mouse_handler = manager->create_action(inp::MOUSE_BUTTONS::LEFT,
@@ -19,11 +26,16 @@ void scn::mouse_camera_controller::enable_input_actions(inp::InputManagerRef man
 		std::bind(&mouse_camera_controller::on_mouse_move, this, std::placeholders::_1, std::placeholders::_2));
 	on_mouse_whell_handler = manager->create_mouse_scroll_action(
 		std::bind(&mouse_camera_controller::on_mouse_whell, this, std::placeholders::_1, std::placeholders::_2));
-
 }
 
 void scn::mouse_camera_controller::disable_input_actions(inp::InputManagerRef manager)
 {
+	if (!is_input_enabled) {
+		return;
+	}
+
+	is_input_enabled = false;
+
 	manager->unregistrate(on_is_rotate_handler);
 	manager->unregistrate(on_is_mouse_handler);
 	manager->unregistrate(on_mouse_move_handler);
@@ -73,5 +85,26 @@ void scn::mouse_camera_controller::on_mouse_whell(glm::vec2 cur, glm::vec2)
 
 void scn::mouse_camera_controller::calculate_world_matrix()
 {
-	camera->world = anchor.to_matrix() * glm::translate(glm::mat4(1.0), glm::vec3(0, 0, distance));
+	glm::mat4 world = anchor.to_matrix() * glm::translate(glm::mat4(1.0), glm::vec3(0, 0, distance));
+	ecs::add_component(ecs_connected_entity, update_camera_matrix_component{ .world = world });
+}
+
+void scn::mouse_camera_controller::set_camera(rnd::camera* cam)
+{
+	if (cam) {
+		ecs_connected_entity = cam->ecs_entity;
+		camera = cam;
+	}
+}
+
+void scn::ecs_process_update_camera_matrix()
+{
+	for (auto& ent : ecs::filter<scn::update_camera_matrix_component, rnd::camera_component>())
+	{
+		auto* camera = ecs::get_component<rnd::camera_component>(ent);
+		auto* matr = ecs::get_component<scn::update_camera_matrix_component>(ent);
+		camera->world = matr->world;
+
+		ecs::remove_component<scn::update_camera_matrix_component>(ent);
+	}
 }

@@ -14,8 +14,6 @@ rnd::RenderSystem::RenderSystem(std::unique_ptr<rnd::driver::driver_interface> d
 	, shader_manager(drv.get())
 	, texture_manager(drv.get())
 {
-	//TODO move to renderer
-	enable(driver::ENABLE_FLAGS::DEPTH_TEST);
 }
 
 void rnd::RenderSystem::activate_renderer(std::weak_ptr<renderer_base> renderer_)

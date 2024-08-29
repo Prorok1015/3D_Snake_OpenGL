@@ -3,7 +3,7 @@
 #include <string>
 #include <format>
 
-namespace resource
+namespace res
 {
 	class Tag
 	{
@@ -61,14 +61,12 @@ namespace std {
 	template <typename T> struct hash;
 
 	template<>
-	struct hash<resource::Tag>
+	struct hash<res::Tag>
 	{
-		std::size_t operator()(const resource::Tag& tag) const
+		std::size_t operator()(const res::Tag& tag) const
 		{
 			return tag.get_hash();
 		}
 	};
 
 }
-
-namespace res = resource;

@@ -2,6 +2,7 @@
 #include <wnd_window_system.h>
 #include <rnd_render_system.h>
 #include <inp_input_system.h>
+#include <ecs/ecs_system.h>
 
 app::Application* p_app_system = nullptr;
 
@@ -28,6 +29,8 @@ int application::Application::run()
 	while (!window_system_ref.is_stop_running()) {
 		inp::get_system().process_input(window_system_ref.get_active_window()->get_delta());
 		 
+		ecs::process_systems();
+
 		rnd::get_system().process_renderers();
  
 		window_system_ref.process_windows();

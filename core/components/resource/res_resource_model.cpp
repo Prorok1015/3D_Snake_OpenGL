@@ -7,7 +7,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
-namespace resource::loader {
+namespace res::loader {
     class model_loader
     {
     public:
@@ -133,7 +133,7 @@ namespace resource::loader {
             textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
 
             // return a mesh object created from the extracted mesh data
-            return resource::Mesh{ vertices, indices, textures };
+            return res::Mesh{ vertices, indices, textures };
         }
         std::vector<Material> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName) {
             std::vector<res::Material> textures;
@@ -153,7 +153,7 @@ namespace resource::loader {
     };
 }
 
-resource::Model::Model(const Tag& tag)
+res::Model::Model(const Tag& tag)
 	: Resource(tag)
 {
     meshes_ = loader::model_loader(tag).load();

@@ -1,7 +1,7 @@
 #include "res_resource_tag.h"
 #include <engine_log.h>
 
-resource::Tag resource::operator+ (const resource::Tag& l, const resource::Tag& r)
+res::Tag res::operator+ (const res::Tag& l, const res::Tag& r)
 {
 	if (l == r) {
 		egLOG("resoure/tag", "Even Tags when resource::operator+ (const resource::Tag& l, const resource::Tag& r)");

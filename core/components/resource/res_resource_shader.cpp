@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 
-resource::Shader::Shader(const Tag& tag)
+res::Shader::Shader(const Tag& tag)
 	: Resource(tag)
 {
 	std::string path = ResourceSystem::get_absolut_path(tag);

@@ -2,6 +2,7 @@
 #include <rnd_renderer_base.h>
 #include <scn_model.h>
 #include <camera/rnd_camera.h>
+#include <ecs/ecs_entity.h>
 
 namespace rnd::driver
 {
@@ -24,10 +25,10 @@ namespace gs
 		void draw(scn::Mesh& mesh, rnd::driver::driver_interface* drv);
 		void draw_line(rnd::driver::driver_interface* drv);
 	public:
-		std::shared_ptr<rnd::camera> camera = nullptr;
-		std::vector<scn::Model> scene_objects;
+		std::vector<ecs::entity> scene_objects;
 		std::shared_ptr<rnd::driver::vertex_array_interface> vertex_array;
 		std::shared_ptr<rnd::driver::buffer_interface> vertex_buffer;
 		std::shared_ptr<rnd::driver::buffer_interface> index_buffer;
 	};
+
 }

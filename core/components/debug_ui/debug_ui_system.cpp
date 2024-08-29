@@ -65,14 +65,19 @@ void dbg_ui::DebugUiSystem::switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_AC
 {
 	if (code == inp::KEYBOARD_BUTTONS::F5 && action == inp::KEY_ACTION::UP)
 	{ 
-		// TODO move switching to other object who known about debug_ui and gs
+
 		gs::get_system().set_enable_input(menu.is_show_main_menu());
 		menu.set_show_main_menu(!menu.is_show_main_menu());
+		ImGui::SetWindowFocus();
 	}
 }
 
 void dbg_ui::DebugUiSystem::set_is_input_enabled(bool enable)
 {
+	if (is_input_enabled == enable) {
+		return;
+	}
+
 	is_input_enabled = enable;
 
 	if (is_input_enabled) {
@@ -121,10 +126,12 @@ void dbg_ui::DebugUiSystem::set_check_callback(const std::string_view path, dbg_
 bool dbg_ui::DebugUiSystem::show_stats()
 {
 	bool is_open = true;
-	if (ImGui::Begin("Hello, world!", &is_open))                      
+	if (ImGui::Begin("Common stats", &is_open, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration))
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+		ImGui::Text("Is hovered %s", ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) ? "true" : "false");
+		ImGui::Text("Is focused %s", ImGui::IsWindowFocused(ImGuiHoveredFlags_AnyWindow) ? "true" : "false");
 		ImGui::End();
 	}
 	return is_open;

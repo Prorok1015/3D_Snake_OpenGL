@@ -2,8 +2,5 @@
 
 namespace ecs
 {
-	struct once_component
-	{
-
-	};
+	void process_systems();
 }

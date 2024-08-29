@@ -2,7 +2,7 @@
 #include <common.h>
 #include "res_resource_base.h"
 
-namespace resource
+namespace res
 {
 	class Shader : public Resource
 	{
@@ -15,5 +15,3 @@ namespace resource
 		std::string body_;
 	};
 }
-
-namespace res = resource;

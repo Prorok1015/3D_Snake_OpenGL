@@ -4,32 +4,16 @@
 
 namespace ecs
 {
-	std::uint64_t get_new_index() {
-		static std::uint64_t next_index = 0;
-		return ++next_index;
-	}	
-	
-	entity create_entity() {
-		return entity(get_new_index());
-	}
+	std::unordered_map<ds::Type::unique_id, std::vector<std::byte>>& get_pool();
+	std::unordered_map<entity, std::vector<std::pair<ds::Type::unique_id, std::size_t>>, entity::hasher>& get_entitis();
 
-	std::unordered_map<ds::Type::unique_id, std::vector<char>>& get_pool() {
-		static std::unordered_map<ds::Type::unique_id, std::vector<char>> pool;
-		return pool;
-	}
-
-	std::unordered_map<entity, std::vector<std::pair<int, std::size_t>>, entity::hasher>& get_entitis() {
-		static std::unordered_map<entity, std::vector<std::pair<int, std::size_t>>, entity::hasher> entitis;
-		return entitis;
-	}
-
-
+	//TODO: separate to two funcs
 	template<typename COMPONENT>
 	bool is_able_component(entity ent) {
-		ds::Type::unique_id com_id = ds::Type::value<COMPONENT>();
+		ds::Type::unique_id able_id = ds::Type::value<COMPONENT>();
 
-		for (auto& [com, offset] : get_entitis()[ent]) {
-			if (com == com_id) {
+		for (auto& [com_id, offset] : get_entitis()[ent]) {
+			if (com_id == able_id) {
 				return true;
 			}
 		}
@@ -43,49 +27,75 @@ namespace ecs
 			return nullptr;
 		}
 
-		ds::Type::unique_id com_id = ds::Type::value<COMPONENT>();
+		ds::Type::unique_id finding_id = ds::Type::value<COMPONENT>();
 
 		std::size_t component_offset = 0;
-		for (auto& [com, offset] : get_entitis()[ent]) {
-			if (com_id == com) {
+		//TODO: make faster
+		for (auto& [com_id, offset] : get_entitis()[ent]) {
+			if (com_id == finding_id) {
 				component_offset = offset;
 				break;
 			}
 		}
 
-		std::vector<char>& components = get_pool()[com_id];
+		std::vector<std::byte>& components = get_pool()[finding_id];
 		return static_cast<COMPONENT*>((void*)(components.data() + component_offset));
 	}
 
 	template<typename COMPONENT>
 	COMPONENT* add_component(entity ent, COMPONENT component) {
-		ds::Type::unique_id com_id = ds::Type::value<COMPONENT>();
-		std::vector<char>& components = get_pool()[com_id];
-		
-		constexpr std::size_t component_size = sizeof(COMPONENT);
-		const std::size_t component_offset = components.size();
-
-		char* pointer = static_cast<char*>((void*)(&component));
-		for (std::size_t i = 0; i < component_size; ++i) {
-			components.push_back(pointer[i]);
+		if (is_able_component<COMPONENT>(ent)) {
+			ASSERT_FAIL("Component '{}' already added to entity '{}'", ds::Type::value<COMPONENT>(), ent.index);
+			return get_component<COMPONENT>(ent);
 		}
 
-		get_entitis()[ent].push_back({ com_id, component_offset });
+		ds::Type::unique_id component_id = ds::Type::value<COMPONENT>();
+		std::vector<std::byte>& component_pool = get_pool()[component_id];
+		
+		const std::size_t new_component_offset = component_pool.size();
+		component_pool.resize(component_pool.size() + sizeof(COMPONENT));
+		new((void*)(component_pool.data() + new_component_offset)) COMPONENT(std::move(component));
 
-		return static_cast<COMPONENT*>((void*)(components.data() + component_offset));
+		get_entitis()[ent].push_back({ component_id, new_component_offset });
+
+		return static_cast<COMPONENT*>((void*)(component_pool.data() + new_component_offset));
 	}
 
+	//TODO: implement func
 	template<typename COMPONENT>
-	std::vector<entity> filter() {
+	void remove_component(entity ent) {
 		ds::Type::unique_id com_id = ds::Type::value<COMPONENT>();
+		auto& components = get_pool()[com_id];
+		auto& entity_mask = get_entitis()[ent];
+
+		//TODO: delete component from pool and recalculate all components offset
+		constexpr std::size_t component_size = sizeof(COMPONENT);
+
+		entity_mask.erase(
+			std::remove_if(entity_mask.begin(), entity_mask.end(), 
+				[com_id](const auto& par) { return par.first == com_id; })
+		);
+	}
+
+	template<typename... COMPONENTS>
+	std::vector<entity> filter() {
+		std::vector<ds::Type::unique_id> components_ids{ ds::Type::value<COMPONENTS>()... };
 		std::vector<entity> result;
 
+		//TODO: make faster
 		for (auto& [ent, components] : get_entitis()) {
-			for (auto& [com, offset] : components) {
-				if (com == com_id) {
-					result.push_back(ent);
-					break;
+			std::size_t count = components_ids.size();
+			for (auto& able_id : components_ids) {
+				for (auto& [com_id, _] : components) {
+					if (able_id == com_id) {
+						--count;
+						break;
+					}
 				}
+			}
+
+			if (count == 0) {
+				result.push_back(ent);
 			}
 		}
 

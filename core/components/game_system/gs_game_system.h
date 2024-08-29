@@ -42,4 +42,5 @@ namespace gs
 	};
 
 	GameSystem& get_system();
+
 }

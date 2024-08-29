@@ -115,7 +115,7 @@ glm::mat4 snakeengine::MouseCamera::view() const
 void snakeengine::MouseCamera::on_mouse_whell(glm::vec2 cur, glm::vec2 prev)
 {
 	distance -= cur.y * 3;
-	distance = std::clamp(distance, 0.f, visible_distance);
+	distance = std::clamp(distance, 0.f, view_distance);
 	transform.set_pos(glm::vec3(0, 0, distance));
 }
 #endif

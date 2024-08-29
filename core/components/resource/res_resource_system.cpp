@@ -4,26 +4,26 @@
 #include "res_resource_model.h"
 #include <engine_log.h>
 
-using namespace resource;
+using namespace res;
 
 ResourceSystem* p_res_system = nullptr;
 
 std::string res_path = RESOURCE_PATH;
 
-resource::ResourceSystem& resource::get_system()
+res::ResourceSystem& res::get_system()
 {
 	ASSERT_MSG(p_res_system, "Resource system is nullptr!");
 	return *p_res_system;
 }
 
-resource::ResourceSystem::ResourceSystem()
+res::ResourceSystem::ResourceSystem()
 {
 	if (res_path.empty()) {
 		ASSERT_MSG(std::filesystem::exists("./res/"), "You should have folder './res/' near by your exe.");
 	}
 }
 
-std::string resource::ResourceSystem::get_absolut_path(const Tag& tag)
+std::string res::ResourceSystem::get_absolut_path(const Tag& tag)
 {
 	std::string tmp_res_path = res_path;
 	if (res_path.empty()) {
@@ -41,7 +41,7 @@ std::string resource::ResourceSystem::get_absolut_path(const Tag& tag)
 	return {};
 }
 
-std::shared_ptr<Resource> resource::ResourceSystem::find_cache(const Tag& tag)
+std::shared_ptr<Resource> res::ResourceSystem::find_cache(const Tag& tag)
 {
 	auto it = std::find_if(cache_.begin(), cache_.end(), [&tag](auto res) { return *res == tag; });
 	if (it != cache_.end()) {

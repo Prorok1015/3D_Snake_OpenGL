@@ -1,7 +1,7 @@
 #pragma once
 #include "shader/rnd_shader_manager.h"
 #include "texture/rnd_texture_manager.h"
-#include "../resource/res_resource_tag.h"
+#include <res_resource_tag.h>
 
 namespace rnd
 {

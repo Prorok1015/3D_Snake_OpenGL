@@ -2,7 +2,7 @@
 #include <common.h>
 #include "res_resource_base.h"
 
-namespace resource
+namespace res
 {
 	class Picture;
 
@@ -41,5 +41,3 @@ namespace resource
 		std::vector<Mesh> meshes_;
 	};
 }
-
-namespace res = resource;
