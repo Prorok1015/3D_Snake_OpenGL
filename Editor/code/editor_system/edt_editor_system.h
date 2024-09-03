@@ -22,9 +22,13 @@ namespace editor
 	private:
 		//char buf[64] = "objects/getaur/scene.gltf";
 		char buf[64] = "objects/backpack/backpack.obj";
+		//char buf[64] = "objects/helicopter/source/helicopter Space ship.glb";
+		//char buf[64] = "objects/Cheeseburger.glb";
 
-		glm::vec4 clear_color_ {1};
+		glm::vec4 clear_color {1};
 		ecs::entity editor_web;
+		ecs::entity light;
+		ecs::entity sky;
 
 		bool is_show_web = true;
 		bool is_inited_ecs_test = false;

@@ -52,11 +52,11 @@ void gs::GameSystem::load_model(std::string_view path)
 	scn::Model m(path);
 	auto rand_pos = glm::diskRand(20.f);
 	m.model = glm::translate(m.model, glm::vec3{ rand_pos.x, 1.f, rand_pos.y });
-	m.model = glm::scale(m.model, glm::vec3{ std::abs(rand_pos.x) });
+	//m.model = glm::scale(m.model, glm::vec3{ std::abs(rand_pos.x) });
 
 	ecs::entity obj = ecs::create_entity();
 	ecs::add_component(obj, scn::model_comonent{ m.meshes });
-	ecs::add_component(obj, glm::mat4{ m.model });
+	ecs::add_component(obj, scn::transform_component{ m.model });
 	ecs::add_component(obj, scn::is_render_component_flag{});
 
 	renderer->scene_objects.push_back(obj);
@@ -77,7 +77,7 @@ void gs::GameSystem::add_cube_to_scene(float radius)
 
 	ecs::entity obj = ecs::create_entity();
 	ecs::add_component(obj, scn::model_comonent{ m.meshes });
-	ecs::add_component(obj, glm::mat4{ m.model });
+	ecs::add_component(obj, scn::transform_component{ m.model });
 	ecs::add_component(obj, scn::is_render_component_flag{});
 
 	renderer->scene_objects.push_back(obj);

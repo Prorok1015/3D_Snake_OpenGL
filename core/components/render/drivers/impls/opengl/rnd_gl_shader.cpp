@@ -15,6 +15,23 @@ void rnd::driver::gl::shader::uniform(std::string_view name, glm::mat4 val)
 	CHECK_GL_ERROR();
 }
 
+
+void rnd::driver::gl::shader::uniform(std::string_view name, glm::vec3 val)
+{
+	GLuint transformLoc = glGetUniformLocation(id, name.data());
+	CHECK_GL_ERROR();
+	glUniform3fv(transformLoc, 1, glm::value_ptr(val));
+	CHECK_GL_ERROR();
+}
+
+void rnd::driver::gl::shader::uniform(std::string_view name, glm::vec2 val)
+{
+	GLuint transformLoc = glGetUniformLocation(id, name.data());
+	CHECK_GL_ERROR();
+	glUniform2fv(transformLoc, 1, glm::value_ptr(val));
+	CHECK_GL_ERROR();
+}
+
 void rnd::driver::gl::shader::uniform(std::string_view name, int val)
 {
 	glUniform1i(glGetUniformLocation(id, name.data()), val);

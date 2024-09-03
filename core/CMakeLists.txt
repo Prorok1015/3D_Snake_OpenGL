@@ -20,5 +20,5 @@ add_subdirectory("components/windows")
 project(core_exe)
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(core_exe main.cpp)
+add_executable(core_exe main.cpp "components/render/drivers/interface/rnd_cubemap_interface.h")
 target_link_libraries(core_exe application)

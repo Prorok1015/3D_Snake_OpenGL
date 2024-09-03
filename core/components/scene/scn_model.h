@@ -11,6 +11,10 @@ namespace scn {
         std::vector<Mesh> meshes;
     };
 
+    struct transform_component {
+        glm::mat4 world;
+    };
+
     struct is_render_component_flag {
 
     };

@@ -8,6 +8,11 @@
 #include <scn_primitives.h>
 #include <camera/rnd_camera.h>
 #include <ecs/ecs_common_system.h>
+#include <scn_primitives.h>
+
+#include <light/rnd_light_point.h>
+#include <sky/rnd_cubemap.h>
+
 #include <imgui.h>
 
 editor::EditorSystem::EditorSystem()
@@ -56,9 +61,29 @@ editor::EditorSystem::EditorSystem()
 
 	editor_web = ecs::create_entity();
 	ecs::add_component(editor_web, scn::model_comonent{ web.meshes });
-	ecs::add_component(editor_web, glm::mat4{ web.model });
+	ecs::add_component(editor_web, scn::transform_component{ web.model });
 	ecs::add_component(editor_web, scn::is_render_component_flag{});
 	ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});
+
+	light = ecs::create_entity();
+	ecs::add_component(light, rnd::light_point{ .light_color = glm::vec3(1.0) });
+	ecs::add_component(light, scn::transform_component{ .world = glm::translate(glm::mat4{1.0}, glm::vec3(50, 50, 50)) });
+	scn::Model m = generate_sphere();
+	ecs::add_component(light, scn::model_comonent{ m.meshes });
+	ecs::add_component(light, scn::is_render_component_flag{});
+
+	sky = ecs::create_entity();
+	ecs::add_component(sky, rnd::cubemap_component{ rnd::get_system().get_texture_manager().require_cubemap_texture({
+		res::Tag::make("skybox/right.jpg"),
+		res::Tag::make("skybox/left.jpg"),
+		res::Tag::make("skybox/bottom.jpg"),
+		res::Tag::make("skybox/top.jpg"),
+		res::Tag::make("skybox/back.jpg"),
+		res::Tag::make("skybox/front.jpg"),
+		}) 
+	});
+	ecs::add_component(sky, scn::is_render_component_flag{});
+
 }
 
 
@@ -78,8 +103,8 @@ bool editor::EditorSystem::show_toolbar()
 		auto& app = app::get_app_system();
 		ImGui::Text("Common");
 		ImGui::Separator();
-		ImGui::ColorEdit4("Clear color", glm::value_ptr(clear_color_));
-		rnd::get_system().get_driver()->set_clear_color(clear_color_);
+		ImGui::ColorEdit4("Clear color", glm::value_ptr(clear_color));
+		rnd::get_system().get_driver()->set_clear_color(clear_color);
 		ImGui::Separator();
 		ImGui::NewLine();
 
@@ -88,6 +113,27 @@ bool editor::EditorSystem::show_toolbar()
 
 		if (ImGui::Button("Reload Shaders")) {
 			gs::get_system().reload_shaders();
+		}
+		ImGui::Separator();
+		ImGui::NewLine();
+		ImGui::Text("Light");
+		ImGui::Separator();
+		{
+			for (auto& ent : ecs::filter<rnd::light_point, scn::transform_component>()) {
+
+				ImGui::ColorEdit3("Light color", glm::value_ptr(ecs::get_component<rnd::light_point>(ent)->light_color));
+
+				eng::transform3d ct{ ecs::get_component<scn::transform_component>(ent)->world };
+				ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
+				auto pos = ct.get_pos();
+				ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
+				glm::vec3 vec4f = ct.get_pos();
+				ImGui::InputFloat3("light position", glm::value_ptr(vec4f));
+				if (vec4f != ct.get_pos()) {
+					ct.set_pos(vec4f);
+					ecs::get_component<scn::transform_component>(ent)->world = ct.to_matrix();
+				}
+			}
 		}
 
 		ImGui::Separator();
@@ -99,10 +145,8 @@ bool editor::EditorSystem::show_toolbar()
 			static int item_current = 0;
 			static int item_old = 0;
 
-			ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items));
+			ImGui::Combo("Choose camera", &item_current, items, IM_ARRAYSIZE(items));
 			if (item_current != item_old) {
-				//second_camera->set_viewport(gs::get_system().get_renderer()->camera->viewport_offset, gs::get_system().get_renderer()->camera->viewport_size);
-				//std::swap(second_camera, gs::get_system().get_renderer()->camera);
 				if (item_current == 0) {
 					ecs::add_component(camera->ecs_entity, scn::is_render_component_flag{});
 					ecs::remove_component<scn::is_render_component_flag>(second_camera->ecs_entity);
@@ -115,6 +159,13 @@ bool editor::EditorSystem::show_toolbar()
 					second_camera_controller->enable_input_actions(gs::get_system().get_input_manager());
 				}
 				item_old = item_current;
+			}
+
+			for (auto& ent : ecs::filter<rnd::camera_component, scn::is_render_component_flag>()) {
+				eng::transform3d ct{ ecs::get_component<rnd::camera_component>(ent)->world };
+				ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
+				auto pos = ct.get_pos();
+				ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
 			}
 		}
 
@@ -134,7 +185,7 @@ bool editor::EditorSystem::show_toolbar()
 
 		if (ImGui::Button("add cube")) {
 			for (int i = 0; i < cube_count_add; ++i) {
-				gs::get_system().add_cube_to_scene(10.f);
+				gs::get_system().add_cube_to_scene(20.f);
 				cube_count++;
 			}
 		}		
@@ -159,7 +210,7 @@ bool editor::EditorSystem::show_toolbar()
 		static int item_current = 0;
 		static int item_old = 0;
 
-		ImGui::Combo("combo", &item_current, items, IM_ARRAYSIZE(items));
+		ImGui::Combo("render mode", &item_current, items, IM_ARRAYSIZE(items));
 		if (item_current != item_old) {
 			static std::unordered_map<std::string, rnd::RENDER_MODE> mmap{ 
 				{items[0], rnd::RENDER_MODE::TRIANGLE}, 
@@ -189,9 +240,11 @@ bool editor::EditorSystem::show_web()
 	const bool cur_is_show = DBG_UI_IS_ITEM_CHECKED("EDITOR/SHOW_WEP");
 	if (!cur_is_show && cur_is_show != is_show_web) {
 		ecs::remove_component<scn::is_render_component_flag>(editor_web);
+		ecs::remove_component<scn::is_render_component_flag>(sky);
 	}
 	else if (cur_is_show && cur_is_show != is_show_web){
 		ecs::add_component(editor_web, scn::is_render_component_flag{});
+		ecs::add_component(sky, scn::is_render_component_flag{});
 	}
 
 	is_show_web = cur_is_show;

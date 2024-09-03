@@ -8,6 +8,12 @@ rnd::driver::gl::texture::texture(GLuint texture_id, int w, int h)
 {
 }
 
+rnd::driver::gl::texture::~texture()
+{
+	glDeleteTextures(1, &id);
+	CHECK_GL_ERROR();
+}
+
 void rnd::driver::gl::texture::bind()
 {
 	glBindTexture(GL_TEXTURE_2D, id);

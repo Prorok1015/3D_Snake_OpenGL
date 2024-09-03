@@ -10,7 +10,7 @@ namespace rnd {
 	struct camera_component
 	{
 		float fov = 90.f;
-		float view_distance = 150.f;
+		float view_distance = 1000.f;
 		glm::mat4 world{ 1.0 };
 		glm::ivec4 viewport{ 0 };
 	};
@@ -45,7 +45,7 @@ namespace rnd {
 		glm::ivec2 viewport_size{ 0 };
 
 		float fov = 90.f;
-		float view_distance = 150.f;
+		float view_distance = 1000.f;
 
 		bool is_enabled = false;
 

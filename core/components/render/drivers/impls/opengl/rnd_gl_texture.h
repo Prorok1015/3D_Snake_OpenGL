@@ -8,7 +8,7 @@ namespace rnd::driver::gl
 	{
 	public:
 		texture(GLuint id, int w, int h); 
-		virtual ~texture() override {}
+		virtual ~texture() override;
 
 		virtual void bind() override;
 

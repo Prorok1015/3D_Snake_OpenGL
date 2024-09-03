@@ -8,13 +8,14 @@ namespace rnd::driver
 {
 	class shader_interface;
 	class texture_interface;
+	class cubemap_interface;
 	class render_context_interface;
 	class vertex_array_interface;
 	class uniform_buffer_interface;
 	class buffer_interface;
 
 	enum class CLEAR_FLAGS { COLOR_BUFFER, DEPTH_BUFFER	};
-	enum class ENABLE_FLAGS { DEPTH_TEST };
+	enum class ENABLE_FLAGS { DEPTH_TEST, DEPTH_TEST_LEQUEL };
 
 	struct shader_header
 	{
@@ -41,13 +42,32 @@ namespace rnd::driver
 			CLAMP_TO_BORDER
 		};
 
+		struct data
+		{
+			int width;
+			int height;
+			int channels;
+			unsigned char* data;
+		};
+
+		data picture;
 		FILTERING min;
 		FILTERING mag;
 		WRAPPING wrap;
-		int width;
-		int height;
-		int channels;
-		unsigned char* data;
+	};
+
+	struct cubmap_texture_header
+	{
+		texture_header::data right;
+		texture_header::data left;
+		texture_header::data bottom;
+		texture_header::data top;
+		texture_header::data front;
+		texture_header::data back;
+
+		texture_header::FILTERING min;
+		texture_header::FILTERING mag;
+		texture_header::WRAPPING wrap;
 	};
 
 	enum class RENDER_MODE
@@ -78,11 +98,13 @@ namespace rnd::driver
 		virtual void draw_elements(RENDER_MODE render_mode, unsigned int count) = 0;
 
 		virtual void enable(ENABLE_FLAGS flags) = 0;
+		virtual void disable(ENABLE_FLAGS flags) = 0;
 
 		virtual void unuse() = 0;
 
 		virtual std::unique_ptr<shader_interface> create_shader(const std::vector<shader_header>& headers) = 0;
 		virtual std::unique_ptr<texture_interface> create_texture(const texture_header& headers) = 0;
+		virtual std::unique_ptr<texture_interface> create_texture(const cubmap_texture_header& headers) = 0;
 		virtual std::unique_ptr<vertex_array_interface> create_vertex_array() = 0;
 		virtual std::unique_ptr<uniform_buffer_interface> create_uniform_buffer(std::size_t size, std::size_t binding) = 0;
 		virtual std::unique_ptr<buffer_interface> create_buffer() = 0;

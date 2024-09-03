@@ -11,7 +11,7 @@ namespace wnd
 		struct header
 		{
 			std::string title = "Default title";
-			glm::ivec2 size = glm::ivec2{ 1280, 720 }; 
+			glm::ivec2 size = glm::ivec2{ 1920, 1080 }; 
 		};
 
 	public:

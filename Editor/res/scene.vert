@@ -10,12 +10,19 @@ layout (std140, binding = 0) uniform Matrices
     float time;
 };
 
-varying vec2 TexCoords;
+varying struct PiplineStruct
+{
+    vec2 UV;
+    vec3 Normal;
+    vec3 FragPos;
+} out_ps;
 
 uniform mat4 model;
 
 void main()
 {
-    TexCoords = aTexCoords;    
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
+    out_ps.UV = aTexCoords;
+    out_ps.FragPos = vec3(model * vec4(aPos, 1.0));
+    out_ps.Normal = mat3(transpose(inverse(model))) * aNormal;
+    gl_Position = projection * view * vec4(out_ps.FragPos, 1.0);
 }

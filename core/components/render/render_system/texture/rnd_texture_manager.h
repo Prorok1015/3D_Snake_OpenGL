@@ -15,6 +15,7 @@ namespace rnd
 			: drv(driver) {}
 
 		std::shared_ptr<Texture> require_texture(const res::Tag& tag) const;
+		std::shared_ptr<Texture> require_cubemap_texture(const std::vector<res::Tag>& tags) const;
 		std::shared_ptr<Texture> generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data) const;
 
 	protected:

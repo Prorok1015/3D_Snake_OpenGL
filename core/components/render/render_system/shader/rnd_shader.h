@@ -12,7 +12,11 @@ namespace rnd
 
 		void use();
 		void uniform(std::string_view name, glm::mat4 matrix);
+		void uniform(std::string_view name, glm::vec3 vec);
+		void uniform(std::string_view name, glm::vec2 vec);
+
 		void uniform(std::string_view name, int val);
+		void uniform(std::string_view name, float val);
 
 	private:
 		driver::shader_interface* shader_impl = nullptr;

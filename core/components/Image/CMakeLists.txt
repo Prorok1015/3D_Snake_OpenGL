@@ -7,7 +7,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_subdirectory(${THIRD_PARTY_PATH}/stb_image stb_image)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE common PRIVATE stb_image)
+target_link_libraries(${PROJECT_NAME} PRIVATE common PRIVATE stb_image PRIVATE engine_logger)
 
 project(image_test)
 add_executable(image_test "test/Source.cpp")

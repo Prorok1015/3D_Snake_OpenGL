@@ -21,6 +21,7 @@ namespace res::loader {
             // read file via ASSIMP
             Assimp::Importer importer;
             const std::string full_path = ResourceSystem::get_absolut_path(tag);
+            egLOG("model/load", "Start loading model {} by absolut path {}", tag.get_full(), full_path);
             const aiScene* scene = importer.ReadFile(full_path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
             // check for errors
             if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
@@ -142,7 +143,13 @@ namespace res::loader {
                 aiString str;
                 mat->GetTexture(type, i, &str);
                 std::string_view texture_name = str.C_Str();
-                Material mat{ tag + Tag::make(texture_name), typeName };
+                std::string filal_name;
+                /*if (texture_name.starts_with("*")) {
+                    texture_name.remove_prefix(1);
+                    filal_name = std::string(texture_name) + ".jpeg"s;
+                }
+                else */filal_name = texture_name;
+                Material mat{ tag + Tag::make(filal_name), typeName };
                 textures.push_back(mat);
             }
             return textures;

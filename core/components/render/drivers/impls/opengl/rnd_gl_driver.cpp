@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <rnd_gl_shader.h>
 #include <rnd_gl_texture.h>
+#include <rnd_gl_cubemap.h>
 #include <rnd_gl_vertex_array.h>
 #include <rnd_gl_buffer.h>
 #include <rnd_gl_uniform_buffer.h>
@@ -54,6 +55,13 @@ const GLint gClearFlagsToGlClearFlags[] =
 const GLint gEnableFlagsToGlEnableFlags[] =
 {
 	GL_DEPTH_TEST,
+	GL_DEPTH_TEST,
+};
+
+const GLint gDepthFuncFlagsToGlDepthFuncFlags[] =
+{
+	GL_LESS,
+	GL_LEQUAL
 };
 
 void rnd::driver::gl::driver::set_viewport(glm::ivec4 rect)
@@ -114,7 +122,13 @@ void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned in
 
 void rnd::driver::gl::driver::enable(ENABLE_FLAGS flags)
 {
+	glDepthFunc(gDepthFuncFlagsToGlDepthFuncFlags[(int)flags]);
 	glEnable(gEnableFlagsToGlEnableFlags[(int)flags]);
+}
+
+void rnd::driver::gl::driver::disable(ENABLE_FLAGS flags)
+{
+	glDisable(gEnableFlagsToGlEnableFlags[(int)flags]);
 }
 
 void rnd::driver::gl::driver::unuse()
@@ -182,32 +196,34 @@ std::unique_ptr<rnd::driver::shader_interface> rnd::driver::gl::driver::create_s
 
 std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_texture(const texture_header& header)
 {
-	GLsizei t_width = header.width;
-	GLsizei t_height = header.height;
+
+	GLsizei t_width = header.picture.width;
+	GLsizei t_height = header.picture.height;
 	GLenum format = 0;
-	if (header.channels == 1)
+	if (header.picture.channels == 1)
 		format = GL_RED;
-	else if (header.channels == 3)
+	else if (header.picture.channels == 3)
 		format = GL_RGB;
-	else if (header.channels == 4)
+	else if (header.picture.channels == 4)
 		format = GL_RGBA;
-	GLubyte* image_data = header.data;
+	GLubyte* image_data = header.picture.data;
 	GLuint texture;
 	glGenTextures(1, &texture);
 	CHECK_GL_ERROR();
 	glBindTexture(GL_TEXTURE_2D, texture);
 	CHECK_GL_ERROR();
 	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLint)gTextureFilteringToGlFiltering[(int)header.min]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLint)gTextureFilteringToGlFiltering[(int)header.mag]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gTextureFilteringToGlFiltering[(int)header.min]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gTextureFilteringToGlFiltering[(int)header.mag]);
 	CHECK_GL_ERROR();
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, (GLint)gTextureWrappingToGlWrapping[(int)header.wrap]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, (GLint)gTextureWrappingToGlWrapping[(int)header.wrap]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gTextureWrappingToGlWrapping[(int)header.wrap]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gTextureWrappingToGlWrapping[(int)header.wrap]);
 	CHECK_GL_ERROR();
 
 	glTexImage2D(GL_TEXTURE_2D, 0, format, t_width, t_height, 0, format, GL_UNSIGNED_BYTE, image_data);
+	CHECK_GL_ERROR();
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
 	CHECK_GL_ERROR();
 	glGenerateMipmap(GL_TEXTURE_2D);
 	CHECK_GL_ERROR();
@@ -215,6 +231,45 @@ std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_
 	CHECK_GL_ERROR();
 
 	return std::make_unique<rnd::driver::gl::texture>(texture, t_width, t_height);
+}
+
+std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_texture(const cubmap_texture_header& header)
+{
+	GLuint texture;
+	glGenTextures(1, &texture);
+	CHECK_GL_ERROR();
+	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+	CHECK_GL_ERROR();
+
+	auto add = [](int direction, texture_header::data header)
+	{
+		auto width = header.width;
+		auto height = header.height;
+		auto data = header.data;
+		GLenum format = 0;
+		if (header.channels == 1)
+			format = GL_RED;
+		else if (header.channels == 3)
+			format = GL_RGB;
+		else if (header.channels == 4)
+			format = GL_RGBA;
+		glTexImage2D(direction, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+	};
+
+	add(GL_TEXTURE_CUBE_MAP_POSITIVE_X, header.right);
+	add(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, header.left);
+	add(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, header.top);
+	add(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, header.bottom);
+	add(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, header.back);
+	add(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, header.front);
+
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, gTextureFilteringToGlFiltering[(int)header.min]);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, gTextureFilteringToGlFiltering[(int)header.mag]);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, gTextureWrappingToGlWrapping[(int)header.wrap]);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, gTextureWrappingToGlWrapping[(int)header.wrap]);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, gTextureWrappingToGlWrapping[(int)header.wrap]);
+
+	return std::make_unique<rnd::driver::gl::cubemap>(texture);
 }
 
 std::unique_ptr<rnd::driver::vertex_array_interface> rnd::driver::gl::driver::create_vertex_array()

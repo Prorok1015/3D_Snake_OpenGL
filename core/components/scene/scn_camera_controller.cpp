@@ -6,7 +6,7 @@ scn::mouse_camera_controller::mouse_camera_controller(rnd::camera* camera_)
 	: camera(camera_)
 {
 	anchor.set_pitch(-glm::radians(45.0f));
-	ecs_connected_entity = camera->ecs_entity;
+	ecs_connected_entity = camera_->ecs_entity;
 	calculate_world_matrix();
 }
 
@@ -55,6 +55,7 @@ void scn::mouse_camera_controller::on_is_rotate(float dt, inp::KEY_ACTION act)
 void scn::mouse_camera_controller::on_mouse_move(glm::vec2 cur, glm::vec2 prev)
 {
 	glm::vec2 delta = cur - prev;
+	// translate to viewport coordinate
 	delta = -delta / glm::vec2(camera->viewport_size) * 2.f;
 	
 	if (get_is_rotate()) {

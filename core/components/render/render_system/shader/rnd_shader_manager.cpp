@@ -14,6 +14,7 @@ namespace glm
 rnd::ShaderManager::ShaderManager(driver::driver_interface* ptr)
 	: drv(ptr)
 	, _matrices(drv->create_uniform_buffer(sizeof(GlobalUniform), 0))
+	, sun_light(drv->create_uniform_buffer(sizeof(global_sun) + 4, 1))
 {
 }
 
@@ -59,6 +60,12 @@ void rnd::ShaderManager::update_global_uniform(const GlobalUniform& val) const
 	_matrices->set_data(glm::value_ptr(val.projection), sizeof(decltype(val.projection)), offsetof(GlobalUniform, projection));
 	_matrices->set_data(glm::value_ptr(val.view), sizeof(decltype(val.view)), offsetof(GlobalUniform, view));
 	_matrices->set_data(glm::value_ptr(val.time), sizeof(decltype(val.time)), offsetof(GlobalUniform, time));
+}
+
+void rnd::ShaderManager::update_global_sun(const global_sun& val) const
+{
+	sun_light->set_data(glm::value_ptr(val.light_color), sizeof(decltype(val.light_color)), offsetof(global_sun, light_color));
+	sun_light->set_data(glm::value_ptr(val.position), sizeof(decltype(val.position)), offsetof(global_sun, position) + sizeof(float));
 }
 
 std::unique_ptr<rnd::driver::shader_interface> rnd::ShaderManager::load(const std::string& name) const

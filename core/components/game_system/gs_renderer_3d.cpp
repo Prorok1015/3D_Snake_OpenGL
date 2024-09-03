@@ -3,6 +3,12 @@
 #include <rnd_vertex_array_interface.h>
 #include <rnd_buffer_interface.h>
 #include <rnd_render_system.h>
+
+#include <scn_primitives.h>
+
+#include <light/rnd_light_point.h>
+#include <sky/rnd_cubemap.h>
+
 #include <ecs/ecs_common_system.h>
 
 #include <timer.hpp>
@@ -15,7 +21,7 @@ gs::renderer_3d::renderer_3d()
     vertex_array = drv->create_vertex_array();
 
     vertex_buffer = drv->create_buffer();
-    vertex_buffer->set_data(nullptr, 20000 * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
+    vertex_buffer->set_data(nullptr, 80000 * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
     vertex_buffer->set_layout(
         {
             {rnd::driver::ShaderDataType::Float3, "position"},
@@ -54,9 +60,18 @@ gs::renderer_3d::renderer_3d()
 
 void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
-    drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
 
     rnd::GlobalUniform common_matrix{ .time = (float)Timer::now() };
+
+    for (ecs::entity& ent : ecs::filter<rnd::light_point, scn::transform_component>()) {
+        auto* light = ecs::get_component<rnd::light_point>(ent);
+        auto* tran_comp = ecs::get_component<scn::transform_component>(ent);
+
+        eng::transform3d tran{ tran_comp->world };
+
+        rnd::global_sun sun{ .light_color = glm::vec4(light->light_color, 1.0), .position = tran.get_pos() };
+        rnd::get_system().get_shader_manager().update_global_sun(sun);
+    }
 
     for (ecs::entity& ent : ecs::filter<rnd::camera_component, scn::is_render_component_flag>())
     {
@@ -70,16 +85,19 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
         rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
 
+        drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
+
         drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
         drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
 	    drv->set_viewport(camera->viewport);
 
+
         auto shader = rnd::get_system().get_shader_manager().use("scene");
 
-        for (auto ent : ecs::filter<scn::is_render_component_flag, scn::model_comonent, glm::mat4>()) {
-            auto* model = ecs::get_component<glm::mat4>(ent);
-            shader.uniform("model", *model);
+        for (auto ent : ecs::filter<scn::is_render_component_flag, scn::model_comonent, scn::transform_component>()) {
+            auto* model = ecs::get_component<scn::transform_component>(ent);
+            shader.uniform("model", model->world);
 
             rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
 
@@ -93,10 +111,28 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
             }
 
             rnd::get_system().set_render_mode(tmp);
+        }
 
+        drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL);
+
+        for (auto sky : ecs::filter<scn::is_render_component_flag, rnd::cubemap_component>()) {
+            auto* cb = ecs::get_component<rnd::cubemap_component>(sky);
+            auto shader = rnd::get_system().get_shader_manager().use("sky");
+
+            vertex_array->bind();
+            auto vs = generate_sphere().meshes.front().vertices;
+            auto is = generate_sphere().meshes.front().indices;
+            vertex_buffer->set_data(vs.data(), sizeof(res::Vertex) * vs.size(), rnd::driver::BUFFER_BINDING::DYNAMIC);
+            auto tmp = drv->create_buffer();
+            tmp->set_data(is.data(), is.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::STATIC, rnd::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
+            vertex_array->set_index_buffer(std::move(tmp));
+
+            drv->set_activate_texture(0);
+            cb->cube_map->bind();
+
+            drv->draw_elements(rnd::RENDER_MODE::TRIANGLE, is.size());
         }
     }
-
 
 }
 
