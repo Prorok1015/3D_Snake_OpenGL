@@ -53,10 +53,10 @@ editor::EditorSystem::EditorSystem()
 		}
 	});
 
-	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag::make("__black"), { 1,1 }, 3, { 0, 0, 0 });
+	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag("memory", "__black"), {1,1}, 3, {0, 0, 0});
 
 	scn::Model web = generate_web({ 50, 50 });
-	web.meshes.back().material.texture_tag = res::Tag::make("__black");
+	web.meshes.back().material.diffuse = res::Tag("memory", "__black");
 	web.model = glm::scale(web.model, glm::vec3(20, 0, 20));
 
 	editor_web = ecs::create_entity();
@@ -66,21 +66,26 @@ editor::EditorSystem::EditorSystem()
 	ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});
 
 	light = ecs::create_entity();
-	ecs::add_component(light, rnd::light_point{ .light_color = glm::vec3(1.0) });
+	ecs::add_component(light, rnd::light_point{ 
+		.position = glm::vec4(50), 
+		.diffuse = glm::vec4(0.5f, 0.5f, 0.5f, 1.0),
+		.ambient = glm::vec4(0.2f, 0.2f, 0.2f, 1.0),
+		.specular = glm::vec4(1)
+		});
 	ecs::add_component(light, scn::transform_component{ .world = glm::translate(glm::mat4{1.0}, glm::vec3(50, 50, 50)) });
 	scn::Model m = generate_sphere();
 	ecs::add_component(light, scn::model_comonent{ m.meshes });
 	ecs::add_component(light, scn::is_render_component_flag{});
 
 	sky = ecs::create_entity();
-	ecs::add_component(sky, rnd::cubemap_component{ rnd::get_system().get_texture_manager().require_cubemap_texture({
+	ecs::add_component(sky, rnd::cubemap_component{ m.meshes.front(), std::vector<res::Tag>{
 		res::Tag::make("skybox/right.jpg"),
 		res::Tag::make("skybox/left.jpg"),
 		res::Tag::make("skybox/bottom.jpg"),
 		res::Tag::make("skybox/top.jpg"),
 		res::Tag::make("skybox/back.jpg"),
 		res::Tag::make("skybox/front.jpg"),
-		}) 
+		}
 	});
 	ecs::add_component(sky, scn::is_render_component_flag{});
 
@@ -96,9 +101,14 @@ editor::EditorSystem::~EditorSystem()
 
 bool editor::EditorSystem::show_toolbar()
 {
+	ImGuiIO& io = ImGui::GetIO();
+	gs::get_system().get_input_manager()->set_enabled(!io.WantCaptureMouse);
+
 	bool is_open = true;
-	ImGui::SetNextWindowSize(ImVec2{ 200, 400 }, ImGuiCond_FirstUseEver);
-	if (ImGui::Begin("Observer", &is_open))
+	float height = gs::get_system().get_window()->get_size().y - 80;
+	ImGui::SetNextWindowSize(ImVec2{ 400, height});
+	ImGui::SetNextWindowPos(ImVec2{ 0, 80 });
+	if (ImGui::Begin("Observer", &is_open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
 	{
 		auto& app = app::get_app_system();
 		ImGui::Text("Common");
@@ -114,25 +124,31 @@ bool editor::EditorSystem::show_toolbar()
 		if (ImGui::Button("Reload Shaders")) {
 			gs::get_system().reload_shaders();
 		}
+
+		if (ImGui::Button("Reload Texture")) {
+			rnd::get_system().get_texture_manager().clear_cache();
+		}
 		ImGui::Separator();
 		ImGui::NewLine();
 		ImGui::Text("Light");
 		ImGui::Separator();
 		{
 			for (auto& ent : ecs::filter<rnd::light_point, scn::transform_component>()) {
-
-				ImGui::ColorEdit3("Light color", glm::value_ptr(ecs::get_component<rnd::light_point>(ent)->light_color));
+				ImGui::ColorEdit3("Light color", glm::value_ptr(ecs::get_component<rnd::light_point>(ent)->diffuse));
 
 				eng::transform3d ct{ ecs::get_component<scn::transform_component>(ent)->world };
-				ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
 				auto pos = ct.get_pos();
-				ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
 				glm::vec3 vec4f = ct.get_pos();
 				ImGui::InputFloat3("light position", glm::value_ptr(vec4f));
+
 				if (vec4f != ct.get_pos()) {
 					ct.set_pos(vec4f);
 					ecs::get_component<scn::transform_component>(ent)->world = ct.to_matrix();
+					ecs::get_component<rnd::light_point>(ent)->position = glm::vec4(ct.get_pos(), 1.0);
 				}
+
+				ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
+				ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
 			}
 		}
 
@@ -141,24 +157,32 @@ bool editor::EditorSystem::show_toolbar()
 		{
 			ImGui::Text("Camera");
 			ImGui::Separator();
-			const char* items[] = { "Main", "Second"};
-			static int item_current = 0;
-			static int item_old = 0;
+			if (ImGui::BeginCombo("Cameras", cameras_list[current_camera].c_str(), 0))
+			{
+				for (int n = 0; n < cameras_list.size(); n++)
+				{
+					const bool is_selected = (current_camera == n);
+					if (ImGui::Selectable(cameras_list[n].c_str(), is_selected)) {
+						current_camera = n;
+						if (current_camera == 0) {
+							ecs::add_component(camera->ecs_entity, scn::is_render_component_flag{});
+							ecs::remove_component<scn::is_render_component_flag>(second_camera->ecs_entity);
+							second_camera_controller->disable_input_actions(gs::get_system().get_input_manager());
+							camera_controller->enable_input_actions(gs::get_system().get_input_manager());
+						}
+						else {
+							ecs::remove_component<scn::is_render_component_flag>(camera->ecs_entity);
+							ecs::add_component(second_camera->ecs_entity, scn::is_render_component_flag{});
+							camera_controller->disable_input_actions(gs::get_system().get_input_manager());
+							second_camera_controller->enable_input_actions(gs::get_system().get_input_manager());
+						}
+					}
 
-			ImGui::Combo("Choose camera", &item_current, items, IM_ARRAYSIZE(items));
-			if (item_current != item_old) {
-				if (item_current == 0) {
-					ecs::add_component(camera->ecs_entity, scn::is_render_component_flag{});
-					ecs::remove_component<scn::is_render_component_flag>(second_camera->ecs_entity);
-					second_camera_controller->disable_input_actions(gs::get_system().get_input_manager());
-					camera_controller->enable_input_actions(gs::get_system().get_input_manager());
-				} else {
-					ecs::remove_component<scn::is_render_component_flag>(camera->ecs_entity);
-					ecs::add_component(second_camera->ecs_entity, scn::is_render_component_flag {});
-					camera_controller->disable_input_actions(gs::get_system().get_input_manager());
-					second_camera_controller->enable_input_actions(gs::get_system().get_input_manager());
+					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
 				}
-				item_old = item_current;
+				ImGui::EndCombo();
 			}
 
 			for (auto& ent : ecs::filter<rnd::camera_component, scn::is_render_component_flag>()) {
@@ -172,16 +196,37 @@ bool editor::EditorSystem::show_toolbar()
 		ImGui::Text("Scene");
 		ImGui::Separator();
 
-		ImGui::InputText("Name", buf, 64);
+		static int model_load_method = 0;
+		ImGui::RadioButton("Combo models", &model_load_method, 0); ImGui::SameLine();
+		ImGui::RadioButton("Input model", &model_load_method, 1);
+
+
 		if (ImGui::Button("Add model")) {
-			gs::get_system().load_model(buf);
+			gs::get_system().load_model(model_load_method == 0 ? models_list[current_model].c_str() : buf);
+		} ImGui::SameLine();
+
+		if (model_load_method == 0) {
+			if (ImGui::BeginCombo("Models", models_list[current_model].c_str()))
+			{
+				for (int n = 0; n < models_list.size(); n++)
+				{
+					const bool is_selected = (current_model == n);
+					if (ImGui::Selectable(models_list[n].c_str(), is_selected))
+						current_model = n;
+
+					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+		} else {
+			ImGui::InputText("Name", buf, 64);
 		}
+
 		static int cube_count_add = 1;
 		static int cube_count_remove = 1;
 		static int cube_count = 0;
-		static float distance = camera->get_visible_distance();
-
-		ImGui::SliderFloat("Object scale", &distance, -0.9f, 400.f);
 
 		if (ImGui::Button("add cube")) {
 			for (int i = 0; i < cube_count_add; ++i) {
@@ -190,8 +235,8 @@ bool editor::EditorSystem::show_toolbar()
 			}
 		}		
 		ImGui::SameLine();
+		ImGui::SetNextItemWidth(100);
 		ImGui::SliderInt("count add", &cube_count_add, 1, 100);
-		ImGui::NewLine();
 
 		if (ImGui::Button("remove cube")) {
 			for (int i = 0; i < cube_count_remove; ++i) {
@@ -201,27 +246,26 @@ bool editor::EditorSystem::show_toolbar()
 			}
 		}
 		ImGui::SameLine();
-		ImGui::SliderInt("count remove", &cube_count_remove, 1, 100);
-		ImGui::NewLine();
-
+		ImGui::SetNextItemWidth(100);
+		ImGui::SliderInt("count remove", &cube_count_remove, 1, 100); 
 		ImGui::Text("cubes count: %d", cube_count);
 
-		const char* items[] = { "TRIANGLE", "TRIANGLE_STRIP", "LINE_LOOP", "LINE_STRIP", "LINE", "POINT"};
-		static int item_current = 0;
-		static int item_old = 0;
+		ImGui::Separator();
+		if (ImGui::BeginCombo("Render mode", render_modes_list[current_render_mode].c_str(), 0))
+		{
+			for (int n = 0; n < render_modes_list.size(); n++)
+			{
+				const bool is_selected = (current_render_mode == n);
+				if (ImGui::Selectable(render_modes_list[n].c_str(), is_selected)) {
+					current_render_mode = n; 
+					rnd::get_system().set_render_mode(mmap[render_modes_list[n]]);
+				}
 
-		ImGui::Combo("render mode", &item_current, items, IM_ARRAYSIZE(items));
-		if (item_current != item_old) {
-			static std::unordered_map<std::string, rnd::RENDER_MODE> mmap{ 
-				{items[0], rnd::RENDER_MODE::TRIANGLE}, 
-				{items[1], rnd::RENDER_MODE::TRIANGLE_STRIP},
-				{items[2], rnd::RENDER_MODE::LINE_LOOP},
-				{items[3], rnd::RENDER_MODE::LINE_STRIP},
-				{items[4], rnd::RENDER_MODE::LINE},
-				{items[5], rnd::RENDER_MODE::POINT},
-			};
-			rnd::get_system().set_render_mode(mmap[items[item_current]]);
-			item_old = item_current;
+				// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+				if (is_selected)
+					ImGui::SetItemDefaultFocus();
+			}
+			ImGui::EndCombo();
 		}
 
 		eng::transform3d ct;

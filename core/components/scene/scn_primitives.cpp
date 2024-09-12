@@ -11,8 +11,8 @@ scn::Model generate_web(glm::ivec2 size)
     const int half_x = size.x / 2;
     for (int i = -half_x; i <= half_x; ++i) {
         res::Vertex line[2];
-        line[0].position_ = { 1.f / half_x * i, 0.f, -1.f };
-        line[1].position_ = { 1.f / half_x * i, 0.f,  1.f };
+        line[0].position = { 1.f / half_x * i, 0.f, -1.f };
+        line[1].position = { 1.f / half_x * i, 0.f,  1.f };
 
         vex.push_back(line[0]);
         vex.push_back(line[1]);
@@ -23,8 +23,8 @@ scn::Model generate_web(glm::ivec2 size)
     const int half_y = size.y / 2;
     for (int i = -half_y; i <= half_y; ++i) {
         res::Vertex line[2];
-        line[0].position_ = { 1.f, 0.f, 1.f / half_y * i };
-        line[1].position_ = { -1.f, 0.f, 1.f / half_y * i };
+        line[0].position = { 1.f, 0.f, 1.f / half_y * i };
+        line[1].position = { -1.f, 0.f, 1.f / half_y * i };
 
         vex.push_back(line[0]);
         vex.push_back(line[1]);
@@ -41,35 +41,35 @@ scn::Model generate_cube()
 {
     std::vector<res::Vertex> vex
     {
-        {.position_ = {-1.f, -1.f, -1.f}, .tex_uv_ = {0,0}}, // 0
-        {.position_ = { -1.f, 1.f, -1.f}, .tex_uv_ = {0,1}}, // 1
-        {.position_ = { 1.f,  1.f, -1.f}, .tex_uv_ = {1,1}}, // 2
-        {.position_ = { 1.f, -1.f, -1.f}, .tex_uv_ = {1,0}}, // 3
+        {.position = {-1.f, -1.f, -1.f}, .uv = {0,0}}, // 0
+        {.position = { -1.f, 1.f, -1.f}, .uv = {0,1}}, // 1
+        {.position = { 1.f,  1.f, -1.f}, .uv = {1,1}}, // 2
+        {.position = { 1.f, -1.f, -1.f}, .uv = {1,0}}, // 3
 
-        {.position_ = {-1.f, -1.f, 1.f}, .tex_uv_ = {1,0}},  // 4
-        {.position_ = { 1.f, -1.f, 1.f}, .tex_uv_ = {0,0}},  // 5
-        {.position_ = { 1.f,  1.f, 1.f}, .tex_uv_ = {0,1}},  // 6
-        {.position_ = {-1.f,  1.f, 1.f}, .tex_uv_ = {1,1}},  // 7
+        {.position = {-1.f, -1.f, 1.f}, .uv = {1,0}},  // 4
+        {.position = { 1.f, -1.f, 1.f}, .uv = {0,0}},  // 5
+        {.position = { 1.f,  1.f, 1.f}, .uv = {0,1}},  // 6
+        {.position = {-1.f,  1.f, 1.f}, .uv = {1,1}},  // 7
 
-        {.position_ = {-1.f, -1.f,-1.f}, .tex_uv_ = {0,0}},  // 8
-        {.position_ = {-1.f, -1.f, 1.f}, .tex_uv_ = {1,0}},  // 9
-        {.position_ = {-1.f,  1.f, 1.f}, .tex_uv_ = {1,1}},  // 10
-        {.position_ = {-1.f,  1.f,-1.f}, .tex_uv_ = {0,1}},  // 11
+        {.position = {-1.f, -1.f,-1.f}, .uv = {0,0}},  // 8
+        {.position = {-1.f, -1.f, 1.f}, .uv = {1,0}},  // 9
+        {.position = {-1.f,  1.f, 1.f}, .uv = {1,1}},  // 10
+        {.position = {-1.f,  1.f,-1.f}, .uv = {0,1}},  // 11
 
-        {.position_ = { 1.f, -1.f, -1.f}, .tex_uv_ = {1,0}}, // 12
-        {.position_ = { 1.f,  1.f, -1.f}, .tex_uv_ = {0,0}}, // 13
-        {.position_ = { 1.f,  1.f,  1.f}, .tex_uv_ = {0,1}}, // 14
-        {.position_ = { 1.f,  -1.f, 1.f}, .tex_uv_ = {1,1}}, // 15
+        {.position = { 1.f, -1.f, -1.f}, .uv = {1,0}}, // 12
+        {.position = { 1.f,  1.f, -1.f}, .uv = {0,0}}, // 13
+        {.position = { 1.f,  1.f,  1.f}, .uv = {0,1}}, // 14
+        {.position = { 1.f,  -1.f, 1.f}, .uv = {1,1}}, // 15
 
-        {.position_ = {-1.f, -1.f, -1.f}, .tex_uv_ = {0,0}}, // 16
-        {.position_ = { 1.f, -1.f, -1.f}, .tex_uv_ = {1,0}}, // 17
-        {.position_ = { 1.f, -1.f,  1.f}, .tex_uv_ = {1,1}}, // 18
-        {.position_ = {-1.f, -1.f,  1.f}, .tex_uv_ = {0,1}}, // 19
+        {.position = {-1.f, -1.f, -1.f}, .uv = {0,0}}, // 16
+        {.position = { 1.f, -1.f, -1.f}, .uv = {1,0}}, // 17
+        {.position = { 1.f, -1.f,  1.f}, .uv = {1,1}}, // 18
+        {.position = {-1.f, -1.f,  1.f}, .uv = {0,1}}, // 19
 
-        {.position_ = {-1.f,  1.f, -1.f}, .tex_uv_ = {0,0}}, // 20
-        {.position_ = {-1.f,  1.f,  1.f}, .tex_uv_ = {1,0}}, // 21
-        {.position_ = { 1.f,  1.f,  1.f}, .tex_uv_ = {1,1}}, // 22
-        {.position_ = { 1.f,  1.f, -1.f}, .tex_uv_ = {0,1}}, // 23
+        {.position = {-1.f,  1.f, -1.f}, .uv = {0,0}}, // 20
+        {.position = {-1.f,  1.f,  1.f}, .uv = {1,0}}, // 21
+        {.position = { 1.f,  1.f,  1.f}, .uv = {1,1}}, // 22
+        {.position = { 1.f,  1.f, -1.f}, .uv = {0,1}}, // 23
     };
     std::vector<unsigned int> inc
     {
@@ -150,22 +150,17 @@ scn::Model generate_cube()
         auto& p2 = vex[inc[i + 1]];
         auto& p3 = vex[inc[i + 2]];
 
-        p1.normal_ = glm::normalize(glm::cross(p3.position_ - p2.position_, p1.position_ - p2.position_));
-        p2.normal_ = p1.normal_;
-        p3.normal_ = p1.normal_;
+        p1.normal = glm::normalize(glm::cross(p3.position - p2.position, p1.position - p2.position));
+        p2.normal = p1.normal;
+        p3.normal = p1.normal;
     }
 
     for (auto& v : vex) {
-        v.tex_uv_ /= glm::vec2(16, -16);
+        v.uv /= glm::vec2(16, -16);
     }
 
-    //std::vector<std::shared_ptr<rnd::Texture>> tex;
-    //auto txt = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("block.png"));
-    //txt->tmp_type = "texture_diffuse";
-    //tex.push_back(txt);
-
     scn::Model m;
-    m.meshes.emplace_back(vex, inc, res::Tag::make("block.png"));
+    m.meshes.emplace_back(vex, inc, res::Material{ .diffuse = res::Tag::make("block.png") });
     return m;
 }
 
@@ -198,18 +193,18 @@ std::vector<res::Vertex> generate_sphere_data(float radius, float sectorCount, f
             // vertex position (x, y, z)
             x = xy * std::cos(sectorAngle);             // r * cos(u) * cos(v)
             y = xy * std::sin(sectorAngle);             // r * cos(u) * sin(v)
-            vert.position_ = glm::vec3(x, y, z);
+            vert.position = glm::vec3(x, y, z);
 
             // normalized vertex normal (nx, ny, nz)
             nx = x * lengthInv;
             ny = y * lengthInv;
             nz = z * lengthInv;
-            vert.normal_ = glm::vec3(nx, ny, nz);
+            vert.normal = glm::vec3(nx, ny, nz);
 
             // vertex tex coord (s, t) range between [0, 1]
             s = (float)j / sectorCount;
             t = (float)i / stackCount;
-            vert.tex_uv_ = glm::vec2(s, t);
+            vert.uv = glm::vec2(s, t);
             result.push_back(vert);
         }
     }
@@ -270,13 +265,10 @@ scn::Model generate_sphere()
     }
 
     for (auto& v : vex) {
-        v.tex_uv_ = v.tex_uv_ / glm::vec2(16, -16);
+        v.uv = v.uv / glm::vec2(16, -16);
     }
 
-    //auto txt = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("block.png"));
-    //txt->tmp_type = "texture_diffuse";
-
     scn::Model m;
-    m.meshes.emplace_back(vex, inc, res::Tag::make("block.png"));
+    m.meshes.emplace_back(vex, inc, res::Material{ .diffuse = res::Tag::make("block.png") });
     return m;
 }

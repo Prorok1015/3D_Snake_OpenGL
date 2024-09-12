@@ -1,9 +1,11 @@
 #pragma once
-#include "../texture/rnd_texture.h"
+#include <res_resource_tag.h>
+#include <scn_mesh.h>
 namespace rnd
 {
 	struct cubemap_component
 	{
-		std::shared_ptr<rnd::Texture> cube_map;
+		scn::Mesh mesh;
+		std::vector<res::Tag> cube_map;
 	};
 }

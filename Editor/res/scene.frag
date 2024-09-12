@@ -1,34 +1,52 @@
 #version 420 core
-out vec4 FragColor;
+layout (std140, binding = 0) uniform Matrices 
+{
+    mat4 projection;
+    mat4 view;
+    float time;
+    vec3 view_position;
+};
 
-layout (std140, binding = 1) uniform SunLight 
+layout (std140, binding = 1) uniform Light 
 {
     // vec3 have size 16 as vec4. you should remember it.
-    vec3 lightColor; // 16
-    vec3 lightPos;   // 16 + 16
-};
+    vec3 position;
+    vec3 diffuse;
+    vec3 ambient;
+    vec3 specular;
+} light;
 
 varying struct PiplineStruct
 {
     vec2 UV;
     vec3 Normal;
     vec3 FragPos;
-} out_ps;
+} PS;
 
-uniform sampler2D texture_diffuse1;
+struct Material {
+    sampler2D diffuse;
+    sampler2D specular;
+    sampler2D ambient;
+    float shininess;
+}; 
+  
+uniform Material material;
 
 void main()
 {    
-    // ambient
-    float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * lightColor.xyz;
-  	
     // diffuse
-    vec3 norm = normalize(out_ps.Normal);
-    vec3 lightDir = normalize(lightPos - out_ps.FragPos);
+    vec3 norm = normalize(PS.Normal);
+    vec3 lightDir = normalize(light.position - PS.FragPos);
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor.xyz;
-            
-    vec4 result = vec4(ambient + diffuse, 1.0) * texture(texture_diffuse1, out_ps.UV);
-    FragColor = result;
+    // specular
+    vec3 viewDir = normalize(view_position - PS.FragPos);
+    vec3 reflectDir = reflect(-lightDir, norm);  
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+
+    vec3 ambient  = light.ambient  * vec3(texture(material.diffuse, PS.UV));
+    vec3 diffuse  = light.diffuse  * diff * vec3(texture(material.diffuse, PS.UV));  
+    vec3 specular = light.specular * spec * vec3(texture(material.specular, PS.UV));
+
+    vec4 result = vec4(ambient + diffuse + specular, 1.0);
+    gl_FragColor = result;
 }

@@ -2,7 +2,7 @@
 #include "res_resource_system.h"
 #include "res_resource_texture.h"
 
-std::shared_ptr<rnd::Texture> rnd::TextureManager::require_texture(const res::Tag& tag) const
+std::shared_ptr<rnd::Texture> rnd::TextureManager::require_texture(const res::Tag& tag)
 {
 	auto it = cache.find(tag);
 	if (it != cache.end()) {
@@ -14,7 +14,7 @@ std::shared_ptr<rnd::Texture> rnd::TextureManager::require_texture(const res::Ta
 	return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
 }
 
-std::shared_ptr<rnd::Texture> rnd::TextureManager::require_cubemap_texture(const std::vector<res::Tag>& tags) const
+std::shared_ptr<rnd::Texture> rnd::TextureManager::require_cubemap_texture(const std::vector<res::Tag>& tags)
 {
 	auto it = cache.find(tags.front());
 	if (it != cache.end()) {
@@ -48,7 +48,7 @@ std::shared_ptr<rnd::Texture> rnd::TextureManager::require_cubemap_texture(const
 	return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
 }
 
-std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data) const
+std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data)
 {
 	auto it = cache.find(tag);
 	if (it != cache.end()) {
@@ -68,3 +68,18 @@ std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::T
     return std::make_shared<Texture>(texture.get(), header.picture.width, header.picture.height);
 }
  
+
+void rnd::TextureManager::clear_cache()
+{ 
+	std::vector<res::Tag> list_to_delete;
+	for (auto& [key, _] : cache)
+	{
+		if (key.protocol() != "memory") {
+			list_to_delete.push_back(key);
+		}
+	}
+
+	for (auto& key : list_to_delete) {
+		cache.erase(key);
+	}
+}

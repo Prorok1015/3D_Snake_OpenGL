@@ -8,26 +8,28 @@ namespace res
 
 	struct Vertex
 	{
-		glm::vec3 position_;
-		glm::vec3 normal_;
-		glm::vec2 tex_uv_;
-		glm::vec3 tangent_;
-		glm::vec3 bitangent_;
-		int bones_[4];
-		float bones_weight_[4];
+		glm::vec3 position;
+		glm::vec3 normal;
+		glm::vec2 uv;
+		glm::vec3 tangent;
+		glm::vec3 bitangent;
+		int bones[4];
+		float bones_weight[4];
 	};
 
 	struct Material
 	{
-		Tag tag_;
-		std::string type_;
+		Tag diffuse;
+		Tag specular;
+		Tag ambient;
+		Tag normal;
 	};
 
 	struct Mesh
 	{
-		std::vector<Vertex> vertexes_;
-		std::vector<unsigned int> indeces_;
-		std::vector<Material> textures_;
+		std::vector<Vertex> vertexes;
+		std::vector<unsigned int> indeces;
+		Material material;
 	};
 
 	class Model : public Resource

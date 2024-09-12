@@ -38,6 +38,7 @@ dbg_ui::DebugUiSystem::DebugUiSystem()
 
 	registrate_menu("DEMO/SHOW DEMO WINDOW", [this] { return show_demo(); });
 	registrate_menu("MENU/STATISTIC WINDOW", [this] {  return show_stats(); });
+	set_menu_checked("MENU/STATISTIC WINDOW", true);
 
 	renderer = std::make_shared<dbg_ui::renderer>();
 	renderer->render_event += [this] { render_menues(); };
@@ -126,12 +127,12 @@ void dbg_ui::DebugUiSystem::set_check_callback(const std::string_view path, dbg_
 bool dbg_ui::DebugUiSystem::show_stats()
 {
 	bool is_open = true;
+	ImGui::SetNextWindowSize(ImVec2{ 400, 60 });
+	ImGui::SetNextWindowPos(ImVec2{ 0, 20 });
 	if (ImGui::Begin("Common stats", &is_open, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration))
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-		ImGui::Text("Is hovered %s", ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow) ? "true" : "false");
-		ImGui::Text("Is focused %s", ImGui::IsWindowFocused(ImGuiHoveredFlags_AnyWindow) ? "true" : "false");
 		ImGui::End();
 	}
 	return is_open;

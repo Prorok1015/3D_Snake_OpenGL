@@ -14,10 +14,11 @@ namespace rnd
 		TextureManager(driver::driver_interface* driver)
 			: drv(driver) {}
 
-		std::shared_ptr<Texture> require_texture(const res::Tag& tag) const;
-		std::shared_ptr<Texture> require_cubemap_texture(const std::vector<res::Tag>& tags) const;
-		std::shared_ptr<Texture> generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data) const;
+		std::shared_ptr<Texture> require_texture(const res::Tag& tag);
+		std::shared_ptr<Texture> require_cubemap_texture(const std::vector<res::Tag>& tags);
+		std::shared_ptr<Texture> generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data);
 
+		void clear_cache();
 	protected:
 		mutable std::unordered_map<res::Tag, std::unique_ptr<driver::texture_interface>, res::Tag::hash> cache;
 		driver::driver_interface* drv = nullptr;

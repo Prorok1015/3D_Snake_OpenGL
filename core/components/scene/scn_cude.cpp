@@ -60,8 +60,8 @@ void init_cude()
     for (int i = 0; i < 180; i += 5)
     {
         res::Vertex v;
-        v.position_ = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-        v.tex_uv_ = glm::vec2(vertices[i + 3] / 16, -vertices[i + 4] / 16);
+        v.position = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
+        v.uv = glm::vec2(vertices[i + 3] / 16, -vertices[i + 4] / 16);
         vex.push_back(v);
     }
 
@@ -70,9 +70,9 @@ void init_cude()
         auto& p2 = vex[i + 1];
         auto& p3 = vex[i + 2];
 
-        p1.normal_ = glm::normalize(glm::cross(p3.position_ - p2.position_, p1.position_ - p2.position_));
-        p2.normal_ = p1.normal_;
-        p3.normal_ = p1.normal_;
+        p1.normal = glm::normalize(glm::cross(p3.position - p2.position, p1.position - p2.position));
+        p2.normal = p1.normal;
+        p3.normal = p1.normal;
     }
 
     inc.resize(vex.size());
@@ -100,8 +100,8 @@ scn::Model create_cube()
     for (int i = 0; i < 180; i += 5)
     {
         res::Vertex v;
-        v.position_ = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
-        v.tex_uv_ = glm::vec2(vertices[i + 3] / 16, -vertices[i + 4] / 16);
+        v.position = glm::vec3(vertices[i], vertices[i + 1], vertices[i + 2]);
+        v.uv = glm::vec2(vertices[i + 3] / 16, -vertices[i + 4] / 16);
         vex.push_back(v);
     }
 
@@ -110,9 +110,9 @@ scn::Model create_cube()
         auto& p2 = vex[i + 1];
         auto& p3 = vex[i + 2];
 
-        p1.normal_ = glm::normalize(glm::cross(p3.position_ - p2.position_, p1.position_ - p2.position_));
-        p2.normal_ = p1.normal_;
-        p3.normal_ = p1.normal_;
+        p1.normal = glm::normalize(glm::cross(p3.position - p2.position, p1.position - p2.position));
+        p2.normal = p1.normal;
+        p3.normal = p1.normal;
     }
 
     inc.resize(vex.size());

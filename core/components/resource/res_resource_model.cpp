@@ -1,11 +1,15 @@
+#include "common.h"
 #include "res_resource_model.h"
 #include "res_resource_texture.h"
 #include "res_resource_system.h"
 #include <engine_log.h>
+ 
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
+#include <stack>
 
 namespace res::loader {
     class model_loader
@@ -21,44 +25,74 @@ namespace res::loader {
             // read file via ASSIMP
             Assimp::Importer importer;
             const std::string full_path = ResourceSystem::get_absolut_path(tag);
-            egLOG("model/load", "Start loading model {} by absolut path {}", tag.get_full(), full_path);
-            const aiScene* scene = importer.ReadFile(full_path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+            egLOG("model/load", "Start loading model '{}' by absolut path:\n\t '{}'", tag.get_full(), full_path);
+
+            const aiScene* scene = importer.ReadFile(full_path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
             // check for errors
             if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) // if is Not Zero
             {
                 egLOG("scene/model/load", "ERROR::ASSIMP::{}", importer.GetErrorString());
-                ASSERT_FAIL("Model was not loaded");
                 return {};
             }
 
-            // process ASSIMP's root node recursively
-            processNode(scene->mRootNode, scene);
+            aiNode* Root = scene->mRootNode;
+            if (tag.name().find(".gltf") != std::string::npos) {
+                for (int i = 0; i < 2; ++i) {
+                    if (Root->mNumChildren > 0) {
+                        Root = Root->mChildren[0];
+                    }
+                }
+            }
 
+            // process ASSIMP's root node recursively
+            process_node(Root, scene);
+            egLOG("load/deep", "max deep: {}", deep);
             return meshes;
         }
 
-        void processNode(aiNode* node, const aiScene* scene)
+        void print(const std::stack<aiNode*>& stack)
         {
+            if (stack.empty()) {
+                return;
+            }
+
+            std::string node = stack.top()->mName.C_Str();
+            std::string space(stack.size() - 1, '-');
+
+            egLOG("test", space + node);
+        }
+
+        void process_node(aiNode* node, const aiScene* scene)
+        {
+            transform_stack.push(convert_to_glm(node));
+            nodes.push(node);
+            deep = std::max(deep, transform_stack.size());
+            
+            print(nodes);
+
             // process each mesh located at the current node
             for (unsigned int i = 0; i < node->mNumMeshes; i++)
             {
                 // the node object only contains indices to index the actual objects in the scene. 
                 // the scene contains all the data, node is just to keep stuff organized (like relations between nodes).
                 aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-                meshes.push_back(processMesh(mesh, scene));
+
+                meshes.push_back(copy_mesh(mesh, scene));
             }
+
             // after we've processed all of the meshes (if any) we then recursively process each of the children nodes
             for (unsigned int i = 0; i < node->mNumChildren; i++)
             {
-                processNode(node->mChildren[i], scene);
+                process_node(node->mChildren[i], scene);
             }
+            nodes.pop();
+            transform_stack.pop();
         }
 
-        Mesh processMesh(aiMesh* mesh, const aiScene* scene) {
+        Mesh copy_mesh(aiMesh* mesh, const aiScene* scene) {
             // data to fill
             std::vector<Vertex> vertices;
             std::vector<unsigned int> indices;
-            std::vector<res::Material> textures;
 
             // walk through each of the mesh's vertices
             for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -69,14 +103,27 @@ namespace res::loader {
                 vector.x = mesh->mVertices[i].x;
                 vector.y = mesh->mVertices[i].y;
                 vector.z = mesh->mVertices[i].z;
-                vertex.position_ = vector;
+
+                glm::mat4 matrix = glm::translate(vector);
+                
+                for (auto trans = transform_stack; !trans.empty(); trans.pop())
+                {
+                    matrix = trans.top() * matrix;
+                }
+
+                glm::vec3 s;
+                glm::quat o;
+                glm::vec3 sk;
+                glm::vec4 p;
+                glm::decompose(matrix, s, o, vertex.position, sk, p);
+                
                 // normals
                 if (mesh->HasNormals())
                 {
                     vector.x = mesh->mNormals[i].x;
                     vector.y = mesh->mNormals[i].y;
                     vector.z = mesh->mNormals[i].z;
-                    vertex.normal_ = vector;
+                    vertex.normal = vector;
                 }
                 // texture coordinates
                 if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
@@ -86,20 +133,20 @@ namespace res::loader {
                     // use models where a vertex can have multiple texture coordinates so we always take the first set (0).
                     vec.x = mesh->mTextureCoords[0][i].x;
                     vec.y = mesh->mTextureCoords[0][i].y;
-                    vertex.tex_uv_ = vec;
+                    vertex.uv = vec;
                     // tangent
                     vector.x = mesh->mTangents[i].x;
                     vector.y = mesh->mTangents[i].y;
                     vector.z = mesh->mTangents[i].z;
-                    vertex.tangent_ = vector;
+                    vertex.tangent = vector;
                     // bitangent
                     vector.x = mesh->mBitangents[i].x;
                     vector.y = mesh->mBitangents[i].y;
                     vector.z = mesh->mBitangents[i].z;
-                    vertex.bitangent_ = vector;
+                    vertex.bitangent = vector;
                 }
                 else
-                    vertex.tex_uv_ = glm::vec2(0.0f, 0.0f);
+                    vertex.uv = glm::vec2(0.0f, 0.0f);
 
                 vertices.push_back(vertex);
             }
@@ -120,43 +167,47 @@ namespace res::loader {
             // specular: texture_specularN
             // normal: texture_normalN
 
+            Material mesh_material;
             // 1. diffuse maps
-            auto diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
-            textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+            mesh_material.diffuse = find_material_texture(material, aiTextureType_DIFFUSE);
             // 2. specular maps
-            auto specularMaps = loadMaterialTextures(material, aiTextureType_SPECULAR, "texture_specular");
-            textures.insert(textures.end(), specularMaps.begin(), specularMaps.end());
+            mesh_material.specular = find_material_texture(material, aiTextureType_SPECULAR);
             // 3. normal maps
-            auto normalMaps = loadMaterialTextures(material, aiTextureType_HEIGHT, "texture_normal");
-            textures.insert(textures.end(), normalMaps.begin(), normalMaps.end());
-            // 4. height maps
-            auto heightMaps = loadMaterialTextures(material, aiTextureType_AMBIENT, "texture_height");
-            textures.insert(textures.end(), heightMaps.begin(), heightMaps.end());
+            mesh_material.normal = find_material_texture(material, aiTextureType_HEIGHT);
+            // 4. ambient maps
+            mesh_material.ambient = find_material_texture(material, aiTextureType_AMBIENT);
 
             // return a mesh object created from the extracted mesh data
-            return res::Mesh{ vertices, indices, textures };
+            return res::Mesh{ vertices, indices, mesh_material };
         }
-        std::vector<Material> loadMaterialTextures(aiMaterial* mat, aiTextureType type, std::string typeName) {
-            std::vector<res::Material> textures;
+
+        Tag find_material_texture(aiMaterial* mat, aiTextureType type) {
             for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
             {
                 aiString str;
                 mat->GetTexture(type, i, &str);
                 std::string_view texture_name = str.C_Str();
-                std::string filal_name;
-                /*if (texture_name.starts_with("*")) {
-                    texture_name.remove_prefix(1);
-                    filal_name = std::string(texture_name) + ".jpeg"s;
-                }
-                else */filal_name = texture_name;
-                Material mat{ tag + Tag::make(filal_name), typeName };
-                textures.push_back(mat);
+                return tag + Tag::make(texture_name); 
             }
-            return textures;
+            return {};
+        }
+
+        glm::mat4 convert_to_glm(aiNode* node) const {
+            glm::mat4 local(1);
+            aiMatrix4x4 transform = node->mTransformation;
+            transform.Transpose();
+            local[0] = glm::vec4(transform.a1, transform.a2, transform.a3, transform.a4);
+            local[1] = glm::vec4(transform.b1, transform.b2, transform.b3, transform.b4);
+            local[2] = glm::vec4(transform.c1, transform.c2, transform.c3, transform.c4);
+            local[3] = glm::vec4(transform.d1, transform.d2, transform.d3, transform.d4);
+            return local;
         }
     private:
         Tag tag;
         std::vector<Mesh> meshes;
+        std::stack<glm::mat4> transform_stack;
+        std::stack<aiNode*> nodes;
+        std::size_t deep = 0;
     };
 }
 

@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+#include <glm/gtx/quaternion.hpp>
 
 #include "engine_assert.h"
 

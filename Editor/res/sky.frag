@@ -1,11 +1,16 @@
 #version 420 core
-out vec4 FragColor;
-
 in vec3 TexCoords;
 
-uniform samplerCube texture_diffuse1;
+struct Material {
+    samplerCube diffuse;
+    samplerCube specular;
+    samplerCube ambient;
+    float shininess;
+}; 
+  
+uniform Material material;
 
 void main()
 {    
-    FragColor = texture(texture_diffuse1, TexCoords);
+    gl_FragColor = texture(material.diffuse, TexCoords);
 }

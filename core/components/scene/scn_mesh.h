@@ -9,13 +9,13 @@ namespace scn {
 
     class Mesh {
     public:
-        Mesh(std::vector<res::Vertex> vertices, std::vector<unsigned int> indices, const res::Tag& textures);
+        Mesh(std::vector<res::Vertex> vertices, std::vector<unsigned int> indices, res::Material textures);
         Mesh(std::vector<res::Vertex> vertices, std::vector<unsigned int> indices);
 
     public:
         std::vector<res::Vertex> vertices;
         std::vector<unsigned int> indices;
 
-        rnd::Material material;
+        res::Material material;
     };
 }

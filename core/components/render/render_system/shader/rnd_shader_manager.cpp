@@ -14,7 +14,7 @@ namespace glm
 rnd::ShaderManager::ShaderManager(driver::driver_interface* ptr)
 	: drv(ptr)
 	, _matrices(drv->create_uniform_buffer(sizeof(GlobalUniform), 0))
-	, sun_light(drv->create_uniform_buffer(sizeof(global_sun) + 4, 1))
+	, sun_light(drv->create_uniform_buffer(sizeof(light_point) + 4, 1))
 {
 }
 
@@ -28,7 +28,9 @@ rnd::Shader rnd::ShaderManager::use(std::string_view shader) const
 	if (it == _cache.end()) {
 		auto new_shader = load(shader.data());
 		new_shader->use();
-		new_shader->uniform("texture_diffuse1", 0);
+		new_shader->uniform("material.diffuse", 0);
+		new_shader->uniform("material.specular", 1);
+		new_shader->uniform("material.ambient", 2);
 		auto& ref = _cache[shader] = std::move(new_shader);
 		return Shader(ref.get());
 	}
@@ -60,12 +62,15 @@ void rnd::ShaderManager::update_global_uniform(const GlobalUniform& val) const
 	_matrices->set_data(glm::value_ptr(val.projection), sizeof(decltype(val.projection)), offsetof(GlobalUniform, projection));
 	_matrices->set_data(glm::value_ptr(val.view), sizeof(decltype(val.view)), offsetof(GlobalUniform, view));
 	_matrices->set_data(glm::value_ptr(val.time), sizeof(decltype(val.time)), offsetof(GlobalUniform, time));
+	_matrices->set_data(glm::value_ptr(val.view_position), sizeof(decltype(val.view_position)), offsetof(GlobalUniform, view_position));
 }
 
-void rnd::ShaderManager::update_global_sun(const global_sun& val) const
+void rnd::ShaderManager::update_global_sun(const light_point& val) const
 {
-	sun_light->set_data(glm::value_ptr(val.light_color), sizeof(decltype(val.light_color)), offsetof(global_sun, light_color));
-	sun_light->set_data(glm::value_ptr(val.position), sizeof(decltype(val.position)), offsetof(global_sun, position) + sizeof(float));
+	sun_light->set_data(glm::value_ptr(val.position), sizeof(decltype(val.position)), offsetof(light_point, position));
+	sun_light->set_data(glm::value_ptr(val.diffuse), sizeof(decltype(val.diffuse)), offsetof(light_point, diffuse));
+	sun_light->set_data(glm::value_ptr(val.ambient), sizeof(decltype(val.ambient)), offsetof(light_point, ambient));
+	sun_light->set_data(glm::value_ptr(val.specular), sizeof(decltype(val.specular)), offsetof(light_point, specular));
 }
 
 std::unique_ptr<rnd::driver::shader_interface> rnd::ShaderManager::load(const std::string& name) const

@@ -13,12 +13,15 @@ namespace rnd
 		glm::mat4 projection;
 		glm::mat4 view;
 		float time;
+		glm::vec4 view_position;
 	};
 
-	struct global_sun
+	struct light_point
 	{
-		glm::vec3 light_color;
-		glm::vec3 position;
+		glm::vec4 position;
+		glm::vec4 diffuse;
+		glm::vec4 ambient;
+		glm::vec4 specular;
 	};
 
 	class ShaderManager
@@ -41,7 +44,7 @@ namespace rnd
 		void uniform(const std::string_view shader, const std::string_view field, int val) const;
 
 		void update_global_uniform(const GlobalUniform& val) const;
-		void update_global_sun(const global_sun& val) const;
+		void update_global_sun(const light_point& val) const;
 	protected:
 		std::unique_ptr<rnd::driver::shader_interface> load(const std::string& tag) const;
 

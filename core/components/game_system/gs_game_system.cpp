@@ -51,8 +51,8 @@ void gs::GameSystem::load_model(std::string_view path)
 {
 	scn::Model m(path);
 	auto rand_pos = glm::diskRand(20.f);
-	m.model = glm::translate(m.model, glm::vec3{ rand_pos.x, 1.f, rand_pos.y });
-	//m.model = glm::scale(m.model, glm::vec3{ std::abs(rand_pos.x) });
+	m.model = glm::translate(m.model, glm::vec3{ 1.f });
+	//m.model = glm::scale(m.model, glm::vec3{ 20 });
 
 	ecs::entity obj = ecs::create_entity();
 	ecs::add_component(obj, scn::model_comonent{ m.meshes });

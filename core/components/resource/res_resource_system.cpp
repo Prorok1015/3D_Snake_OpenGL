@@ -19,26 +19,21 @@ res::ResourceSystem& res::get_system()
 res::ResourceSystem::ResourceSystem()
 {
 	if (res_path.empty()) {
-		ASSERT_MSG(std::filesystem::exists("./res/"), "You should have folder './res/' near by your exe.");
+		ASSERT_MSG(std::filesystem::exists("./res/"), "The './res/' folder should be exist next to your exe");
+		res_path = std::filesystem::absolute("./res/").generic_string();
 	}
 }
 
 std::string res::ResourceSystem::get_absolut_path(const Tag& tag)
 {
-	std::string tmp_res_path = res_path;
-	if (res_path.empty()) {
-		tmp_res_path = std::filesystem::absolute("./res/").generic_string();
-	}
-
 	if (tag.protocol() == Tag::default_protocol()) {
 		std::string path{ tag.path() };
 		std::string name{ tag.name() };
-		return tmp_res_path + path + name;
+		return res_path + path + name;
 	}
 
 	egLOG("resource/absolut_path", "Broken tag {}", tag.get_full());
-	ASSERT_FAIL("Invalid tag");
-	return {};
+	return std::string{};
 }
 
 std::shared_ptr<Resource> res::ResourceSystem::find_cache(const Tag& tag)

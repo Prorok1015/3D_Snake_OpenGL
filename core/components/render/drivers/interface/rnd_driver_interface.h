@@ -15,7 +15,7 @@ namespace rnd::driver
 	class buffer_interface;
 
 	enum class CLEAR_FLAGS { COLOR_BUFFER, DEPTH_BUFFER	};
-	enum class ENABLE_FLAGS { DEPTH_TEST, DEPTH_TEST_LEQUEL };
+	enum class ENABLE_FLAGS { DEPTH_TEST, DEPTH_TEST_LEQUEL, FACE_CULLING };
 
 	struct shader_header
 	{

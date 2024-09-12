@@ -4,7 +4,7 @@
 res::Tag res::operator+ (const res::Tag& l, const res::Tag& r)
 {
 	if (l == r) {
-		egLOG("resoure/tag", "Even Tags when resource::operator+ (const resource::Tag& l, const resource::Tag& r)");
+		egLOG("resoure/tag", "Equal Tags when resource::operator+ (const resource::Tag& l, const resource::Tag& r)");
 		return l;
 	}
 

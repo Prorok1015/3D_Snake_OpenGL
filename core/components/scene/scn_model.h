@@ -29,7 +29,7 @@ namespace scn {
 
         Model() = default;
         // constructor, expects a filepath to a 3D model.
-        Model(std::string_view path, bool gamma = false);
+        Model(std::string_view path);
 
     private:
         // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.

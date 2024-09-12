@@ -56,6 +56,7 @@ const GLint gEnableFlagsToGlEnableFlags[] =
 {
 	GL_DEPTH_TEST,
 	GL_DEPTH_TEST,
+	GL_CULL_FACE,
 };
 
 const GLint gDepthFuncFlagsToGlDepthFuncFlags[] =
@@ -122,13 +123,26 @@ void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned in
 
 void rnd::driver::gl::driver::enable(ENABLE_FLAGS flags)
 {
-	glDepthFunc(gDepthFuncFlagsToGlDepthFuncFlags[(int)flags]);
+	switch (flags)
+	{
+	case rnd::driver::ENABLE_FLAGS::DEPTH_TEST: 
+	case rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL: 
+		glDepthFunc(gDepthFuncFlagsToGlDepthFuncFlags[(int)flags]);
+		CHECK_GL_ERROR();
+		break;
+	case rnd::driver::ENABLE_FLAGS::FACE_CULLING:
+		glCullFace(GL_BACK);
+		CHECK_GL_ERROR();
+		break;
+	}
 	glEnable(gEnableFlagsToGlEnableFlags[(int)flags]);
+	CHECK_GL_ERROR();
 }
 
 void rnd::driver::gl::driver::disable(ENABLE_FLAGS flags)
 {
 	glDisable(gEnableFlagsToGlEnableFlags[(int)flags]);
+	CHECK_GL_ERROR();
 }
 
 void rnd::driver::gl::driver::unuse()

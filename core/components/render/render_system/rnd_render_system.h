@@ -22,7 +22,9 @@ namespace rnd
 		RenderSystem& operator= (RenderSystem&&) = delete;
 		
 		const rnd::TextureManager& get_texture_manager() const { return texture_manager; }
+		rnd::TextureManager& get_texture_manager() { return texture_manager; }
 		const rnd::ShaderManager& get_shader_manager() const { return shader_manager; }
+		rnd::ShaderManager& get_shader_manager() { return shader_manager; }
 
 		void activate_renderer(std::weak_ptr<renderer_base> renderer);
 		void deactivate_renderer(std::weak_ptr<renderer_base> renderer);

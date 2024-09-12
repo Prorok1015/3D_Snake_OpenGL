@@ -24,8 +24,6 @@ namespace rnd
 		int width() const { return width_; }
 		int height() const { return height_; }
 
-		std::string tmp_type;
-
 	protected:
 		driver::texture_interface* texture_impl = nullptr;
 		int width_;

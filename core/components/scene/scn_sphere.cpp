@@ -37,18 +37,18 @@ std::vector<res::Vertex> get_sphere_data()
             // vertex position (x, y, z)
             x = xy * std::cos(sectorAngle);             // r * cos(u) * cos(v)
             y = xy * std::sin(sectorAngle);             // r * cos(u) * sin(v)
-            vert.position_ = glm::vec3(x, y, z);
+            vert.position = glm::vec3(x, y, z);
 
             // normalized vertex normal (nx, ny, nz)
             nx = x * lengthInv;
             ny = y * lengthInv;
             nz = z * lengthInv;
-            vert.normal_ = glm::vec3(nx, ny, nz);
+            vert.normal = glm::vec3(nx, ny, nz);
 
             // vertex tex coord (s, t) range between [0, 1]
             s = (float)j / sectorCount;
             t = (float)i / stackCount;
-            vert.tex_uv_ = glm::vec2(s, t);
+            vert.uv = glm::vec2(s, t);
             result.push_back(vert);
         }
     }
@@ -110,7 +110,7 @@ void init_sphere()
     }
 
     for (auto& v : vex) {
-        v.tex_uv_ = glm::vec2(v.tex_uv_.x / 16, -v.tex_uv_.y / 16);
+        v.uv = glm::vec2(v.uv.x / 16, -v.uv.y / 16);
     }
 
     auto txt = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("block.png"));

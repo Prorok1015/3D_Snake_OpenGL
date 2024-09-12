@@ -4,21 +4,9 @@
 #include <rnd_render_system.h>
 
 
-scn::Model::Model(std::string_view path, bool gamma)
+scn::Model::Model(std::string_view path)
 {
     loadModel(path);
-}
-
-std::vector<std::shared_ptr<rnd::Texture>> make_texture(std::vector<res::Material> vec)
-{
-    std::vector<std::shared_ptr<rnd::Texture>> result;
-    for (const auto& mat : vec) {
-        auto txt = rnd::get_system().get_texture_manager().require_texture(mat.tag_);
-        txt->tmp_type = mat.type_;
-        result.push_back(txt);
-    }
-
-    return result;
 }
 
 void scn::Model::loadModel(std::string_view path)
@@ -26,7 +14,7 @@ void scn::Model::loadModel(std::string_view path)
     res_ = res::get_system().require_resource<res::Model>(res::Tag::make(path));
     meshes.clear();
     for (const auto& mesh : res_->get_meshes()) {
-        meshes.push_back(Mesh{ mesh.vertexes_, mesh.indeces_, mesh.textures_.empty() ? res::Tag::make("__black") : mesh.textures_.front().tag_});
+        meshes.push_back(Mesh{ mesh.vertexes, mesh.indeces, mesh.material });
     }
 }
 

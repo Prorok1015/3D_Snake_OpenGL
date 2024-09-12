@@ -21,7 +21,7 @@ gs::renderer_3d::renderer_3d()
     vertex_array = drv->create_vertex_array();
 
     vertex_buffer = drv->create_buffer();
-    vertex_buffer->set_data(nullptr, 80000 * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
+    vertex_buffer->set_data(nullptr, 800000 * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
     vertex_buffer->set_layout(
         {
             {rnd::driver::ShaderDataType::Float3, "position"},
@@ -63,14 +63,10 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
     rnd::GlobalUniform common_matrix{ .time = (float)Timer::now() };
 
-    for (ecs::entity& ent : ecs::filter<rnd::light_point, scn::transform_component>()) {
+    for (ecs::entity& ent : ecs::filter<rnd::light_point>()) {
         auto* light = ecs::get_component<rnd::light_point>(ent);
-        auto* tran_comp = ecs::get_component<scn::transform_component>(ent);
 
-        eng::transform3d tran{ tran_comp->world };
-
-        rnd::global_sun sun{ .light_color = glm::vec4(light->light_color, 1.0), .position = tran.get_pos() };
-        rnd::get_system().get_shader_manager().update_global_sun(sun);
+        rnd::get_system().get_shader_manager().update_global_sun(*light);
     }
 
     for (ecs::entity& ent : ecs::filter<rnd::camera_component, scn::is_render_component_flag>())
@@ -82,22 +78,26 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
         common_matrix.projection = rnd::make_projection(*camera);
         common_matrix.view = rnd::make_view(*camera);
+        common_matrix.view_position = glm::vec4(eng::transform3d(camera->world).get_pos(), 1.0);
 
         rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
 
         drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
+        drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
 
         drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
         drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
 	    drv->set_viewport(camera->viewport);
 
-
         auto shader = rnd::get_system().get_shader_manager().use("scene");
 
         for (auto ent : ecs::filter<scn::is_render_component_flag, scn::model_comonent, scn::transform_component>()) {
             auto* model = ecs::get_component<scn::transform_component>(ent);
             shader.uniform("model", model->world);
+
+            shader.uniform("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+            shader.uniform("material.shininess", 32.0f);
 
             rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
 
@@ -114,21 +114,22 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         }
 
         drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL);
+        drv->disable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
 
         for (auto sky : ecs::filter<scn::is_render_component_flag, rnd::cubemap_component>()) {
-            auto* cb = ecs::get_component<rnd::cubemap_component>(sky);
+            auto* cube_map = ecs::get_component<rnd::cubemap_component>(sky);
             auto shader = rnd::get_system().get_shader_manager().use("sky");
 
             vertex_array->bind();
-            auto vs = generate_sphere().meshes.front().vertices;
-            auto is = generate_sphere().meshes.front().indices;
+            auto vs = cube_map->mesh.vertices;
+            auto is = cube_map->mesh.indices;
             vertex_buffer->set_data(vs.data(), sizeof(res::Vertex) * vs.size(), rnd::driver::BUFFER_BINDING::DYNAMIC);
             auto tmp = drv->create_buffer();
             tmp->set_data(is.data(), is.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::STATIC, rnd::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
             vertex_array->set_index_buffer(std::move(tmp));
 
             drv->set_activate_texture(0);
-            cb->cube_map->bind();
+            rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map)->bind();
 
             drv->draw_elements(rnd::RENDER_MODE::TRIANGLE, is.size());
         }
@@ -183,7 +184,7 @@ void gs::renderer_3d::draw(scn::Mesh& mesh, rnd::driver::driver_interface* drv)
     vertex_array->bind();
     vertex_buffer->set_data(mesh.vertices.data(), mesh.vertices.size() * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
 
-    if (mesh.indices.empty() || mesh.material.is_self_indecex) {
+    if (mesh.indices.empty()) {
         vertex_array->set_index_buffer(index_buffer);
     }
     else {
@@ -192,8 +193,20 @@ void gs::renderer_3d::draw(scn::Mesh& mesh, rnd::driver::driver_interface* drv)
         vertex_array->set_index_buffer(std::move(tmp));
     }
 
-    drv->set_activate_texture(0);
-    rnd::get_system().get_texture_manager().require_texture(mesh.material.texture_tag)->bind();
+    if (mesh.material.diffuse.is_valid()) {
+        drv->set_activate_texture(0);
+        rnd::get_system().get_texture_manager().require_texture(mesh.material.diffuse)->bind();
+    }
+
+    if (mesh.material.specular.is_valid()) {
+        drv->set_activate_texture(1);
+        rnd::get_system().get_texture_manager().require_texture(mesh.material.specular)->bind();
+    }
+
+    if (mesh.material.ambient.is_valid()) {
+        drv->set_activate_texture(2);
+        rnd::get_system().get_texture_manager().require_texture(mesh.material.ambient)->bind();
+    }
 
     // draw mesh
     drv->draw_elements(rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());

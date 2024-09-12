@@ -1,6 +1,5 @@
 #pragma once
 #include "common.h"
-#include <glm/gtx/quaternion.hpp>
 
 namespace eng {
 	class transform3d final
