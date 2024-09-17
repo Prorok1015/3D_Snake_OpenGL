@@ -23,14 +23,15 @@ varying struct PiplineStruct
     vec3 FragPos;
 } PS;
 
-struct Material {
+
+layout(binding = 0) struct Material {
     sampler2D diffuse;
     sampler2D specular;
     sampler2D ambient;
     float shininess;
 }; 
   
-uniform Material material;
+uniform Material material; 
 
 void main()
 {    

@@ -11,18 +11,17 @@ namespace rnd::driver::gl
 	public:
 		buffer();
 		virtual ~buffer() override;
-
-		void bind();
-		void unbind();
-		virtual void set_data(const void* data, std::size_t size, BUFFER_BINDING binding, BUFFER_TYPE type) override;
-
+		virtual void set_data(const void* data, std::size_t size, BUFFER_BINDING binding) override;
 		virtual const BufferLayout& get_layout() const override { return layout; }
 		virtual void set_layout(const BufferLayout& layout_) override { layout = layout_; }
 
+		GLuint get_id() const { return buffer_id; }
+
 	private:
 		bool isAllocatedMemory = false;
+		std::size_t allocated_size = 0;
 		GLuint buffer_id = 0;
-		GLint buffer_type;
+		GLint buffer_type = 0;
 		BufferLayout layout;
 	};
 }

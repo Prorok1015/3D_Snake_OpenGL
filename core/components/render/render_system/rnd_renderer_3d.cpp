@@ -27,24 +27,24 @@ rnd::renderer_3d::renderer_3d(driver::driver_interface* drv_)
 
     vertex_array->add_vertex_buffer(vertex_buffer);
 
-    std::vector<unsigned int> indeces;
-    indeces.reserve(20000 * 6);
+    std::vector<unsigned int> indices;
+    indices.reserve(20000 * 6);
     uint32_t offset = 0;
     for (uint32_t i = 0; i < 20000 * 6; i += 6)
     {
-        indeces.push_back(offset + 0);
-        indeces.push_back(offset + 1);
-        indeces.push_back(offset + 2);
+        indices.push_back(offset + 0);
+        indices.push_back(offset + 1);
+        indices.push_back(offset + 2);
 
-        indeces.push_back(offset + 2);
-        indeces.push_back(offset + 3);
-        indeces.push_back(offset + 0);
+        indices.push_back(offset + 2);
+        indices.push_back(offset + 3);
+        indices.push_back(offset + 0);
 
         offset += 4;
     }
 
     index_buffer = drv->create_buffer();
-    index_buffer->set_data(indeces.data(), indeces.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::STATIC, rnd::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
+    index_buffer->set_data(indices.data(), indices.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::STATIC, rnd::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
 
     vertex_array->set_index_buffer(index_buffer);
 }

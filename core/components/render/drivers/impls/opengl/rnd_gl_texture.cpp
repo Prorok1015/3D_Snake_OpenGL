@@ -20,6 +20,12 @@ void rnd::driver::gl::texture::bind()
 	CHECK_GL_ERROR();
 }
 
+void rnd::driver::gl::texture::bind(unsigned int idx)
+{
+	glBindTextureUnit(idx, id);
+	CHECK_GL_ERROR();
+}
+
 int rnd::driver::gl::texture::width() const
 {
 	return width_i;

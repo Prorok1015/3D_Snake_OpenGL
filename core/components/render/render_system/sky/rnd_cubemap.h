@@ -1,11 +1,12 @@
 #pragma once
 #include <res_resource_tag.h>
-#include <scn_mesh.h>
+#include <res_resource_model.h>
+
 namespace rnd
 {
 	struct cubemap_component
 	{
-		scn::Mesh mesh;
+		res::Mesh mesh;
 		std::vector<res::Tag> cube_map;
 	};
 }

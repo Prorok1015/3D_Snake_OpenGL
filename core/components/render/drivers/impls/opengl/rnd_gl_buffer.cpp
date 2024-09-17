@@ -1,5 +1,6 @@
 #include "rnd_gl_buffer.h"
 #include "open_gl_specific.h"
+#include <engine_assert.h>
 
 const GLint gBufferTypeToGlBufferType[] =
 {
@@ -19,31 +20,16 @@ rnd::driver::gl::buffer::~buffer()
 	CHECK_GL_ERROR();
 }
 
-void rnd::driver::gl::buffer::bind()
+void rnd::driver::gl::buffer::set_data(const void* data, std::size_t size, BUFFER_BINDING binding)
 {
-	glBindBuffer(buffer_type, buffer_id);
-	CHECK_GL_ERROR();
-}
-
-void rnd::driver::gl::buffer::unbind()
-{
-	glBindBuffer(buffer_type, 0);
-	CHECK_GL_ERROR();
-}
-
-void rnd::driver::gl::buffer::set_data(const void* data, std::size_t size, BUFFER_BINDING binding, BUFFER_TYPE type)
-{
-	glBindBuffer(GL_ARRAY_BUFFER, buffer_id);
-	CHECK_GL_ERROR();
-
-	buffer_type = gBufferTypeToGlBufferType[(int)type];
-
 	if (data && isAllocatedMemory) {
-		glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
+		ASSERT_MSG(size < allocated_size, "You trying set more info then was allocated!");
+		glNamedBufferSubData(buffer_id, 0, size, data);
 		CHECK_GL_ERROR();
 	} else {
 		isAllocatedMemory = true;
-		glBufferData(GL_ARRAY_BUFFER, size, data, (binding == BUFFER_BINDING::DYNAMIC ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
+		allocated_size = size;
+		glNamedBufferData(buffer_id, size, data, (binding == BUFFER_BINDING::DYNAMIC ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW));
 		CHECK_GL_ERROR();
 	}
 }

@@ -28,9 +28,6 @@ rnd::Shader rnd::ShaderManager::use(std::string_view shader) const
 	if (it == _cache.end()) {
 		auto new_shader = load(shader.data());
 		new_shader->use();
-		new_shader->uniform("material.diffuse", 0);
-		new_shader->uniform("material.specular", 1);
-		new_shader->uniform("material.ambient", 2);
 		auto& ref = _cache[shader] = std::move(new_shader);
 		return Shader(ref.get());
 	}

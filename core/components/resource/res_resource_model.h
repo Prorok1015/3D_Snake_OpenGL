@@ -27,8 +27,8 @@ namespace res
 
 	struct Mesh
 	{
-		std::vector<Vertex> vertexes;
-		std::vector<unsigned int> indeces;
+		std::vector<Vertex> vertices;
+		std::vector<unsigned int> indices;
 		Material material;
 	};
 

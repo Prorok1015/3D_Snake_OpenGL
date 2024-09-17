@@ -8,6 +8,7 @@
 #include <rnd_gl_buffer.h>
 #include <rnd_gl_uniform_buffer.h>
 #include <engine_log.h>
+#include <engine_assert.h>
 
 const GLenum gRenderModeToGLRenderMode[] =
 {
@@ -65,23 +66,85 @@ const GLint gDepthFuncFlagsToGlDepthFuncFlags[] =
 	GL_LEQUAL
 };
 
+rnd::driver::gl::driver::driver()
+{
+	framebuffers.push(0);
+}
+
+rnd::driver::gl::driver::~driver()
+{
+}
+
+void rnd::driver::gl::driver::PushFrameBuffer()
+{
+	GLuint framebuffer = 0;
+	glGenFramebuffers(1, &framebuffer);
+	CHECK_GL_ERROR();
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	CHECK_GL_ERROR();
+	framebuffers.push(framebuffer);
+}
+
+void rnd::driver::gl::driver::PopFrameBuffer()
+{
+	if (framebuffers.size() == 1) {
+		ASSERT_FAIL("Trying to pop backbuffer");
+		return;
+	}
+
+	GLuint framebuffer = framebuffers.top();
+	framebuffers.pop();
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.top());
+	CHECK_GL_ERROR();
+	glDeleteFramebuffers(1, &framebuffer);
+	CHECK_GL_ERROR();
+}
+
+void rnd::driver::gl::driver::SetRenderTargets(std::shared_ptr<texture_interface> color, std::shared_ptr<texture_interface> depth_stencil /* = nullptr*/)
+{
+	if (color) {
+		auto gl_color = std::static_pointer_cast<texture>(color);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gl_color->get_id(), 0);
+	}
+
+	if (depth_stencil) {
+		auto gl_depth_stencil = std::static_pointer_cast<texture>(depth_stencil);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gl_depth_stencil->get_id(), 0);
+		//TODO: make different textures
+		//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gl_depth_stencil->get_id());
+	}
+
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+		egLOG("driver/set_rt", "Framebuffer didn't complite!");
+	}
+}
+
 void rnd::driver::gl::driver::set_viewport(glm::ivec4 rect)
 {
 	if (viewport != rect) {
 		egLOG("renderer/set_viewport", "viewport: '{},{}'", rect[2], rect[3]);
 		viewport = rect;
 		glViewport(rect[0], rect[1], rect[2], rect[3]);
+		CHECK_GL_ERROR();
 	}
 }
 
 void rnd::driver::gl::driver::set_clear_color(glm::vec4 color)
 {
 	glClearColor(color.r, color.g, color.b, color.a);
+	CHECK_GL_ERROR();
 }
 
 void rnd::driver::gl::driver::clear(CLEAR_FLAGS flags)
 {
 	glClear(gClearFlagsToGlClearFlags[(int)flags]);
+	CHECK_GL_ERROR();
+}
+
+void rnd::driver::gl::driver::clear(CLEAR_FLAGS flags, glm::vec4 color)
+{
+	set_clear_color(color);
+	clear(flags);
 }
 
 void rnd::driver::gl::driver::set_activate_texture(int idx)
@@ -116,7 +179,16 @@ void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned in
 
 void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned int count)
 {
-	GLenum rm = gRenderModeToGLRenderMode[(int)render_mode];
+	GLenum rm = GL_TRIANGLES;
+
+	if (render_mode == RENDER_MODE::LINE_STRIP_ADJ) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		rm = gRenderModeToGLRenderMode[(int)render_mode];
+	}
+	
 	glDrawElements(rm, count, GL_UNSIGNED_INT, 0);
 	CHECK_GL_ERROR();
 }
@@ -283,7 +355,7 @@ std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, gTextureWrappingToGlWrapping[(int)header.wrap]);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, gTextureWrappingToGlWrapping[(int)header.wrap]);
 
-	return std::make_unique<rnd::driver::gl::cubemap>(texture);
+	return std::make_unique<rnd::driver::gl::texture>(texture, 0, 0);
 }
 
 std::unique_ptr<rnd::driver::vertex_array_interface> rnd::driver::gl::driver::create_vertex_array()

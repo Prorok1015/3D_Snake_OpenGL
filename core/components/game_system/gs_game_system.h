@@ -6,6 +6,8 @@
 #include <wnd_window.h>
 #include <scn_camera_controller.h>
 
+#include <future>
+
 namespace scn {
 	class Model;
 }
@@ -31,6 +33,8 @@ namespace gs
 		void add_cube_to_scene(float radius);
 		void remove_cube();
 
+		void check_loaded_model();
+
 		std::shared_ptr<renderer_3d> get_renderer() const { return renderer; }
 		std::shared_ptr<inp::input_manager> get_input_manager() const { return input; }
 
@@ -39,6 +43,8 @@ namespace gs
 
 		std::shared_ptr<wnd::window> window;
 		std::shared_ptr<inp::input_manager> input;
+
+		std::shared_ptr<std::future<std::shared_ptr<res::Model>>> future_model;
 	};
 
 	GameSystem& get_system();

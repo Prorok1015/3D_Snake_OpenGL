@@ -21,6 +21,10 @@ namespace rnd
 			texture_impl->bind();
 		}
 
+		void bind(unsigned int idx) {
+			texture_impl->bind(idx);
+		}
+
 		int width() const { return width_; }
 		int height() const { return height_; }
 

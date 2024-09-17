@@ -12,3 +12,9 @@ void rnd::driver::gl::cubemap::bind()
 	glBindTexture(GL_TEXTURE_CUBE_MAP, id);
 	CHECK_GL_ERROR();
 }
+
+void rnd::driver::gl::cubemap::bind(unsigned int idx)
+{
+	glBindTextureUnit(idx, id);
+	CHECK_GL_ERROR();
+}

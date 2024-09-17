@@ -8,6 +8,7 @@ namespace rnd::driver
 		virtual ~texture_interface() {}
 
 		virtual void bind() = 0;
+		virtual void bind(unsigned int position) = 0;
 
 		virtual int width() const = 0;
 		virtual int height() const = 0;

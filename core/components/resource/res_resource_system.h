@@ -1,6 +1,7 @@
 #pragma once
 #include <common.h>
 #include "res_resource_tag.h"
+#include <future>
 
 namespace res
 {
@@ -18,6 +19,12 @@ namespace res
 		ResourceSystem& operator= (const ResourceSystem&) = delete;
 		ResourceSystem(ResourceSystem&&) = delete;
 		ResourceSystem& operator= (ResourceSystem&&) = delete;
+
+		template<class RESOURCE>
+		std::future<std::shared_ptr<RESOURCE>> require_resource_async(Tag tag, bool hard_reload = false)
+		{
+			return std::async(std::launch::async, &ResourceSystem::require_resource<RESOURCE>, this, tag, hard_reload);
+		}
 
 		template<class RESOURCE>
 		std::shared_ptr<RESOURCE> require_resource(const Tag& tag, bool hard_reload = false)

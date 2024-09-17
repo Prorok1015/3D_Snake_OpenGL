@@ -3,14 +3,10 @@
 
 rnd::driver::gl::uniform_buffer::uniform_buffer(std::size_t size, std::size_t binding)
 {
-	glGenBuffers(1, &m_RendererID);
+	glCreateBuffers(1, &m_RendererID);
+	CHECK_GL_ERROR();
 
-	CHECK_GL_ERROR();
-	glBindBuffer(GL_UNIFORM_BUFFER, m_RendererID);
-	CHECK_GL_ERROR();
-	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
-	CHECK_GL_ERROR();
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glNamedBufferData(m_RendererID, size, nullptr, GL_DYNAMIC_DRAW);
 	CHECK_GL_ERROR();
 
 	glBindBufferRange(GL_UNIFORM_BUFFER, binding, m_RendererID, 0, size);
@@ -25,10 +21,6 @@ rnd::driver::gl::uniform_buffer::~uniform_buffer()
 
 void rnd::driver::gl::uniform_buffer::set_data(const void* data, std::size_t size, std::size_t offset)
 {
-	glBindBuffer(GL_UNIFORM_BUFFER, m_RendererID);
-	CHECK_GL_ERROR();
-	glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);
-	CHECK_GL_ERROR();
-	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	glNamedBufferSubData(m_RendererID, offset, size, data);
 	CHECK_GL_ERROR();
 }

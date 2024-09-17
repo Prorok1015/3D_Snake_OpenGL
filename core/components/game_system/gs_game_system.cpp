@@ -24,6 +24,12 @@ gs::GameSystem& gs::get_system()
 	return *p_game_system;
 }
 
+template<typename R>
+bool is_ready(std::future<R> const& f)
+{
+	return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+}
+
 gs::GameSystem::GameSystem()
 {
 	window = wnd::get_system().get_active_window();
@@ -49,17 +55,25 @@ void gs::GameSystem::set_enable_input(bool enable)
 
 void gs::GameSystem::load_model(std::string_view path)
 {
-	scn::Model m(path);
-	auto rand_pos = glm::diskRand(20.f);
-	m.model = glm::translate(m.model, glm::vec3{ 1.f });
-	//m.model = glm::scale(m.model, glm::vec3{ 20 });
+	future_model = std::make_shared<std::future<std::shared_ptr<res::Model>>>(res::get_system().require_resource_async<res::Model>(res::Tag::make(path)));
+}
 
-	ecs::entity obj = ecs::create_entity();
-	ecs::add_component(obj, scn::model_comonent{ m.meshes });
-	ecs::add_component(obj, scn::transform_component{ m.model });
-	ecs::add_component(obj, scn::is_render_component_flag{});
+void gs::GameSystem::check_loaded_model()
+{
+	if (future_model && is_ready(*future_model)) {
+		auto res = future_model->get();
+		auto rand_pos = glm::diskRand(20.f);
+		auto model = glm::translate(glm::mat4(1.0), glm::vec3{1.f});
+		//m.model = glm::scale(m.model, glm::vec3{ 20 });
 
-	renderer->scene_objects.push_back(obj);
+		ecs::entity obj = ecs::create_entity();
+		ecs::add_component(obj, scn::model_comonent{ res->get_meshes() });
+		ecs::add_component(obj, scn::transform_component{ model });
+		ecs::add_component(obj, scn::is_render_component_flag{});
+
+		renderer->scene_objects.push_back(obj);
+		future_model = nullptr;
+	}
 }
 
 void gs::GameSystem::reload_shaders()

@@ -3,6 +3,7 @@
 #include <scn_model.h>
 #include <camera/rnd_camera.h>
 #include <ecs/ecs_entity.h>
+#include <res_resource_model.h>
 
 namespace rnd::driver
 {
@@ -22,7 +23,7 @@ namespace gs
 		virtual void on_render(rnd::driver::driver_interface* drv);
 
 		void draw(scn::Model& val, rnd::driver::driver_interface* drv);
-		void draw(scn::Mesh& mesh, rnd::driver::driver_interface* drv);
+		void draw(res::Mesh& mesh, rnd::driver::driver_interface* drv);
 		void draw_line(rnd::driver::driver_interface* drv);
 	public:
 		std::vector<ecs::entity> scene_objects;

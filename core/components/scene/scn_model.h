@@ -8,7 +8,7 @@
 namespace scn {
 
     struct model_comonent {
-        std::vector<Mesh> meshes;
+        std::vector<res::Mesh> meshes;
     };
 
     struct transform_component {
@@ -22,7 +22,7 @@ namespace scn {
     class Model
     {
     public:
-        std::vector<Mesh> meshes;
+        std::vector<res::Mesh> meshes;
         glm::mat4 model{ 1.0f };
 
         std::shared_ptr<res::Model> res_ = nullptr;
@@ -30,10 +30,10 @@ namespace scn {
         Model() = default;
         // constructor, expects a filepath to a 3D model.
         Model(std::string_view path);
+        Model(std::shared_ptr<res::Model> res_model);
 
     private:
-        // loads a model with supported ASSIMP extensions from file and stores the resulting meshes in the meshes vector.
-        void loadModel(std::string_view path);
+        void loadModel();
     };
 
 }

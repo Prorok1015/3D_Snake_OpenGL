@@ -11,10 +11,12 @@ namespace rnd::driver::gl
 		virtual ~texture() override;
 
 		virtual void bind() override;
+		virtual void bind(unsigned int position) override;
 
 		virtual int width() const override;
 		virtual int height() const override;
 
+		GLuint get_id() const { return id; }
 	private:
 		GLuint id = 0;
 		int width_i = 0;

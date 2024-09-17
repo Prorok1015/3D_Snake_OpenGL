@@ -18,7 +18,7 @@ namespace rnd::driver
 	{
 	public:
 		virtual ~buffer_interface() {}
-		virtual void set_data(const void* data, size_t size, BUFFER_BINDING binding, BUFFER_TYPE type = BUFFER_TYPE::ARRAY_BUFFER) = 0;
+		virtual void set_data(const void* data, size_t size, BUFFER_BINDING binding) = 0;
 
 		virtual const BufferLayout& get_layout() const = 0;
 		virtual void set_layout(const BufferLayout& layout_) = 0;

@@ -36,24 +36,24 @@ gs::renderer_3d::renderer_3d()
 
     vertex_array->add_vertex_buffer(vertex_buffer);
 
-    std::vector<unsigned int> indeces;
-    indeces.reserve(20000 * 6);
+    std::vector<unsigned int> indices;
+    indices.reserve(800000 * 6);
     uint32_t offset = 0;
-    for (uint32_t i = 0; i < 20000 * 6; i += 6)
+    for (uint32_t i = 0; i < 800000 * 6; i += 6)
     {
-        indeces.push_back(offset + 0);
-        indeces.push_back(offset + 1);
-        indeces.push_back(offset + 2);
+        indices.push_back(offset + 0);
+        indices.push_back(offset + 1);
+        indices.push_back(offset + 2);
 
-        indeces.push_back(offset + 2);
-        indeces.push_back(offset + 3);
-        indeces.push_back(offset + 0);
+        indices.push_back(offset + 2);
+        indices.push_back(offset + 3);
+        indices.push_back(offset + 0);
 
         offset += 4;
     }
 
     index_buffer = drv->create_buffer();
-    index_buffer->set_data(indeces.data(), indeces.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::STATIC, rnd::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
+    index_buffer->set_data(indices.data(), indices.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::DYNAMIC);
 
     vertex_array->set_index_buffer(index_buffer);
 }
@@ -120,18 +120,16 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
             auto* cube_map = ecs::get_component<rnd::cubemap_component>(sky);
             auto shader = rnd::get_system().get_shader_manager().use("sky");
 
-            vertex_array->bind();
             auto vs = cube_map->mesh.vertices;
             auto is = cube_map->mesh.indices;
-            vertex_buffer->set_data(vs.data(), sizeof(res::Vertex) * vs.size(), rnd::driver::BUFFER_BINDING::DYNAMIC);
-            auto tmp = drv->create_buffer();
-            tmp->set_data(is.data(), is.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::STATIC, rnd::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
-            vertex_array->set_index_buffer(std::move(tmp));
+            vertex_buffer->set_data(vs.data(),vs.size() * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
+            index_buffer->set_data(is.data(), is.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::DYNAMIC);
 
-            drv->set_activate_texture(0);
-            rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map)->bind();
+            rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map)->bind(0);
 
+            vertex_array->bind();
             drv->draw_elements(rnd::RENDER_MODE::TRIANGLE, is.size());
+            vertex_array->unbind();
         }
     }
 
@@ -176,44 +174,29 @@ void gs::renderer_3d::draw(scn::Model& val, rnd::driver::driver_interface* drv)
 	}
 }
 
-void gs::renderer_3d::draw(scn::Mesh& mesh, rnd::driver::driver_interface* drv)
+void gs::renderer_3d::draw(res::Mesh& mesh, rnd::driver::driver_interface* drv)
 {
     // A great thing about structs is that their memory layout is sequential for all its items.
     // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
     // again translates to 3/2 floats which translates to a byte array.
-    vertex_array->bind();
-    vertex_buffer->set_data(mesh.vertices.data(), mesh.vertices.size() * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
-
-    if (mesh.indices.empty()) {
-        vertex_array->set_index_buffer(index_buffer);
-    }
-    else {
-        auto tmp = drv->create_buffer();
-        tmp->set_data(mesh.indices.data(), mesh.indices.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::STATIC, rnd::driver::BUFFER_TYPE::ELEMENT_ARRAY_BUFFER);
-        vertex_array->set_index_buffer(std::move(tmp));
-    }
+    vertex_buffer->set_data(mesh.vertices.data(),mesh.vertices.size() * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
+    index_buffer->set_data(mesh.indices.data(),  mesh.indices.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::DYNAMIC);
 
     if (mesh.material.diffuse.is_valid()) {
-        drv->set_activate_texture(0);
-        rnd::get_system().get_texture_manager().require_texture(mesh.material.diffuse)->bind();
+        rnd::get_system().get_texture_manager().require_texture(mesh.material.diffuse)->bind(0);
     }
 
     if (mesh.material.specular.is_valid()) {
-        drv->set_activate_texture(1);
-        rnd::get_system().get_texture_manager().require_texture(mesh.material.specular)->bind();
+        rnd::get_system().get_texture_manager().require_texture(mesh.material.specular)->bind(1);
     }
 
     if (mesh.material.ambient.is_valid()) {
-        drv->set_activate_texture(2);
-        rnd::get_system().get_texture_manager().require_texture(mesh.material.ambient)->bind();
+        rnd::get_system().get_texture_manager().require_texture(mesh.material.ambient)->bind(2);
     }
 
     // draw mesh
+    vertex_array->bind();
     drv->draw_elements(rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());
-
-    // always good practice to set everything back to defaults once configured.
-    drv->set_activate_texture(0);
-
     vertex_array->unbind();
 }
 

@@ -200,7 +200,7 @@ bool editor::EditorSystem::show_toolbar()
 		ImGui::RadioButton("Combo models", &model_load_method, 0); ImGui::SameLine();
 		ImGui::RadioButton("Input model", &model_load_method, 1);
 
-
+		gs::get_system().check_loaded_model();
 		if (ImGui::Button("Add model")) {
 			gs::get_system().load_model(model_load_method == 0 ? models_list[current_model].c_str() : buf);
 		} ImGui::SameLine();

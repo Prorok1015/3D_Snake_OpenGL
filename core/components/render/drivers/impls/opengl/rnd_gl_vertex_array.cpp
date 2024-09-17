@@ -1,5 +1,6 @@
 #include "rnd_gl_vertex_array.h"
 #include "glad/glad.h"
+#include "open_gl_specific.h"
 
 static GLenum ShaderDataTypeToOpenGLBaseType(rnd::driver::ShaderDataType type)
 {
@@ -35,6 +36,7 @@ rnd::driver::gl::vertex_array::~vertex_array()
 void rnd::driver::gl::vertex_array::bind()
 {
 	glBindVertexArray(m_RendererID);
+	CHECK_GL_ERROR();
 }
 
 void rnd::driver::gl::vertex_array::unbind()
@@ -44,11 +46,10 @@ void rnd::driver::gl::vertex_array::unbind()
 
 void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd::driver::buffer_interface>& vertexBuffer_in)
 {
-	bind();
 	auto vertexBuffer = std::static_pointer_cast<gl::buffer>(vertexBuffer_in);
-	vertexBuffer->bind();
-
 	const auto& layout = vertexBuffer->get_layout();
+	int binding_index = 0;
+	glVertexArrayVertexBuffer(m_RendererID, binding_index/*inctiment to every new buffers*/, vertexBuffer->get_id(), 0/*offset*/, layout.get_stride());
 	for (const auto& element : layout)
 	{
 		switch (element.Type)
@@ -58,13 +59,12 @@ void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd:
 		case ShaderDataType::Float3:
 		case ShaderDataType::Float4:
 		{
-			glEnableVertexAttribArray(m_VertexBufferIndex);
-			glVertexAttribPointer(m_VertexBufferIndex,
-				element.get_component_count(),
-				ShaderDataTypeToOpenGLBaseType(element.Type),
-				element.Normalized ? GL_TRUE : GL_FALSE,
-				layout.get_stride(),
-				(const void*)element.Offset);
+			glEnableVertexArrayAttrib(m_RendererID, m_VertexBufferIndex);
+			uint32_t count = element.get_component_count();
+			GLenum type = ShaderDataTypeToOpenGLBaseType(element.Type);
+			GLint isNormalize = element.Normalized ? GL_TRUE : GL_FALSE;
+			glVertexArrayAttribFormat(m_RendererID, m_VertexBufferIndex, count, type, isNormalize, element.Offset);
+			glVertexArrayAttribBinding(m_RendererID, m_VertexBufferIndex, binding_index);
 			m_VertexBufferIndex++;
 			
 		} break;
@@ -74,12 +74,12 @@ void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd:
 		case ShaderDataType::Int4:
 		case ShaderDataType::Bool:
 		{
-			glEnableVertexAttribArray(m_VertexBufferIndex);
-			glVertexAttribIPointer(m_VertexBufferIndex,
-				element.get_component_count(),
-				ShaderDataTypeToOpenGLBaseType(element.Type),
-				layout.get_stride(),
-				(const void*)element.Offset);
+			glEnableVertexArrayAttrib(m_RendererID, m_VertexBufferIndex);
+			uint32_t count = element.get_component_count();
+			GLenum type = ShaderDataTypeToOpenGLBaseType(element.Type);
+			GLint isNormalize = element.Normalized ? GL_TRUE : GL_FALSE;
+			glVertexArrayAttribFormat(m_RendererID, m_VertexBufferIndex, count, type, isNormalize, element.Offset);
+			glVertexArrayAttribBinding(m_RendererID, m_VertexBufferIndex, binding_index);
 			m_VertexBufferIndex++;
 			
 		} break;
@@ -89,14 +89,13 @@ void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd:
 			uint8_t count = element.get_component_count();
 			for (uint8_t i = 0; i < count; i++)
 			{
-				glEnableVertexAttribArray(m_VertexBufferIndex);
-				glVertexAttribPointer(m_VertexBufferIndex,
-					count,
-					ShaderDataTypeToOpenGLBaseType(element.Type),
-					element.Normalized ? GL_TRUE : GL_FALSE,
-					layout.get_stride(),
-					(const void*)(element.Offset + sizeof(float) * count * i));
-				glVertexAttribDivisor(m_VertexBufferIndex, 1);
+				glEnableVertexArrayAttrib(m_RendererID, m_VertexBufferIndex);
+				GLenum type = ShaderDataTypeToOpenGLBaseType(element.Type);
+				GLint isNormalize = element.Normalized ? GL_TRUE : GL_FALSE;
+				std::size_t offset = (element.Offset + sizeof(float) * count * i);
+				glVertexArrayAttribFormat(m_RendererID, m_VertexBufferIndex, count, type, isNormalize, offset);
+				glVertexArrayAttribBinding(m_RendererID, m_VertexBufferIndex, binding_index);
+				glVertexBindingDivisor(binding_index, 1);
 				m_VertexBufferIndex++;
 			}
 			
@@ -114,7 +113,11 @@ void rnd::driver::gl::vertex_array::remove_vertex_buffer(const std::shared_ptr<r
 
 void rnd::driver::gl::vertex_array::set_index_buffer(const std::shared_ptr<rnd::driver::buffer_interface>& indexBuffer)
 {
-	bind();
 	m_IndexBuffer = std::static_pointer_cast<gl::buffer>(indexBuffer);
-	m_IndexBuffer->bind();
+	bind();
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer->get_id());
+	CHECK_GL_ERROR();
+	unbind();
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	CHECK_GL_ERROR();
 }

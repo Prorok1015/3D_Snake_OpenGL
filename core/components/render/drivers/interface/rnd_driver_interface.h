@@ -88,12 +88,20 @@ namespace rnd::driver
 	class driver_interface
 	{
 	public:
+		virtual ~driver_interface() {}
+
+		virtual void PushFrameBuffer() = 0;
+		virtual void PopFrameBuffer() = 0;
+		virtual void SetRenderTargets(std::shared_ptr<texture_interface> color, std::shared_ptr<texture_interface> depth_stencil = nullptr) = 0;
+
 		virtual void set_viewport(glm::ivec4 rect) = 0;
 		virtual void set_clear_color(glm::vec4 color) = 0;
 		virtual void clear(CLEAR_FLAGS flags) = 0;
+		virtual void clear(CLEAR_FLAGS flags, glm::vec4 color) = 0;
 		virtual void set_activate_texture(int idx) = 0;
 		virtual void set_line_size(float size) = 0;
 		virtual void set_point_size(float size) = 0;
+		//TODO: remove
 		virtual void draw_elements(RENDER_MODE render_mode, unsigned int vao, unsigned int count) = 0;
 		virtual void draw_elements(RENDER_MODE render_mode, unsigned int count) = 0;
 
