@@ -10,7 +10,6 @@ namespace rnd::driver::gl
 		texture(GLuint id, int w, int h); 
 		virtual ~texture() override;
 
-		virtual void bind() override;
 		virtual void bind(unsigned int position) override;
 
 		virtual int width() const override;

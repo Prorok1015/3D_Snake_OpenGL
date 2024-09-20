@@ -50,6 +50,7 @@ namespace rnd::driver
 			unsigned char* data;
 		};
 
+		std::string name = "unknown";
 		data picture;
 		FILTERING min;
 		FILTERING mag;
@@ -103,7 +104,8 @@ namespace rnd::driver
 		virtual void set_point_size(float size) = 0;
 		//TODO: remove
 		virtual void draw_elements(RENDER_MODE render_mode, unsigned int vao, unsigned int count) = 0;
-		virtual void draw_elements(RENDER_MODE render_mode, unsigned int count) = 0;
+		virtual void draw_indeces(RENDER_MODE render_mode, unsigned int count, unsigned int offset = 0) = 0;
+		virtual void draw_instanced_indeces(RENDER_MODE render_mode, unsigned int count, unsigned int instance_count, unsigned int offset = 0) = 0;
 
 		virtual void enable(ENABLE_FLAGS flags) = 0;
 		virtual void disable(ENABLE_FLAGS flags) = 0;

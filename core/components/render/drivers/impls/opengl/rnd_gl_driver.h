@@ -23,7 +23,8 @@ namespace rnd::driver::gl
 		virtual void set_line_size(float size) override;
 		virtual void set_point_size(float size) override;
 		virtual void draw_elements(RENDER_MODE render_mode, unsigned int vao, unsigned int count) override;
-		virtual void draw_elements(RENDER_MODE render_mode, unsigned int count) override;
+		virtual void draw_indeces(RENDER_MODE render_mode, unsigned int count, unsigned int offset = 0) override;
+		virtual void draw_instanced_indeces(RENDER_MODE render_mode, unsigned int count, unsigned int instance_count, unsigned int offset = 0) override;
 
 		virtual void enable(ENABLE_FLAGS flags) override;
 		virtual void disable(ENABLE_FLAGS flags) override;

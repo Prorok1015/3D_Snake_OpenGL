@@ -39,6 +39,11 @@ gs::GameSystem::GameSystem()
 	renderer = std::make_shared<renderer_3d>();
 	rnd::get_system().activate_renderer(renderer);
 
+	cubes_inst = ecs::create_entity();
+
+	res::instance_object* inst = ecs::add_component(cubes_inst, res::instance_object{});
+	inst->tpl = generate_cube().meshes.front();
+
 	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
 }
 
@@ -83,18 +88,19 @@ void gs::GameSystem::reload_shaders()
 
 void gs::GameSystem::add_cube_to_scene(float radius)
 {
-	static bool is_gen_cube = true;
-	scn::Model m = is_gen_cube ? generate_cube() : generate_sphere();
-	is_gen_cube = !is_gen_cube;
 	glm::vec2 rand_pos = glm::diskRand(radius);
-	m.model = glm::translate(m.model, glm::vec3{ rand_pos.x, 1.f, rand_pos.y });
+	res::instance_object* inst = ecs::get_component<res::instance_object>(cubes_inst);
+	inst->worlds.push_back(glm::translate(glm::mat4{ 1.0 }, glm::vec3{ rand_pos.x, 1.f, rand_pos.y }));
 
-	ecs::entity obj = ecs::create_entity();
-	ecs::add_component(obj, scn::model_comonent{ m.meshes });
-	ecs::add_component(obj, scn::transform_component{ m.model });
-	ecs::add_component(obj, scn::is_render_component_flag{});
+	//static bool is_gen_cube = true;
+	//scn::Model m = is_gen_cube ? generate_cube() : generate_sphere();
+	//is_gen_cube = !is_gen_cube;
+	//ecs::entity obj = ecs::create_entity();
+	//ecs::add_component(obj, scn::model_comonent{ m.meshes });
+	//ecs::add_component(obj, scn::transform_component{ m.model });
+	//ecs::add_component(obj, scn::is_render_component_flag{});
 
-	renderer->scene_objects.push_back(obj);
+	//renderer->scene_objects.push_back(obj);
 }
 
 void gs::GameSystem::remove_cube()

@@ -14,12 +14,6 @@ rnd::driver::gl::texture::~texture()
 	CHECK_GL_ERROR();
 }
 
-void rnd::driver::gl::texture::bind()
-{
-	glBindTexture(GL_TEXTURE_2D, id);
-	CHECK_GL_ERROR();
-}
-
 void rnd::driver::gl::texture::bind(unsigned int idx)
 {
 	glBindTextureUnit(idx, id);

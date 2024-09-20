@@ -177,7 +177,7 @@ void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned in
 	CHECK_GL_ERROR();
 }
 
-void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned int count)
+void rnd::driver::gl::driver::draw_indeces(RENDER_MODE render_mode, unsigned int count, unsigned int offset)
 {
 	GLenum rm = GL_TRIANGLES;
 
@@ -190,6 +190,22 @@ void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned in
 	}
 	
 	glDrawElements(rm, count, GL_UNSIGNED_INT, 0);
+	CHECK_GL_ERROR();
+}
+
+void rnd::driver::gl::driver::draw_instanced_indeces(RENDER_MODE render_mode, unsigned int count, unsigned int instance_count, unsigned int offset)
+{
+	GLenum rm = GL_TRIANGLES;
+
+	if (render_mode == RENDER_MODE::LINE_STRIP_ADJ) {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	}
+	else {
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		rm = gRenderModeToGLRenderMode[(int)render_mode];
+	}
+
+	glDrawElementsInstanced(rm, count, GL_UNSIGNED_INT, 0, instance_count);
 	CHECK_GL_ERROR();
 }
 
@@ -207,6 +223,7 @@ void rnd::driver::gl::driver::enable(ENABLE_FLAGS flags)
 		CHECK_GL_ERROR();
 		break;
 	}
+
 	glEnable(gEnableFlagsToGlEnableFlags[(int)flags]);
 	CHECK_GL_ERROR();
 }
@@ -282,39 +299,48 @@ std::unique_ptr<rnd::driver::shader_interface> rnd::driver::gl::driver::create_s
 
 std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_texture(const texture_header& header)
 {
-
 	GLsizei t_width = header.picture.width;
 	GLsizei t_height = header.picture.height;
 	GLenum format = 0;
-	if (header.picture.channels == 1)
-		format = GL_RED;
-	else if (header.picture.channels == 3)
-		format = GL_RGB;
-	else if (header.picture.channels == 4)
-		format = GL_RGBA;
+	GLenum format_2 = 0;
+	if (header.picture.channels == 1) {
+		format = GL_R8;
+		format_2 = GL_RED;
+	}
+	else if (header.picture.channels == 3) {
+		format = GL_RGB8;
+		format_2 = GL_RGB;
+	}
+	else if (header.picture.channels == 4) {
+		format = GL_RGBA8;
+		format_2 = GL_RGBA;
+	}
 	GLubyte* image_data = header.picture.data;
 	GLuint texture;
-	glGenTextures(1, &texture);
-	CHECK_GL_ERROR();
-	glBindTexture(GL_TEXTURE_2D, texture);
-	CHECK_GL_ERROR();
-	//glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gTextureFilteringToGlFiltering[(int)header.min]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gTextureFilteringToGlFiltering[(int)header.mag]);
+	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
 	CHECK_GL_ERROR();
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, gTextureWrappingToGlWrapping[(int)header.wrap]);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, gTextureWrappingToGlWrapping[(int)header.wrap]);
+	glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, gTextureFilteringToGlFiltering[(int)header.min]);
+	glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, gTextureFilteringToGlFiltering[(int)header.mag]);
 	CHECK_GL_ERROR();
 
-	glTexImage2D(GL_TEXTURE_2D, 0, format, t_width, t_height, 0, format, GL_UNSIGNED_BYTE, image_data);
+	glTextureParameteri(texture, GL_TEXTURE_WRAP_S, gTextureWrappingToGlWrapping[(int)header.wrap]);
+	glTextureParameteri(texture, GL_TEXTURE_WRAP_T, gTextureWrappingToGlWrapping[(int)header.wrap]);
 	CHECK_GL_ERROR();
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
+
+	glTextureStorage2D(texture, 1, format, t_width, t_height);
 	CHECK_GL_ERROR();
-	glGenerateMipmap(GL_TEXTURE_2D);
+	GLint result = 0;
+	glGetTextureParameteriv(texture, GL_TEXTURE_IMMUTABLE_FORMAT, &result);
+	if (result != GL_TRUE) {
+		egLOG("texture/create", "broken store tex");
+	}
+	glTextureSubImage2D(texture, 0, 0, 0, t_width, t_height, format_2, GL_UNSIGNED_BYTE, image_data);
 	CHECK_GL_ERROR();
-	glBindTexture(GL_TEXTURE_2D, 0);
-	CHECK_GL_ERROR();
+	//glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, 4);
+	//CHECK_GL_ERROR();
+	//glGenerateTextureMipmap(texture);
+	//CHECK_GL_ERROR();
 
 	return std::make_unique<rnd::driver::gl::texture>(texture, t_width, t_height);
 }

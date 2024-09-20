@@ -4,26 +4,26 @@
 
 namespace rnd::driver
 {
-	enum class ShaderDataType
+	enum class SHADER_DATA_TYPE
 	{
-		None, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool
+		UNKNOWN, FLOAT, VEC2_F, VEC3_F, VEC4_F, MAT3_F, MAT4_F, INT, VEC2_I, VEC3_I, VEC4_I, BOOL
 	};
 
-	static uint32_t shader_data_type_size(ShaderDataType type)
+	static uint32_t shader_data_type_size(SHADER_DATA_TYPE type)
 	{
 		switch (type)
 		{
-		case ShaderDataType::Float:    return sizeof(float);
-		case ShaderDataType::Float2:   return sizeof(float) * 2;
-		case ShaderDataType::Float3:   return sizeof(float) * 3;
-		case ShaderDataType::Float4:   return sizeof(float) * 4;
-		case ShaderDataType::Mat3:     return sizeof(float) * 3 * 3;
-		case ShaderDataType::Mat4:     return sizeof(float) * 4 * 4;
-		case ShaderDataType::Int:      return sizeof(int);
-		case ShaderDataType::Int2:     return sizeof(int) * 2;
-		case ShaderDataType::Int3:     return sizeof(int) * 3;
-		case ShaderDataType::Int4:     return sizeof(int) * 4;
-		case ShaderDataType::Bool:     return sizeof(bool);
+		case SHADER_DATA_TYPE::FLOAT:    return sizeof(float);
+		case SHADER_DATA_TYPE::VEC2_F:   return sizeof(float) * 2;
+		case SHADER_DATA_TYPE::VEC3_F:   return sizeof(float) * 3;
+		case SHADER_DATA_TYPE::VEC4_F:   return sizeof(float) * 4;
+		case SHADER_DATA_TYPE::MAT3_F:   return sizeof(float) * 3 * 3;
+		case SHADER_DATA_TYPE::MAT4_F:   return sizeof(float) * 4 * 4;
+		case SHADER_DATA_TYPE::INT:      return sizeof(int);
+		case SHADER_DATA_TYPE::VEC2_I:   return sizeof(int) * 2;
+		case SHADER_DATA_TYPE::VEC3_I:   return sizeof(int) * 3;
+		case SHADER_DATA_TYPE::VEC4_I:   return sizeof(int) * 4;
+		case SHADER_DATA_TYPE::BOOL:     return sizeof(bool);
 		}
 
 		return 0;
@@ -32,14 +32,14 @@ namespace rnd::driver
 	struct BufferElement
 	{
 		std::string Name;
-		ShaderDataType Type;
+		SHADER_DATA_TYPE Type;
 		uint32_t Size;
 		size_t Offset;
 		bool Normalized;
 
 		BufferElement() = default;
 
-		BufferElement(ShaderDataType type, const std::string& name, bool normalized = false)
+		BufferElement(SHADER_DATA_TYPE type, const std::string& name, bool normalized = false)
 			: Name(name), Type(type), Size(shader_data_type_size(type)), Offset(0), Normalized(normalized)
 		{
 		}
@@ -48,17 +48,17 @@ namespace rnd::driver
 		{
 			switch (Type)
 			{
-			case ShaderDataType::Float:   return 1;
-			case ShaderDataType::Float2:  return 2;
-			case ShaderDataType::Float3:  return 3;
-			case ShaderDataType::Float4:  return 4;
-			case ShaderDataType::Mat3:    return 3; // 3* float3
-			case ShaderDataType::Mat4:    return 4; // 4* float4
-			case ShaderDataType::Int:     return 1;
-			case ShaderDataType::Int2:    return 2;
-			case ShaderDataType::Int3:    return 3;
-			case ShaderDataType::Int4:    return 4;
-			case ShaderDataType::Bool:    return 1;
+			case SHADER_DATA_TYPE::FLOAT:   return 1;
+			case SHADER_DATA_TYPE::VEC2_F:  return 2;
+			case SHADER_DATA_TYPE::VEC3_F:  return 3;
+			case SHADER_DATA_TYPE::VEC4_F:  return 4;
+			case SHADER_DATA_TYPE::MAT3_F:  return 3; // 3* float3
+			case SHADER_DATA_TYPE::MAT4_F:  return 4; // 4* float4
+			case SHADER_DATA_TYPE::INT:     return 1;
+			case SHADER_DATA_TYPE::VEC2_I:  return 2;
+			case SHADER_DATA_TYPE::VEC3_I:  return 3;
+			case SHADER_DATA_TYPE::VEC4_I:  return 4;
+			case SHADER_DATA_TYPE::BOOL:    return 1;
 			}
 
 			return 0;

@@ -17,10 +17,6 @@ namespace rnd
 		}
 		~Texture() {}
 
-		void bind() {
-			texture_impl->bind();
-		}
-
 		void bind(unsigned int idx) {
 			texture_impl->bind(idx);
 		}

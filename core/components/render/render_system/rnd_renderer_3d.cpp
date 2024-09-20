@@ -15,13 +15,13 @@ rnd::renderer_3d::renderer_3d(driver::driver_interface* drv_)
     vertex_buffer->set_data(nullptr, 20000 * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
     vertex_buffer->set_layout(
         {
-            {rnd::driver::ShaderDataType::Float3, "position"},
-            {rnd::driver::ShaderDataType::Float3, "normal"},
-            {rnd::driver::ShaderDataType::Float2, "texture_position"},
-            {rnd::driver::ShaderDataType::Float3, "tangent"},
-            {rnd::driver::ShaderDataType::Float3, "bitangent"},
-            {rnd::driver::ShaderDataType::Int4,   "bones"},
-            {rnd::driver::ShaderDataType::Float4, "bones_weight"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "position"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "normal"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC2_F, "texture_position"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "tangent"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "bitangent"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC4_I,   "bones"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC4_F, "bones_weight"},
         }
         );
 
@@ -86,7 +86,7 @@ void rnd::renderer_3d::draw(scene::Mesh& mesh)
     rnd::get_system().get_texture_manager().require_texture(mesh.material.texture_tag)->bind();
 
     // draw mesh
-    drv->draw_elements(rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());
+    drv->draw_indeces(rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());
 
     // always good practice to set everything back to defaults once configured.
     drv->set_activate_texture(0);

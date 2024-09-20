@@ -2,22 +2,22 @@
 #include "glad/glad.h"
 #include "open_gl_specific.h"
 
-static GLenum ShaderDataTypeToOpenGLBaseType(rnd::driver::ShaderDataType type)
+static GLenum ShaderDataTypeToOpenGLBaseType(rnd::driver::SHADER_DATA_TYPE type)
 {
 	using namespace rnd::driver;
 	switch (type)
 	{
-	case ShaderDataType::Float:    return GL_FLOAT;
-	case ShaderDataType::Float2:   return GL_FLOAT;
-	case ShaderDataType::Float3:   return GL_FLOAT;
-	case ShaderDataType::Float4:   return GL_FLOAT;
-	case ShaderDataType::Mat3:     return GL_FLOAT;
-	case ShaderDataType::Mat4:     return GL_FLOAT;
-	case ShaderDataType::Int:      return GL_INT;
-	case ShaderDataType::Int2:     return GL_INT;
-	case ShaderDataType::Int3:     return GL_INT;
-	case ShaderDataType::Int4:     return GL_INT;
-	case ShaderDataType::Bool:     return GL_BOOL;
+	case SHADER_DATA_TYPE::FLOAT:    return GL_FLOAT;
+	case SHADER_DATA_TYPE::VEC2_F:   return GL_FLOAT;
+	case SHADER_DATA_TYPE::VEC3_F:   return GL_FLOAT;
+	case SHADER_DATA_TYPE::VEC4_F:   return GL_FLOAT;
+	case SHADER_DATA_TYPE::MAT3_F:     return GL_FLOAT;
+	case SHADER_DATA_TYPE::MAT4_F:     return GL_FLOAT;
+	case SHADER_DATA_TYPE::INT:      return GL_INT;
+	case SHADER_DATA_TYPE::VEC2_I:     return GL_INT;
+	case SHADER_DATA_TYPE::VEC3_I:     return GL_INT;
+	case SHADER_DATA_TYPE::VEC4_I:     return GL_INT;
+	case SHADER_DATA_TYPE::BOOL:     return GL_BOOL;
 	}
 
 	return 0;
@@ -48,16 +48,18 @@ void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd:
 {
 	auto vertexBuffer = std::static_pointer_cast<gl::buffer>(vertexBuffer_in);
 	const auto& layout = vertexBuffer->get_layout();
-	int binding_index = 0;
+
+	int binding_index = m_VertexBuffers.size();
 	glVertexArrayVertexBuffer(m_RendererID, binding_index/*inctiment to every new buffers*/, vertexBuffer->get_id(), 0/*offset*/, layout.get_stride());
+	
 	for (const auto& element : layout)
 	{
 		switch (element.Type)
 		{
-		case ShaderDataType::Float:
-		case ShaderDataType::Float2:
-		case ShaderDataType::Float3:
-		case ShaderDataType::Float4:
+		case SHADER_DATA_TYPE::FLOAT:
+		case SHADER_DATA_TYPE::VEC2_F:
+		case SHADER_DATA_TYPE::VEC3_F:
+		case SHADER_DATA_TYPE::VEC4_F:
 		{
 			glEnableVertexArrayAttrib(m_RendererID, m_VertexBufferIndex);
 			uint32_t count = element.get_component_count();
@@ -68,11 +70,11 @@ void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd:
 			m_VertexBufferIndex++;
 			
 		} break;
-		case ShaderDataType::Int:
-		case ShaderDataType::Int2:
-		case ShaderDataType::Int3:
-		case ShaderDataType::Int4:
-		case ShaderDataType::Bool:
+		case SHADER_DATA_TYPE::INT:
+		case SHADER_DATA_TYPE::VEC2_I:
+		case SHADER_DATA_TYPE::VEC3_I:
+		case SHADER_DATA_TYPE::VEC4_I:
+		case SHADER_DATA_TYPE::BOOL:
 		{
 			glEnableVertexArrayAttrib(m_RendererID, m_VertexBufferIndex);
 			uint32_t count = element.get_component_count();
@@ -83,8 +85,8 @@ void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd:
 			m_VertexBufferIndex++;
 			
 		} break;
-		case ShaderDataType::Mat3:
-		case ShaderDataType::Mat4:
+		case SHADER_DATA_TYPE::MAT3_F:
+		case SHADER_DATA_TYPE::MAT4_F:
 		{
 			uint8_t count = element.get_component_count();
 			for (uint8_t i = 0; i < count; i++)
@@ -95,9 +97,9 @@ void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd:
 				std::size_t offset = (element.Offset + sizeof(float) * count * i);
 				glVertexArrayAttribFormat(m_RendererID, m_VertexBufferIndex, count, type, isNormalize, offset);
 				glVertexArrayAttribBinding(m_RendererID, m_VertexBufferIndex, binding_index);
-				glVertexBindingDivisor(binding_index, 1);
 				m_VertexBufferIndex++;
 			}
+			glVertexArrayBindingDivisor(m_RendererID, binding_index, 1);
 			
 		} break;
 

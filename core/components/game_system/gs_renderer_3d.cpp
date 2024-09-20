@@ -6,6 +6,8 @@
 
 #include <scn_primitives.h>
 
+#include <res_instance.h>
+
 #include <light/rnd_light_point.h>
 #include <sky/rnd_cubemap.h>
 
@@ -24,13 +26,13 @@ gs::renderer_3d::renderer_3d()
     vertex_buffer->set_data(nullptr, 800000 * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
     vertex_buffer->set_layout(
         {
-            {rnd::driver::ShaderDataType::Float3, "position"},
-            {rnd::driver::ShaderDataType::Float3, "normal"},
-            {rnd::driver::ShaderDataType::Float2, "texture_position"},
-            {rnd::driver::ShaderDataType::Float3, "tangent"},
-            {rnd::driver::ShaderDataType::Float3, "bitangent"},
-            {rnd::driver::ShaderDataType::Int4,   "bones"},
-            {rnd::driver::ShaderDataType::Float4, "bones_weight"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "position"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "normal"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC2_F, "texture_position"},/*
+            {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "tangent"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "bitangent"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC4_I, "bones"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC4_F, "bones_weight"},*/
         }
     );
 
@@ -53,9 +55,36 @@ gs::renderer_3d::renderer_3d()
     }
 
     index_buffer = drv->create_buffer();
-    index_buffer->set_data(indices.data(), indices.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::DYNAMIC);
+    index_buffer->set_data(indices);
 
     vertex_array->set_index_buffer(index_buffer);
+
+    setup_instance_buffer();
+}
+
+void gs::renderer_3d::setup_instance_buffer()
+{
+    rnd::driver::driver_interface* drv = rnd::get_system().get_driver();
+    vertex_array_inst = drv->create_vertex_array();
+
+    //vertex_buffer_inst = drv->create_buffer();
+    //vertex_buffer_inst->set_data(nullptr, 800000 * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
+    /*vertex_buffer_inst->set_layout(
+        {
+            {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "position"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "normal"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC2_F, "texture_position"}
+        }
+        );*/
+    vertex_array_inst->add_vertex_buffer(vertex_buffer);
+    matrices_buffer_inst = drv->create_buffer();
+    matrices_buffer_inst->set_data(nullptr, sizeof(glm::mat4) * 3000, rnd::driver::BUFFER_BINDING::DYNAMIC);
+    matrices_buffer_inst->set_layout({ {rnd::driver::SHADER_DATA_TYPE::MAT4_F, "world"} });
+    vertex_array_inst->add_vertex_buffer(matrices_buffer_inst);
+
+    //index_buffer_inst = drv->create_buffer();
+    //index_buffer_inst->set_data(nullptr, 800000 * 6, rnd::driver::BUFFER_BINDING::DYNAMIC);
+    vertex_array_inst->set_index_buffer(index_buffer);
 }
 
 void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
@@ -89,6 +118,8 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
 	    drv->set_viewport(camera->viewport);
+
+        draw_instances(drv);
 
         auto shader = rnd::get_system().get_shader_manager().use("scene");
 
@@ -128,7 +159,7 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
             rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map)->bind(0);
 
             vertex_array->bind();
-            drv->draw_elements(rnd::RENDER_MODE::TRIANGLE, is.size());
+            drv->draw_indeces(rnd::RENDER_MODE::TRIANGLE, is.size());
             vertex_array->unbind();
         }
     }
@@ -156,12 +187,56 @@ void gs::renderer_3d::draw_line(rnd::driver::driver_interface* drv)
     //rnd::get_system().get_texture_manager().require_texture(res::Tag::make("__black"))->bind();
 
     //// draw mesh
-    //drv->draw_elements(rnd::RENDER_MODE::LINE, 2);
+    //drv->draw_indeces(rnd::RENDER_MODE::LINE, 2);
 
     //// always good practice to set everything back to defaults once configured.
     //drv->set_activate_texture(0);
 
     //vertex_array->unbind();
+}
+
+void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
+{
+    auto shader = rnd::get_system().get_shader_manager().use("scene_inst");
+
+    for (auto ent : ecs::filter<res::instance_object>()) {
+        res::instance_object* inst = ecs::get_component<res::instance_object>(ent);
+        if (inst->worlds.empty()) {
+            continue;
+        }
+
+        rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
+
+        if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
+            tmp = rnd_mode->mode;
+        }
+        
+        vertex_buffer->set_data(inst->tpl.vertices);
+        index_buffer->set_data(inst->tpl.indices);
+
+        matrices_buffer_inst->set_data(inst->worlds);
+
+        if (inst->tpl.material.diffuse.is_valid()) {
+            rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.diffuse)->bind(0);
+        }
+
+        if (inst->tpl.material.specular.is_valid()) {
+            rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.specular)->bind(1);
+        }
+
+        if (inst->tpl.material.ambient.is_valid()) {
+            rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.ambient)->bind(2);
+        }
+
+        vertex_array_inst->bind();
+        if (inst->worlds.size() == 1) {
+            drv->draw_indeces(tmp, inst->tpl.indices.size());
+        }
+        else {
+            drv->draw_instanced_indeces(tmp, inst->tpl.indices.size(), inst->worlds.size());
+        }
+        vertex_array_inst->unbind();
+    }
 }
 
 void gs::renderer_3d::draw(scn::Model& val, rnd::driver::driver_interface* drv)
@@ -179,8 +254,8 @@ void gs::renderer_3d::draw(res::Mesh& mesh, rnd::driver::driver_interface* drv)
     // A great thing about structs is that their memory layout is sequential for all its items.
     // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
     // again translates to 3/2 floats which translates to a byte array.
-    vertex_buffer->set_data(mesh.vertices.data(),mesh.vertices.size() * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
-    index_buffer->set_data(mesh.indices.data(),  mesh.indices.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::DYNAMIC);
+    vertex_buffer->set_data(mesh.vertices);
+    index_buffer->set_data(mesh.indices);
 
     if (mesh.material.diffuse.is_valid()) {
         rnd::get_system().get_texture_manager().require_texture(mesh.material.diffuse)->bind(0);
@@ -196,7 +271,7 @@ void gs::renderer_3d::draw(res::Mesh& mesh, rnd::driver::driver_interface* drv)
 
     // draw mesh
     vertex_array->bind();
-    drv->draw_elements(rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());
+    drv->draw_indeces(rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());
     vertex_array->unbind();
 }
 

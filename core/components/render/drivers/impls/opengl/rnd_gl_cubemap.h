@@ -11,7 +11,6 @@ namespace rnd::driver::gl
 			: id(id_) {}
 		virtual ~cubemap() override;
 
-		virtual void bind() override;
 		virtual void bind(unsigned int idx) override;
 
 		virtual int width() const override { return 0; }
