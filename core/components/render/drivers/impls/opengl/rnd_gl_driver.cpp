@@ -177,7 +177,7 @@ void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned in
 	CHECK_GL_ERROR();
 }
 
-void rnd::driver::gl::driver::draw_indeces(RENDER_MODE render_mode, unsigned int count, unsigned int offset)
+void rnd::driver::gl::driver::draw_indeces(const std::unique_ptr<vertex_array_interface>& verteces, RENDER_MODE render_mode, unsigned int count, unsigned int offset)
 {
 	GLenum rm = GL_TRIANGLES;
 
@@ -188,12 +188,13 @@ void rnd::driver::gl::driver::draw_indeces(RENDER_MODE render_mode, unsigned int
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		rm = gRenderModeToGLRenderMode[(int)render_mode];
 	}
-	
+	verteces->bind();
 	glDrawElements(rm, count, GL_UNSIGNED_INT, 0);
 	CHECK_GL_ERROR();
+	verteces->unbind();
 }
 
-void rnd::driver::gl::driver::draw_instanced_indeces(RENDER_MODE render_mode, unsigned int count, unsigned int instance_count, unsigned int offset)
+void rnd::driver::gl::driver::draw_instanced_indeces(const std::unique_ptr<vertex_array_interface>& verteces, RENDER_MODE render_mode, unsigned int count, unsigned int instance_count, unsigned int offset)
 {
 	GLenum rm = GL_TRIANGLES;
 
@@ -204,9 +205,10 @@ void rnd::driver::gl::driver::draw_instanced_indeces(RENDER_MODE render_mode, un
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		rm = gRenderModeToGLRenderMode[(int)render_mode];
 	}
-
+	verteces->bind();
 	glDrawElementsInstanced(rm, count, GL_UNSIGNED_INT, 0, instance_count);
 	CHECK_GL_ERROR();
+	verteces->unbind();
 }
 
 void rnd::driver::gl::driver::enable(ENABLE_FLAGS flags)

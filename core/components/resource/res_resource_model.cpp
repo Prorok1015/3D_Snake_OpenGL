@@ -47,6 +47,24 @@ namespace res::loader {
             // process ASSIMP's root node recursively
             process_node(Root, scene);
             egLOG("load/deep", "max deep: {}", deep);
+            egLOG("load/meshes", "meshes: {}", meshes.size());
+            for (auto& [txt, count] : textures_counter)
+            {
+                egLOG("load/textures", "texture: {}, use: {}", txt.get_full(), count);
+            }
+
+            for (auto& [mesh, count] : meshes_counter)
+            {
+                egLOG("load/meshes", "mesh: {}, use: {}", (void*)mesh, count);
+            }
+
+            for (auto& mesh : meshes)
+            {
+                egLOG("load/meshes", "mesh: vx - {}   \tind - {},   \tmaterial: {}, {}, {}, {}", mesh.vertices.size(), mesh.indices.size(),
+                    mesh.material.diffuse.name(), mesh.material.ambient.name(), mesh.material.normal.name(), mesh.material.specular.name());
+            }
+
+            batch_meshes();
             return meshes;
         }
 
@@ -170,13 +188,17 @@ namespace res::loader {
             Material mesh_material;
             // 1. diffuse maps
             mesh_material.diffuse = find_material_texture(material, aiTextureType_DIFFUSE);
+            increase_txt_counter(mesh_material.diffuse);
             // 2. specular maps
             mesh_material.specular = find_material_texture(material, aiTextureType_SPECULAR);
+            increase_txt_counter(mesh_material.specular);
             // 3. normal maps
             mesh_material.normal = find_material_texture(material, aiTextureType_HEIGHT);
+            increase_txt_counter(mesh_material.normal);
             // 4. ambient maps
             mesh_material.ambient = find_material_texture(material, aiTextureType_AMBIENT);
-
+            increase_txt_counter(mesh_material.ambient);
+            meshes_counter[mesh]++;
             // return a mesh object created from the extracted mesh data
             return res::Mesh{ vertices, indices, mesh_material };
         }
@@ -202,11 +224,65 @@ namespace res::loader {
             local[3] = glm::vec4(transform.d1, transform.d2, transform.d3, transform.d4);
             return local;
         }
+
+        void increase_txt_counter(const res::Tag& txt)
+        {
+            if (txt.is_valid()) {
+                textures_counter[txt]++;
+            }
+        }
+
+        void batch_meshes()
+        {
+            std::unordered_map<std::size_t, std::vector<std::size_t>> batches;
+            bool is_need_batch = false;
+            for (std::size_t idx = 0; idx < meshes.size(); ++idx)
+            {
+                auto& mesh = meshes[idx];
+                std::size_t batch_idx = mesh.material.diffuse.get_hash()
+                                        | mesh.material.ambient.get_hash()
+                                        | mesh.material.normal.get_hash()
+                                        | mesh.material.specular.get_hash();
+                batches[batch_idx].push_back(idx);
+            }
+
+            std::vector<res::Mesh> batch_result;
+            for (auto& [_, bmeshes] : batches)
+            {
+                res::Mesh new_mesh = meshes[bmeshes[0]];
+                egLOG("load/batch", "batch {}", new_mesh.material.diffuse.get_full());
+
+                for (std::size_t idx = 1; idx < bmeshes.size(); ++idx)
+                {
+                    auto& mesh = meshes[bmeshes[idx]];
+
+                    std::size_t addition = new_mesh.vertices.size();
+
+                    new_mesh.vertices.reserve(new_mesh.vertices.size() + mesh.vertices.size());
+                    std::copy(mesh.vertices.begin(), mesh.vertices.end(), std::back_inserter(new_mesh.vertices));
+
+                    std::for_each(mesh.indices.begin(), mesh.indices.end(), [addition](unsigned int& inc) { inc += addition; });
+
+                    new_mesh.indices.reserve(new_mesh.indices.size() + mesh.indices.size());
+                    std::copy(mesh.indices.begin(), mesh.indices.end(), std::back_inserter(new_mesh.indices));
+                }
+                batch_result.push_back(new_mesh);
+            }
+
+            if (!batch_result.empty()) {
+                egLOG("load/batching", "from {} meshes convert to {} meshes", meshes.size(), batch_result.size());
+
+                meshes = batch_result;
+            }
+        }
+
     private:
         Tag tag;
         std::vector<Mesh> meshes;
         std::stack<glm::mat4> transform_stack;
         std::stack<aiNode*> nodes;
+        std::unordered_map<res::Tag, int> textures_counter;
+        std::unordered_map<aiMesh*, int> meshes_counter;
         std::size_t deep = 0;
     };
 }

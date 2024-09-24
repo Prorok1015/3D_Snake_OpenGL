@@ -14,7 +14,8 @@ wnd::window::window(wnd::context ctx_)
 
 
 wnd::window::~window()
-{}
+{
+}
 
 void wnd::window::set_vsync(bool val)
 {

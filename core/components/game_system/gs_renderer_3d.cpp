@@ -62,6 +62,11 @@ gs::renderer_3d::renderer_3d()
     setup_instance_buffer();
 }
 
+gs::renderer_3d::~renderer_3d()
+{
+
+}
+
 void gs::renderer_3d::setup_instance_buffer()
 {
     rnd::driver::driver_interface* drv = rnd::get_system().get_driver();
@@ -110,60 +115,17 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         common_matrix.view_position = glm::vec4(eng::transform3d(camera->world).get_pos(), 1.0);
 
         rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
-
-        drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
-        drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
-
+	    drv->set_viewport(camera->viewport);
         drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
         drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
-	    drv->set_viewport(camera->viewport);
 
         draw_instances(drv);
 
-        auto shader = rnd::get_system().get_shader_manager().use("scene");
+        draw_model(drv);
 
-        for (auto ent : ecs::filter<scn::is_render_component_flag, scn::model_comonent, scn::transform_component>()) {
-            auto* model = ecs::get_component<scn::transform_component>(ent);
-            shader.uniform("model", model->world);
-
-            shader.uniform("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
-            shader.uniform("material.shininess", 32.0f);
-
-            rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
-
-            if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
-                rnd::get_system().set_render_mode(rnd_mode->mode);
-            }
-
-            auto* meshes = ecs::get_component<scn::model_comonent>(ent);
-            for (auto& mesh : meshes->meshes) {
-                draw(mesh, drv);
-            }
-
-            rnd::get_system().set_render_mode(tmp);
-        }
-
-        drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL);
-        drv->disable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
-
-        for (auto sky : ecs::filter<scn::is_render_component_flag, rnd::cubemap_component>()) {
-            auto* cube_map = ecs::get_component<rnd::cubemap_component>(sky);
-            auto shader = rnd::get_system().get_shader_manager().use("sky");
-
-            auto vs = cube_map->mesh.vertices;
-            auto is = cube_map->mesh.indices;
-            vertex_buffer->set_data(vs.data(),vs.size() * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
-            index_buffer->set_data(is.data(), is.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::DYNAMIC);
-
-            rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map)->bind(0);
-
-            vertex_array->bind();
-            drv->draw_indeces(rnd::RENDER_MODE::TRIANGLE, is.size());
-            vertex_array->unbind();
-        }
+        draw_sky(drv);
     }
-
 }
 
 void gs::renderer_3d::draw_line(rnd::driver::driver_interface* drv)
@@ -197,6 +159,9 @@ void gs::renderer_3d::draw_line(rnd::driver::driver_interface* drv)
 
 void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 {
+    drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
+    drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
+
     auto shader = rnd::get_system().get_shader_manager().use("scene_inst");
 
     for (auto ent : ecs::filter<res::instance_object>()) {
@@ -228,14 +193,60 @@ void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
             rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.ambient)->bind(2);
         }
 
-        vertex_array_inst->bind();
         if (inst->worlds.size() == 1) {
-            drv->draw_indeces(tmp, inst->tpl.indices.size());
+            drv->draw_indeces(vertex_array_inst, tmp, inst->tpl.indices.size());
+        } else {
+            drv->draw_instanced_indeces(vertex_array_inst, tmp, inst->tpl.indices.size(), inst->worlds.size());
         }
-        else {
-            drv->draw_instanced_indeces(tmp, inst->tpl.indices.size(), inst->worlds.size());
+    }
+}
+
+void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
+{
+    drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
+    drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
+
+    auto shader = rnd::get_system().get_shader_manager().use("scene");
+
+    for (auto ent : ecs::filter<scn::is_render_component_flag, scn::model_comonent, scn::transform_component>()) {
+        auto* model = ecs::get_component<scn::transform_component>(ent);
+        shader.uniform("model", model->world);
+
+        shader.uniform("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+        shader.uniform("material.shininess", 32.0f);
+
+        rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
+
+        if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
+            rnd::get_system().set_render_mode(rnd_mode->mode);
         }
-        vertex_array_inst->unbind();
+
+        auto* meshes = ecs::get_component<scn::model_comonent>(ent);
+        for (auto& mesh : meshes->meshes) {
+            draw(mesh, drv);
+        }
+
+        rnd::get_system().set_render_mode(tmp);
+    }
+}
+
+void gs::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
+{
+    drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL);
+    drv->disable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
+
+    for (auto sky : ecs::filter<scn::is_render_component_flag, rnd::cubemap_component>()) {
+        auto* cube_map = ecs::get_component<rnd::cubemap_component>(sky);
+        auto shader = rnd::get_system().get_shader_manager().use("sky");
+
+        auto vs = cube_map->mesh.vertices;
+        auto is = cube_map->mesh.indices;
+        vertex_buffer->set_data(vs.data(), vs.size() * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
+        index_buffer->set_data(is.data(), is.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::DYNAMIC);
+
+        rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map)->bind(0);
+
+        drv->draw_indeces(vertex_array, rnd::RENDER_MODE::TRIANGLE, is.size());
     }
 }
 
@@ -270,8 +281,6 @@ void gs::renderer_3d::draw(res::Mesh& mesh, rnd::driver::driver_interface* drv)
     }
 
     // draw mesh
-    vertex_array->bind();
-    drv->draw_indeces(rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());
-    vertex_array->unbind();
+    drv->draw_indeces(vertex_array, rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());
 }
 

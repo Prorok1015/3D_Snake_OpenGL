@@ -18,7 +18,7 @@ namespace gs
 	{
 	public:
 		renderer_3d();
-		virtual ~renderer_3d() override {}
+		virtual ~renderer_3d() override;
 
 		virtual void on_render(rnd::driver::driver_interface* drv);
 
@@ -26,17 +26,17 @@ namespace gs
 		void draw(res::Mesh& mesh, rnd::driver::driver_interface* drv);
 		void draw_line(rnd::driver::driver_interface* drv);
 		void draw_instances(rnd::driver::driver_interface* drv);
-
+		void draw_model(rnd::driver::driver_interface* drv);
+		void draw_sky(rnd::driver::driver_interface* drv);
 		void setup_instance_buffer();
 
 	public:
 		std::vector<ecs::entity> scene_objects;
-		std::shared_ptr<rnd::driver::vertex_array_interface> vertex_array;
+		std::unique_ptr<rnd::driver::vertex_array_interface> vertex_array;
 		std::shared_ptr<rnd::driver::buffer_interface> vertex_buffer;
 		std::shared_ptr<rnd::driver::buffer_interface> index_buffer;
 
-
-		std::shared_ptr<rnd::driver::vertex_array_interface> vertex_array_inst;
+		std::unique_ptr<rnd::driver::vertex_array_interface> vertex_array_inst;
 		std::shared_ptr<rnd::driver::buffer_interface> matrices_buffer_inst;
 		std::shared_ptr<rnd::driver::buffer_interface> vertex_buffer_inst;
 		std::shared_ptr<rnd::driver::buffer_interface> index_buffer_inst;

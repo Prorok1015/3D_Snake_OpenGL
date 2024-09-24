@@ -16,6 +16,7 @@ inp::InputSystem::InputSystem()
 void inp::InputSystem::process_input(float dt)
 {
 	glfwPollEvents();
+	//glfwWaitEventsTimeout(0.0001);
 
 	for (auto weak_inp_mng : input_managers_list)
 	{
