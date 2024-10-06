@@ -24,16 +24,20 @@ namespace gs
 
 		void draw(scn::Model& val, rnd::driver::driver_interface* drv);
 		void draw(res::Mesh& mesh, rnd::driver::driver_interface* drv);
+		void draw(res::mesh_view& mesh, res::meshes_conteiner& data, rnd::driver::driver_interface* drv);
 		void draw_line(rnd::driver::driver_interface* drv);
 		void draw_instances(rnd::driver::driver_interface* drv);
-		void draw_model(rnd::driver::driver_interface* drv);
 		void draw_sky(rnd::driver::driver_interface* drv);
+		void draw_model(rnd::driver::driver_interface* drv);
+		void draw_hierarchy(res::meshes_conteiner& data, rnd::Shader& shader, glm::mat4& model_world, res::node_hierarchy_view& hir, glm::mat4 parent, rnd::driver::driver_interface* drv);
 		void setup_instance_buffer();
 
 	public:
+		bool is_flag_test_render = true;
 		std::vector<ecs::entity> scene_objects;
 		std::unique_ptr<rnd::driver::vertex_array_interface> vertex_array;
 		std::shared_ptr<rnd::driver::buffer_interface> vertex_buffer;
+		//std::shared_ptr<rnd::driver::buffer_interface> bones_buffer;
 		std::shared_ptr<rnd::driver::buffer_interface> index_buffer;
 
 		std::unique_ptr<rnd::driver::vertex_array_interface> vertex_array_inst;

@@ -15,6 +15,8 @@
 
 #include <timer.hpp>
 
+#include <debug_ui_api.h>
+
 gs::renderer_3d::renderer_3d()
 	: rnd::renderer_base(1) 
 {
@@ -28,11 +30,11 @@ gs::renderer_3d::renderer_3d()
         {
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "position"},
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "normal"},
-            {rnd::driver::SHADER_DATA_TYPE::VEC2_F, "texture_position"},/*
+            {rnd::driver::SHADER_DATA_TYPE::VEC2_F, "texture_position"},
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "tangent"},
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "bitangent"},
             {rnd::driver::SHADER_DATA_TYPE::VEC4_I, "bones"},
-            {rnd::driver::SHADER_DATA_TYPE::VEC4_F, "bones_weight"},*/
+            {rnd::driver::SHADER_DATA_TYPE::VEC4_F, "bones_weight"},
         }
     );
 
@@ -60,6 +62,10 @@ gs::renderer_3d::renderer_3d()
     vertex_array->set_index_buffer(index_buffer);
 
     setup_instance_buffer();
+
+    DBG_UI_REG_LAMBDA("RENDER/TEST_RENDER", [this]() { return is_flag_test_render; });
+    DBG_UI_MENU_ITEM_CHECK_LAMBDA("RENDER/TEST_RENDER", [this](bool flag) { is_flag_test_render = flag; });
+    DBG_UI_SET_ITEM_CHECKED("RENDER/TEST_RENDER", true);
 }
 
 gs::renderer_3d::~renderer_3d()
@@ -210,23 +216,44 @@ void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
 
     for (auto ent : ecs::filter<scn::is_render_component_flag, scn::model_comonent, scn::transform_component>()) {
         auto* model = ecs::get_component<scn::transform_component>(ent);
-        shader.uniform("model", model->world);
 
         shader.uniform("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
         shader.uniform("material.shininess", 32.0f);
 
+        auto* meshes = ecs::get_component<scn::model_comonent>(ent);
+        
         rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
 
         if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
             rnd::get_system().set_render_mode(rnd_mode->mode);
         }
 
-        auto* meshes = ecs::get_component<scn::model_comonent>(ent);
-        for (auto& mesh : meshes->meshes) {
-            draw(mesh, drv);
+        if (meshes->model && is_flag_test_render) {
+            res::node_hierarchy_view& hir = meshes->model->get_model_pres().head;
+            draw_hierarchy(meshes->model->get_model_pres().data, shader, model->world, hir, glm::mat4{ 1.0 }, drv);
+
+        } else {
+            shader.uniform("model", model->world);
+            for (auto& mesh : meshes->meshes) {
+                draw(mesh, drv);
+            }
         }
 
         rnd::get_system().set_render_mode(tmp);
+    }
+}
+
+void gs::renderer_3d::draw_hierarchy(res::meshes_conteiner& data, rnd::Shader& shader, glm::mat4& model_world, res::node_hierarchy_view& hir, glm::mat4 parent, rnd::driver::driver_interface* drv)
+{
+    for (auto& node : hir.children)
+    {
+        glm::mat4 node_mt = parent * node.mt;
+        shader.uniform("model", model_world * node_mt);
+        for (auto& v_mesh : node.meshes) {
+            draw(v_mesh, data, drv);
+        }
+
+        draw_hierarchy(data, shader, model_world, node, node_mt, drv);
     }
 }
 
@@ -284,3 +311,29 @@ void gs::renderer_3d::draw(res::Mesh& mesh, rnd::driver::driver_interface* drv)
     drv->draw_indeces(vertex_array, rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());
 }
 
+
+void gs::renderer_3d::draw(res::mesh_view& mesh, res::meshes_conteiner& data, rnd::driver::driver_interface* drv)
+{
+    // A great thing about structs is that their memory layout is sequential for all its items.
+    // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
+    // again translates to 3/2 floats which translates to a byte array.
+    vertex_buffer->set_data_ptr(&data.vertices[mesh.vx_begin], mesh.get_vertices_count());
+    index_buffer->set_data_ptr(&data.indices[mesh.ind_begin], mesh.get_indices_count());
+
+    auto& material = data.materials[mesh.material_id];
+
+    if (material.diffuse.is_valid()) {
+        rnd::get_system().get_texture_manager().require_texture(material.diffuse)->bind(0);
+    }
+
+    if (material.specular.is_valid()) {
+        rnd::get_system().get_texture_manager().require_texture(material.specular)->bind(1);
+    }
+
+    if (material.ambient.is_valid()) {
+        rnd::get_system().get_texture_manager().require_texture(material.ambient)->bind(2);
+    }
+
+    // draw mesh
+    drv->draw_indeces(vertex_array, rnd::get_system().get_render_mode(), mesh.get_indices_count());
+}

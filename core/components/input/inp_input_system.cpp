@@ -1,4 +1,5 @@
 #include "inp_input_system.h"
+#include <engine_log.h>
 
 inp::InputSystem* p_inp_system = nullptr;
 
@@ -11,12 +12,16 @@ inp::InputSystem& inp::get_system()
 inp::InputSystem::InputSystem()
 {
 	keyboard.onKeyStateChanged += [this](auto a, auto b) { onKeyAction(a, b); };
+
+}
+
+inp::InputSystem::~InputSystem()
+{
 }
 
 void inp::InputSystem::process_input(float dt)
 {
 	glfwPollEvents();
-	//glfwWaitEventsTimeout(0.0001);
 
 	for (auto weak_inp_mng : input_managers_list)
 	{

@@ -130,6 +130,96 @@ bool editor::EditorSystem::show_toolbar()
 		}
 		ImGui::Separator();
 		ImGui::NewLine();
+		if (ImGui::CollapsingHeader("Scene Objects"))
+		{
+			for (ecs::entity ent : ecs::filter<scn::model_comonent>())
+			{
+				std::string obj_idx = std::to_string(ent.index);
+				std::string obj_name = "Object##" + obj_idx;
+				if (ImGui::TreeNode(obj_name.c_str()))
+				{
+					scn::transform_component* trans = ecs::get_component<scn::transform_component>(ent);
+					if (trans) {
+						eng::transform3d tr{ trans->world };
+						glm::vec3 scale = tr.get_scale();
+						std::string scale_name = "scale##" + obj_idx;
+						ImGui::InputFloat(scale_name.c_str(), glm::value_ptr(scale));
+						if (scale != tr.get_scale()) {
+							tr.set_scale(glm::vec3{ scale.x });
+							trans->world = tr.to_matrix();
+						}
+					}
+
+					if (scn::model_comonent* model = ecs::get_component<scn::model_comonent>(ent))
+					{
+						std::string mesh_capter = "Meshes"s + " (" + std::to_string(model->meshes.size()) + ")" + "##" + obj_idx ;
+						if (ImGui::TreeNode(mesh_capter.c_str()))
+						{
+							int idx = 0;
+							for (res::Mesh& mesh : model->meshes)
+							{
+								std::string mesh_idx = std::to_string(++idx);
+								std::string mesh_name = "Mesh#" + obj_idx + "." + mesh_idx;
+								if (ImGui::TreeNode(mesh_name.c_str()))
+								{
+									res::Material& mat = mesh.material;
+									static char diffuce_buf[64];
+									if (mat.diffuse.is_valid()) {
+										ImGui::Text(mat.diffuse.get_full().data());
+									}
+									ImGui::InputText("diffuse", diffuce_buf, 64);
+									if (ImGui::Button("Submit diffuse")) {
+										res::Tag new_diffuse = res::Tag::make(diffuce_buf);
+										mat.diffuse = new_diffuse;
+									}
+
+									static char ambient_buf[64];
+									if (mat.ambient.is_valid()) {
+										ImGui::Text(mat.ambient.get_full().data());
+									}
+									ImGui::InputText("ambient", ambient_buf, 64);
+									if (ImGui::Button("Submit ambient")) {
+										res::Tag new_diffuse = res::Tag::make(ambient_buf);
+										mat.ambient = new_diffuse;
+									}
+
+									static char normal_buf[64];
+									if (mat.normal.is_valid()) {
+										ImGui::Text(mat.normal.get_full().data());
+									}
+									ImGui::InputText("normal", normal_buf, 64);
+									if (ImGui::Button("Submit normal")) {
+										res::Tag new_diffuse = res::Tag::make(normal_buf);
+										mat.normal = new_diffuse;
+									}
+
+									static char specular_buf[64];
+									if (mat.specular.is_valid()) {
+										ImGui::Text(mat.specular.get_full().data());
+									}
+									ImGui::InputText("specular", specular_buf, 64);
+									if (ImGui::Button("Submit specular")) {
+										res::Tag new_diffuse = res::Tag::make(specular_buf);
+										mat.specular = new_diffuse;
+									}
+
+									ImGui::TreePop();
+									ImGui::Spacing();
+								}
+							} // mesh
+
+							ImGui::TreePop();
+							ImGui::Spacing();
+						}
+					}
+					ImGui::TreePop();
+					ImGui::Spacing();
+				} // object
+			}
+		}
+
+		ImGui::Separator();
+		ImGui::NewLine();
 		ImGui::Text("Light");
 		ImGui::Separator();
 		{

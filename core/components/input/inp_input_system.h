@@ -11,7 +11,7 @@ namespace inp
 	{
 	public:
 		InputSystem();
-		~InputSystem() = default;
+		~InputSystem();
 		InputSystem(InputSystem&&) = delete;
 		InputSystem& operator= (InputSystem&&) = delete;
 

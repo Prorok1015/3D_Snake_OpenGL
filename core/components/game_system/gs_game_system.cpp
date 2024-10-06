@@ -72,7 +72,7 @@ void gs::GameSystem::check_loaded_model()
 		//m.model = glm::scale(m.model, glm::vec3{ 20 });
 
 		ecs::entity obj = ecs::create_entity();
-		ecs::add_component(obj, scn::model_comonent{ res->get_meshes() });
+		ecs::add_component(obj, scn::model_comonent{ res->get_meshes(), res });
 		ecs::add_component(obj, scn::transform_component{ model });
 		ecs::add_component(obj, scn::is_render_component_flag{});
 

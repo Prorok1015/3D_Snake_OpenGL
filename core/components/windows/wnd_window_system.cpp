@@ -48,14 +48,14 @@ namespace {
     void window_refresh_callback(GLFWwindow* window) {
         auto& wndCreator = wnd::get_system();
         if (auto wnd = wndCreator.find_window({ window })) {
-            wnd->eventRefreshWindow(*wnd);
+            //wnd->eventRefreshWindow(*wnd);
         }
     }
 
     void window_move_callback(GLFWwindow* window, int xpos, int ypos) {
         auto& wndCreator = wnd::get_system(); 
         if (auto wnd = wndCreator.find_window({ window })) {
-            wnd->eventRefreshWindow(*wnd);
+            //wnd->eventRefreshWindow(*wnd);
         }
     }
 }

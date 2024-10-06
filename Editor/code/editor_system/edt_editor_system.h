@@ -46,8 +46,10 @@ namespace editor
 		{
 			"objects/getaur/scene.gltf",
 			"objects/train/scene.gltf",
+			"objects/fsb/scene.gltf",
 			"objects/backpack/backpack.obj",
 			"objects/luke/Luke_01.fbx",
+			"objects/flower/source/flower.fbx",
 			"objects/helicopter/source/helicopter Space ship.glb",
 			"objects/Cheeseburger.glb",
 		};

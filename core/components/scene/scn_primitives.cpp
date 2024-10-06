@@ -160,7 +160,7 @@ scn::Model generate_cube()
     }
 
     scn::Model m;
-    m.meshes.emplace_back(vex, inc, res::Material{ .diffuse = res::Tag::make("block.png") });
+    m.meshes.emplace_back(vex, inc, std::vector<res::bone>{}, res::Material{ .diffuse = res::Tag::make("block.png") });
     return m;
 }
 
@@ -269,6 +269,6 @@ scn::Model generate_sphere()
     }
 
     scn::Model m;
-    m.meshes.emplace_back(vex, inc, res::Material{ .diffuse = res::Tag::make("block.png") });
+    m.meshes.emplace_back(vex, inc, std::vector<res::bone>{}, res::Material{ .diffuse = res::Tag::make("block.png") });
     return m;
 }

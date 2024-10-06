@@ -9,6 +9,7 @@ namespace scn {
 
     struct model_comonent {
         std::vector<res::Mesh> meshes;
+        std::shared_ptr<res::Model> model;
     };
 
     struct transform_component {
