@@ -1,5 +1,5 @@
 #pragma once
-#include <glm/fwd.hpp>
+#include <common.h>
 #include <assimp/scene.h>
 #include <stack>
 
@@ -40,6 +40,23 @@ namespace res::loader {
             return local;
         }
 
+        glm::vec3 convert_to_glm(const aiVector3D& vector) const {
+            glm::vec3 result;
+            result.x = vector.x;
+            result.y = vector.y;
+            result.z = vector.z;
+            return result;
+        }
+
+        glm::quat convert_to_glm(const aiQuaternion& vector) const {
+            glm::quat result;
+            result.x = vector.x;
+            result.y = vector.y;
+            result.z = vector.z;
+            result.w = vector.w;
+            return result;
+        }
+
         void increase_txt_counter(const res::Tag& txt)
         {
             if (txt.is_valid()) {
@@ -47,16 +64,20 @@ namespace res::loader {
             }
         }
 
+        void enclose_hierarchy(res::node_hierarchy_view& node, const aiScene* scene);
+
         void batch_meshes();
         void trace_node(const std::stack<aiNode*>& stack);
 
-        res::node_hierarchy model_hierarchy;
         model_presintation model;
 
     private:
         Tag tag;
 
+        std::size_t max_bones_count = 0;
+
         std::unordered_map<std::string, std::size_t> bones_mapping;
+        std::unordered_map<std::size_t, std::vector<int32_t>> vertex_bone_mapping;
 
         std::vector<Mesh> meshes;
         std::stack<glm::mat4> transform_stack;

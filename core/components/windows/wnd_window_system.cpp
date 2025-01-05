@@ -65,6 +65,12 @@ wnd::WindowSystem::WindowSystem()
     glfwInit();
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
+    // move to gl context
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+
     active_window = make_window()->get_id();   
     context = std::make_unique<rnd::driver::gl::render_context>((GLADloadproc)glfwGetProcAddress);
 }

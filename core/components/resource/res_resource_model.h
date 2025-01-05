@@ -12,12 +12,19 @@ namespace res
 		Model(const Tag& tag);
 
 		const std::vector<Mesh>& get_meshes() const { return meshes; }
-		res::node_hierarchy& get_hierarchy() { return model_hierarchy; }
 		res::model_presintation& get_model_pres() { return model; }
+
+		std::vector<glm::mat4> get_bone_transforms(double TimeInSeconds, std::string_view animation_name);
+
+	private:
+		void calculate_bone_transform(const res::node_hierarchy_view& node, float time_sec, const res::animation& anim, const glm::mat4& parent, std::vector<glm::mat4>& out_transform);
+
+		void calc_interpolated_scaling(glm::vec3& Out, float AnimationTimeTicks, const res::animation_node& anim);
+		void calc_interpolated_position(glm::vec3& Out, float AnimationTimeTicks, const res::animation_node& anim);
+		void calc_interpolated_rotation(glm::quat& Out, float AnimationTimeTicks, const res::animation_node& anim);
 
 	private:
 		std::vector<Mesh> meshes;
-		res::node_hierarchy model_hierarchy;
 		res::model_presintation model;
 	};
 }

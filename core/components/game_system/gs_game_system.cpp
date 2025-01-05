@@ -17,6 +17,7 @@
 #include <glm/gtc/random.hpp>
 
 gs::GameSystem* p_game_system = nullptr;
+extern int gMaxTexture2DSize;
 
 gs::GameSystem& gs::get_system()
 {
@@ -67,11 +68,74 @@ void gs::GameSystem::check_loaded_model()
 {
 	if (future_model && is_ready(*future_model)) {
 		auto res = future_model->get();
-		auto rand_pos = glm::diskRand(20.f);
-		auto model = glm::translate(glm::mat4(1.0), glm::vec3{1.f});
+		auto rand_pos = glm::ballRand(20.f);
+		auto model = glm::translate(glm::mat4(1.0), glm::vec3{ 0 });
 		//m.model = glm::scale(m.model, glm::vec3{ 20 });
 
 		ecs::entity obj = ecs::create_entity();
+		if (auto& bones_data = res->get_model_pres().data.bones_data.bones_indeces; !bones_data.empty()) {
+			res::Tag txm = res::Tag("memory", "__bones_indeces_" + std::to_string(obj.index));
+			auto& last_bone_view = res->get_model_pres().data.bones_data;
+			last_bone_view.bones_indeces_txm = txm;
+
+			glm::ivec2 size{ res->get_model_pres().data.vertices.size(), 0 };
+			size.y = bones_data.size() / size.x;
+
+			const auto& origin_width = size.x;
+			const auto& origin_height = size.y;
+
+			if (origin_width > gMaxTexture2DSize)
+			{
+				int real_width = origin_width;
+				int pices_count = 1;
+				while (real_width > gMaxTexture2DSize)
+				{
+					if (real_width % 2 != 0) {
+						++real_width;
+					}
+					real_width /= 2;
+					pices_count *= 2;
+				}
+
+				int add = (real_width * pices_count) - origin_width;
+
+				bones_data.resize(bones_data.size() + (add * origin_height));
+				for (int i = 0; i < add; ++i)
+				{
+					for (int j = 0; j < origin_height; ++j) {
+						int offset = j * origin_width;
+						bones_data.insert(bones_data.begin() + offset, -1);
+					}
+				}
+
+				last_bone_view.original_size = { pices_count, origin_height };
+				size.x = real_width;
+				size.y = bones_data.size() / real_width;
+				
+				for (int i = real_width, bOffset = real_width; i < res->get_model_pres().data.vertices.size(); ++i)
+				{
+					if (bOffset < i) {
+						bOffset += real_width;
+					}
+					//res->get_model_pres().data.vertices[i].bone_row_offset = bOffset;
+				}
+			}
+			
+
+			rnd::driver::texture_header header;
+			header.picture.data = (unsigned char*)bones_data.data();
+			header.picture.channels = rnd::driver::texture_header::TYPE::R32I;
+
+			header.picture.width = size.x;
+			header.picture.height = size.y;
+
+			header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_EDGE;
+			header.min = rnd::driver::texture_header::FILTERING::NEAREST;
+			header.mag = rnd::driver::texture_header::FILTERING::NEAREST;
+
+			rnd::get_system().get_texture_manager().generate_texture(txm, header);
+		}
+
 		ecs::add_component(obj, scn::model_comonent{ res->get_meshes(), res });
 		ecs::add_component(obj, scn::transform_component{ model });
 		ecs::add_component(obj, scn::is_render_component_flag{});

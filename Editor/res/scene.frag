@@ -1,4 +1,4 @@
-#version 420 core
+#version 460 core
 layout (std140, binding = 0) uniform Matrices 
 {
     mat4 projection;
@@ -16,22 +16,23 @@ layout (std140, binding = 1) uniform Light
     vec3 specular;
 } light;
 
-varying struct PiplineStruct
+in struct PiplineStruct
 {
     vec2 UV;
     vec3 Normal;
     vec3 FragPos;
 } PS;
 
+layout(binding = 0) uniform sampler2D diffuse;
+layout(binding = 1) uniform sampler2D specular;
+layout(binding = 2) uniform sampler2D ambient;
+uniform float shininess;
 
-layout(binding = 0) struct Material {
-    sampler2D diffuse;
-    sampler2D specular;
-    sampler2D ambient;
-    float shininess;
-}; 
-  
-uniform Material material; 
+in vec4 bones_wieght;
+uniform int use_animation;
+out vec4 fragColor;
+
+//#define TEST_NO_MATERIAL
 
 void main()
 {    
@@ -42,12 +43,27 @@ void main()
     // specular
     vec3 viewDir = normalize(view_position - PS.FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
 
-    vec3 ambient  = light.ambient  * vec3(texture(material.diffuse, PS.UV));
-    vec3 diffuse  = light.diffuse  * diff * vec3(texture(material.diffuse, PS.UV));  
-    vec3 specular = light.specular * spec * vec3(texture(material.specular, PS.UV));
+    vec4 result;
+    #ifndef TEST_NO_MATERIAL
+    if (use_animation == 0){
+        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
-    vec4 result = vec4(ambient + diffuse + specular, 1.0);
-    gl_FragColor = result;
+        vec3 ambientColor  = light.ambient  * vec3(texture(diffuse, PS.UV));
+        vec3 diffuseColor  = light.diffuse  * diff * vec3(texture(diffuse, PS.UV));  
+        vec3 specularColor = light.specular * spec * vec3(texture(specular, PS.UV));
+    
+        result = vec4(ambientColor + diffuseColor + specularColor, 1.0);
+        }else {
+    //#else
+        vec3 ambientColor  = light.ambient;
+        vec3 diffuseColor  = light.diffuse  * diff;  
+        vec3 specularColor = light.specular * max(dot(viewDir, reflectDir), 0.0);
+
+        vec3 color = ambientColor + diffuseColor + specularColor;
+        //color = vec3(bonesWeight) * vec3(boneId);
+        result = vec4(color, 1.0);
+        }
+    #endif
+    fragColor = result;
 }

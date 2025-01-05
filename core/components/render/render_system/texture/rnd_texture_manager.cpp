@@ -29,7 +29,14 @@ std::shared_ptr<rnd::Texture> rnd::TextureManager::require_cubemap_texture(const
 		auto res = res::get_system().require_resource<res::Picture>(tag);
 
 		header.data = res->data();
-		header.channels = res->channels();
+		switch (res->channels())
+		{
+		case 1: header.channels = driver::texture_header::TYPE::R8; break;
+		case 3: header.channels = driver::texture_header::TYPE::RGB8; break;
+		case 4: header.channels = driver::texture_header::TYPE::RGBA8; break;
+		default:
+			break;
+		}
 		header.width = res->size().x;
 		header.height = res->size().y;
 	};
@@ -48,7 +55,7 @@ std::shared_ptr<rnd::Texture> rnd::TextureManager::require_cubemap_texture(const
 	return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
 }
 
-std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data)
+std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::Tag& tag, glm::ivec2 size, rnd::driver::texture_header::TYPE channels, std::vector<unsigned char> data)
 {
 	auto it = cache.find(tag);
 	if (it != cache.end()) {
@@ -64,6 +71,18 @@ std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::T
     header.wrap = driver::texture_header::WRAPPING::REPEAT;
     header.min = driver::texture_header::FILTERING::LINEAR_MIPMAP;
     header.mag = driver::texture_header::FILTERING::LINEAR;
+	auto& texture = cache[tag] = drv->create_texture(header);
+    return std::make_shared<Texture>(texture.get(), header.picture.width, header.picture.height);
+}
+
+std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::Tag& tag, rnd::driver::texture_header header)
+{
+	auto it = cache.find(tag);
+	if (it != cache.end()) {
+		auto& texture = it->second;
+		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
+	}
+
 	auto& texture = cache[tag] = drv->create_texture(header);
     return std::make_shared<Texture>(texture.get(), header.picture.width, header.picture.height);
 }

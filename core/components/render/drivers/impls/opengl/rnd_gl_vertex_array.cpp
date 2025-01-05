@@ -25,17 +25,17 @@ static GLenum ShaderDataTypeToOpenGLBaseType(rnd::driver::SHADER_DATA_TYPE type)
 
 rnd::driver::gl::vertex_array::vertex_array()
 {
-	glCreateVertexArrays(1, &m_RendererID);
+	glCreateVertexArrays(1, &vertex_array_id);
 }
 
 rnd::driver::gl::vertex_array::~vertex_array()
 {
-	glDeleteVertexArrays(1, &m_RendererID);
+	glDeleteVertexArrays(1, &vertex_array_id);
 }
 
 void rnd::driver::gl::vertex_array::bind()
 {
-	glBindVertexArray(m_RendererID);
+	glBindVertexArray(vertex_array_id);
 	CHECK_GL_ERROR();
 }
 
@@ -50,7 +50,7 @@ void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd:
 	const auto& layout = vertexBuffer->get_layout();
 
 	int binding_index = m_VertexBuffers.size();
-	glVertexArrayVertexBuffer(m_RendererID, binding_index/*inctiment to every new buffers*/, vertexBuffer->get_id(), 0/*offset*/, layout.get_stride());
+	glVertexArrayVertexBuffer(vertex_array_id, binding_index, vertexBuffer->get_id(), 0/*offset*/, layout.get_stride());
 	
 	for (const auto& element : layout)
 	{
@@ -61,12 +61,15 @@ void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd:
 		case SHADER_DATA_TYPE::VEC3_F:
 		case SHADER_DATA_TYPE::VEC4_F:
 		{
-			glEnableVertexArrayAttrib(m_RendererID, m_VertexBufferIndex);
 			uint32_t count = element.get_component_count();
 			GLenum type = ShaderDataTypeToOpenGLBaseType(element.Type);
 			GLint isNormalize = element.Normalized ? GL_TRUE : GL_FALSE;
-			glVertexArrayAttribFormat(m_RendererID, m_VertexBufferIndex, count, type, isNormalize, element.Offset);
-			glVertexArrayAttribBinding(m_RendererID, m_VertexBufferIndex, binding_index);
+			glVertexArrayAttribFormat(vertex_array_id, m_VertexBufferIndex, count, type, isNormalize, element.Offset);
+			CHECK_GL_ERROR();
+			glVertexArrayAttribBinding(vertex_array_id, m_VertexBufferIndex, binding_index);
+			CHECK_GL_ERROR();
+			glEnableVertexArrayAttrib(vertex_array_id, m_VertexBufferIndex);
+			CHECK_GL_ERROR();
 			m_VertexBufferIndex++;
 			
 		} break;
@@ -76,30 +79,33 @@ void rnd::driver::gl::vertex_array::add_vertex_buffer(const std::shared_ptr<rnd:
 		case SHADER_DATA_TYPE::VEC4_I:
 		case SHADER_DATA_TYPE::BOOL:
 		{
-			glEnableVertexArrayAttrib(m_RendererID, m_VertexBufferIndex);
 			uint32_t count = element.get_component_count();
 			GLenum type = ShaderDataTypeToOpenGLBaseType(element.Type);
-			GLint isNormalize = element.Normalized ? GL_TRUE : GL_FALSE;
-			glVertexArrayAttribFormat(m_RendererID, m_VertexBufferIndex, count, type, isNormalize, element.Offset);
-			glVertexArrayAttribBinding(m_RendererID, m_VertexBufferIndex, binding_index);
+			//GLint isNormalize = element.Normalized ? GL_TRUE : GL_FALSE;
+			glVertexArrayAttribIFormat(vertex_array_id, m_VertexBufferIndex, count, type, element.Offset);
+			CHECK_GL_ERROR();
+			glVertexArrayAttribBinding(vertex_array_id, m_VertexBufferIndex, binding_index);
+			CHECK_GL_ERROR();
+			glEnableVertexArrayAttrib(vertex_array_id, m_VertexBufferIndex);
+			CHECK_GL_ERROR();
 			m_VertexBufferIndex++;
 			
 		} break;
 		case SHADER_DATA_TYPE::MAT3_F:
 		case SHADER_DATA_TYPE::MAT4_F:
 		{
-			uint8_t count = element.get_component_count();
-			for (uint8_t i = 0; i < count; i++)
+			uint32_t count = element.get_component_count();
+			for (uint32_t i = 0; i < count; i++)
 			{
-				glEnableVertexArrayAttrib(m_RendererID, m_VertexBufferIndex);
 				GLenum type = ShaderDataTypeToOpenGLBaseType(element.Type);
 				GLint isNormalize = element.Normalized ? GL_TRUE : GL_FALSE;
 				std::size_t offset = (element.Offset + sizeof(float) * count * i);
-				glVertexArrayAttribFormat(m_RendererID, m_VertexBufferIndex, count, type, isNormalize, offset);
-				glVertexArrayAttribBinding(m_RendererID, m_VertexBufferIndex, binding_index);
+				glVertexArrayAttribFormat(vertex_array_id, m_VertexBufferIndex, count, type, isNormalize, offset);
+				glVertexArrayAttribBinding(vertex_array_id, m_VertexBufferIndex, binding_index);
+				glEnableVertexArrayAttrib(vertex_array_id, m_VertexBufferIndex);
 				m_VertexBufferIndex++;
 			}
-			glVertexArrayBindingDivisor(m_RendererID, binding_index, 1);
+			glVertexArrayBindingDivisor(vertex_array_id, binding_index, 1);
 			
 		} break;
 

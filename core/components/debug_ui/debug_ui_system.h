@@ -28,6 +28,8 @@ namespace dbg_ui
 
 		void render_menues();
 
+		void set_show_title_bar(bool show);
+
 		void set_show_ui(bool show) { is_show = show; }
 		bool is_hiden() const { return !is_show; }
 

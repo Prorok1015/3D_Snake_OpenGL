@@ -12,7 +12,7 @@ layout (std140, binding = 0) uniform Matrices
     vec3 view_position;
 };
 
-varying struct PiplineStruct
+out struct PiplineStruct
 {
     vec2 UV;
     vec3 Normal;

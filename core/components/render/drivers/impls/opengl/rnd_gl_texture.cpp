@@ -16,6 +16,9 @@ rnd::driver::gl::texture::~texture()
 
 void rnd::driver::gl::texture::bind(unsigned int idx)
 {
+	// TODO: add backward compatibility 
+	// int skyboxLocation = glGetUniformLocation(shaderProgram, "skybox");
+	// glUniform1i(skyboxLocation, 0);
 	glBindTextureUnit(idx, id);
 	CHECK_GL_ERROR();
 }

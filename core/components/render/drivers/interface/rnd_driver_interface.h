@@ -27,6 +27,14 @@ namespace rnd::driver
 
 	struct texture_header
 	{
+		enum class TYPE
+		{
+			R8,
+			RGB8,
+			RGBA8,
+			R32I,
+		};
+
 		enum class FILTERING
 		{
 			NEAREST,
@@ -46,7 +54,7 @@ namespace rnd::driver
 		{
 			int width;
 			int height;
-			int channels;
+			TYPE channels;
 			unsigned char* data;
 		};
 

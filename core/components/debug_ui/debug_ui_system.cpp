@@ -62,6 +62,11 @@ void dbg_ui::DebugUiSystem::render_menues()
 	menu.process();
 }
 
+void dbg_ui::DebugUiSystem::set_show_title_bar(bool show)
+{
+	menu.set_show_main_menu(show);
+}
+
 void dbg_ui::DebugUiSystem::switch_input(inp::KEYBOARD_BUTTONS code, inp::KEY_ACTION action)
 {
 	if (code == inp::KEYBOARD_BUTTONS::F5 && action == inp::KEY_ACTION::UP)

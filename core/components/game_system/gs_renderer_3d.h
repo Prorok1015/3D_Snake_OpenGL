@@ -34,6 +34,8 @@ namespace gs
 
 	public:
 		bool is_flag_test_render = true;
+		bool is_flag_show_anim = true;
+		long long start_time = 0;
 		std::vector<ecs::entity> scene_objects;
 		std::unique_ptr<rnd::driver::vertex_array_interface> vertex_array;
 		std::shared_ptr<rnd::driver::buffer_interface> vertex_buffer;

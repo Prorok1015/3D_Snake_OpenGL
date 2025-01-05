@@ -16,16 +16,18 @@
 #include <timer.hpp>
 
 #include <debug_ui_api.h>
+#include <Windows.h>
 
 gs::renderer_3d::renderer_3d()
 	: rnd::renderer_base(1) 
 {
+    start_time = GetTickCount();
     rnd::driver::driver_interface* drv = rnd::get_system().get_driver();
 
     vertex_array = drv->create_vertex_array();
 
     vertex_buffer = drv->create_buffer();
-    vertex_buffer->set_data(nullptr, 800000 * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
+    vertex_buffer->reserve(800000 * sizeof(res::Vertex));
     vertex_buffer->set_layout(
         {
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "position"},
@@ -33,8 +35,8 @@ gs::renderer_3d::renderer_3d()
             {rnd::driver::SHADER_DATA_TYPE::VEC2_F, "texture_position"},
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "tangent"},
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "bitangent"},
-            {rnd::driver::SHADER_DATA_TYPE::VEC4_I, "bones"},
             {rnd::driver::SHADER_DATA_TYPE::VEC4_F, "bones_weight"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC2_I, "bones_raw_offset"},
         }
     );
 
@@ -66,6 +68,10 @@ gs::renderer_3d::renderer_3d()
     DBG_UI_REG_LAMBDA("RENDER/TEST_RENDER", [this]() { return is_flag_test_render; });
     DBG_UI_MENU_ITEM_CHECK_LAMBDA("RENDER/TEST_RENDER", [this](bool flag) { is_flag_test_render = flag; });
     DBG_UI_SET_ITEM_CHECKED("RENDER/TEST_RENDER", true);
+
+    DBG_UI_REG_LAMBDA("RENDER/SHOW_ANIM", [this]() { return is_flag_show_anim; });
+    DBG_UI_MENU_ITEM_CHECK_LAMBDA("RENDER/SHOW_ANIM", [this](bool flag) { is_flag_show_anim = flag; });
+    DBG_UI_SET_ITEM_CHECKED("RENDER/SHOW_ANIM", true);
 }
 
 gs::renderer_3d::~renderer_3d()
@@ -100,7 +106,6 @@ void gs::renderer_3d::setup_instance_buffer()
 
 void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
-
     rnd::GlobalUniform common_matrix{ .time = (float)Timer::now() };
 
     for (ecs::entity& ent : ecs::filter<rnd::light_point>()) {
@@ -210,15 +215,15 @@ void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
 {
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
-    drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
+    //drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
 
     auto shader = rnd::get_system().get_shader_manager().use("scene");
 
     for (auto ent : ecs::filter<scn::is_render_component_flag, scn::model_comonent, scn::transform_component>()) {
         auto* model = ecs::get_component<scn::transform_component>(ent);
 
-        shader.uniform("material.ambient", glm::vec3(1.0f, 0.5f, 0.31f));
-        shader.uniform("material.shininess", 32.0f);
+        shader.uniform("ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+        shader.uniform("shininess", 32.0f);
 
         auto* meshes = ecs::get_component<scn::model_comonent>(ent);
         
@@ -229,10 +234,27 @@ void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
         }
 
         if (meshes->model && is_flag_test_render) {
+            if (meshes->model->get_model_pres().animations.size() > 0 && is_flag_show_anim) {
+
+                long long test123 = GetTickCount();
+                std::vector<glm::mat4> bones = meshes->model->get_bone_transforms((float(test123 - start_time) / 1000.f), meshes->model->get_model_pres().animations[0].name);
+                shader.uniform("use_animation", 1);
+                shader.uniform("bone_row_height", meshes->model->get_model_pres().data.bones_data.original_size.x);
+                shader.uniform("original_height", meshes->model->get_model_pres().data.bones_data.original_size.y);
+                std::size_t idx = 0;
+                for (const auto& mat : bones) {
+                    shader.uniform("gBones[" + std::to_string(idx++) + "]", mat);
+                }
+            }
+            else {
+                shader.uniform("use_animation", 0);
+            }
+
             res::node_hierarchy_view& hir = meshes->model->get_model_pres().head;
             draw_hierarchy(meshes->model->get_model_pres().data, shader, model->world, hir, glm::mat4{ 1.0 }, drv);
 
         } else {
+            shader.uniform("use_animation", 0);
             shader.uniform("model", model->world);
             for (auto& mesh : meshes->meshes) {
                 draw(mesh, drv);
@@ -245,10 +267,12 @@ void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
 
 void gs::renderer_3d::draw_hierarchy(res::meshes_conteiner& data, rnd::Shader& shader, glm::mat4& model_world, res::node_hierarchy_view& hir, glm::mat4 parent, rnd::driver::driver_interface* drv)
 {
+    int dr = 0;
     for (auto& node : hir.children)
     {
         glm::mat4 node_mt = parent * node.mt;
-        shader.uniform("model", model_world * node_mt);
+        shader.uniform("model", model_world/* * node_mt*/);
+        shader.uniform("draw_id", dr++);
         for (auto& v_mesh : node.meshes) {
             draw(v_mesh, data, drv);
         }
@@ -317,7 +341,7 @@ void gs::renderer_3d::draw(res::mesh_view& mesh, res::meshes_conteiner& data, rn
     // A great thing about structs is that their memory layout is sequential for all its items.
     // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
     // again translates to 3/2 floats which translates to a byte array.
-    vertex_buffer->set_data_ptr(&data.vertices[mesh.vx_begin], mesh.get_vertices_count());
+    vertex_buffer->set_data(data.vertices);
     index_buffer->set_data_ptr(&data.indices[mesh.ind_begin], mesh.get_indices_count());
 
     auto& material = data.materials[mesh.material_id];
@@ -334,6 +358,10 @@ void gs::renderer_3d::draw(res::mesh_view& mesh, res::meshes_conteiner& data, rn
         rnd::get_system().get_texture_manager().require_texture(material.ambient)->bind(2);
     }
 
+    if (data.bones_data.bones_indeces_txm.is_valid()) {
+        rnd::get_system().get_texture_manager().require_texture(data.bones_data.bones_indeces_txm)->bind(3);
+    }
+
     // draw mesh
-    drv->draw_indeces(vertex_array, rnd::get_system().get_render_mode(), mesh.get_indices_count());
+    drv->draw_indeces(vertex_array, rnd::get_system().get_render_mode(), mesh.get_indices_count(), mesh.vx_begin);
 }

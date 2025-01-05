@@ -177,7 +177,7 @@ void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned in
 	CHECK_GL_ERROR();
 }
 
-void rnd::driver::gl::driver::draw_indeces(const std::unique_ptr<vertex_array_interface>& verteces, RENDER_MODE render_mode, unsigned int count, unsigned int offset)
+void rnd::driver::gl::driver::draw_indeces(const std::unique_ptr<vertex_array_interface>& verteces, RENDER_MODE render_mode, unsigned int count, unsigned int base_vertex)
 {
 	GLenum rm = GL_TRIANGLES;
 
@@ -188,9 +188,15 @@ void rnd::driver::gl::driver::draw_indeces(const std::unique_ptr<vertex_array_in
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		rm = gRenderModeToGLRenderMode[(int)render_mode];
 	}
+
 	verteces->bind();
-	glDrawElements(rm, count, GL_UNSIGNED_INT, 0);
-	CHECK_GL_ERROR();
+	if (base_vertex > 0) {
+		glDrawElementsBaseVertex(rm, count, GL_UNSIGNED_INT, 0, base_vertex);
+		CHECK_GL_ERROR();
+	} else {
+		glDrawElements(rm, count, GL_UNSIGNED_INT, 0);
+		CHECK_GL_ERROR();
+	}
 	verteces->unbind();
 }
 
@@ -260,7 +266,7 @@ std::unique_ptr<rnd::driver::shader_interface> rnd::driver::gl::driver::create_s
 		glGetShaderiv(shader_id, GL_COMPILE_STATUS, &success);
 		if (!success) {
 			glGetShaderInfoLog(shader_id, 512, nullptr, infoLog);
-			egLOG("shader/load", "{}", infoLog);
+			egLOG("shader/load", "Error compiling shader '{0}' with log: {1}", header.title, infoLog);
 			continue;
 		}
 		if (dbgLogTitle.empty()) {
@@ -287,6 +293,7 @@ std::unique_ptr<rnd::driver::shader_interface> rnd::driver::gl::driver::create_s
 			glDeleteShader(shader_id);
 		}
 
+		egLOG("shader/load", "Error Linking shaders {}", dbgLogTitle);
 		egLOG("shader/load", "{}", infoLog);
 		return nullptr;
 	}
@@ -305,18 +312,30 @@ std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_
 	GLsizei t_height = header.picture.height;
 	GLenum format = 0;
 	GLenum format_2 = 0;
-	if (header.picture.channels == 1) {
+	GLenum data_type = GL_UNSIGNED_BYTE;
+	if (header.picture.channels == rnd::driver::texture_header::TYPE::R8) {
 		format = GL_R8;
 		format_2 = GL_RED;
 	}
-	else if (header.picture.channels == 3) {
+	else if (header.picture.channels == rnd::driver::texture_header::TYPE::RGB8) {
 		format = GL_RGB8;
 		format_2 = GL_RGB;
 	}
-	else if (header.picture.channels == 4) {
+	else if (header.picture.channels == rnd::driver::texture_header::TYPE::RGBA8) {
 		format = GL_RGBA8;
 		format_2 = GL_RGBA;
 	}
+	else if (header.picture.channels == rnd::driver::texture_header::TYPE::R32I) {
+		format = GL_R32I;
+		format_2 = GL_RED_INTEGER;
+		data_type = GL_INT;
+	}
+
+	GLint maxTextureSize;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
+
+	ASSERT_MSG(t_height < maxTextureSize && t_width < maxTextureSize, "Texture size too big");
+
 	GLubyte* image_data = header.picture.data;
 	GLuint texture;
 	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
@@ -337,7 +356,7 @@ std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_
 	if (result != GL_TRUE) {
 		egLOG("texture/create", "broken store tex");
 	}
-	glTextureSubImage2D(texture, 0, 0, 0, t_width, t_height, format_2, GL_UNSIGNED_BYTE, image_data);
+	glTextureSubImage2D(texture, 0, 0, 0, t_width, t_height, format_2, data_type, image_data);
 	CHECK_GL_ERROR();
 	//glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, 4);
 	//CHECK_GL_ERROR();
@@ -361,21 +380,33 @@ std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_
 		auto height = header.height;
 		auto data = header.data;
 		GLenum format = 0;
-		if (header.channels == 1)
+		if (header.channels == rnd::driver::texture_header::TYPE::R8) {
 			format = GL_RED;
-		else if (header.channels == 3)
+		}
+		else if (header.channels == rnd::driver::texture_header::TYPE::RGB8) {
 			format = GL_RGB;
-		else if (header.channels == 4)
+		}
+		else if (header.channels == rnd::driver::texture_header::TYPE::RGBA8) {
 			format = GL_RGBA;
+		}
+		else if (header.channels == rnd::driver::texture_header::TYPE::R32I) {
+			format = GL_R32I;
+		}
 		glTexImage2D(direction, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 	};
 
 	add(GL_TEXTURE_CUBE_MAP_POSITIVE_X, header.right);
+	CHECK_GL_ERROR();
 	add(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, header.left);
+	CHECK_GL_ERROR();
 	add(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, header.top);
+	CHECK_GL_ERROR();
 	add(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, header.bottom);
+	CHECK_GL_ERROR();
 	add(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, header.back);
+	CHECK_GL_ERROR();
 	add(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, header.front);
+	CHECK_GL_ERROR();
 
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, gTextureFilteringToGlFiltering[(int)header.min]);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, gTextureFilteringToGlFiltering[(int)header.mag]);

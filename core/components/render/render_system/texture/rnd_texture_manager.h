@@ -16,7 +16,8 @@ namespace rnd
 
 		std::shared_ptr<Texture> require_texture(const res::Tag& tag);
 		std::shared_ptr<Texture> require_cubemap_texture(const std::vector<res::Tag>& tags);
-		std::shared_ptr<Texture> generate_texture(const res::Tag& tag, glm::ivec2 size, int channels, std::vector<unsigned char> data);
+		std::shared_ptr<Texture> generate_texture(const res::Tag& tag, glm::ivec2 size, rnd::driver::texture_header::TYPE channels, std::vector<unsigned char> data);
+		std::shared_ptr<Texture> generate_texture(const res::Tag& tag, rnd::driver::texture_header header);
 
 		void clear_cache();
 	protected:

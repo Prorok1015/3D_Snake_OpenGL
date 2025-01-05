@@ -16,7 +16,7 @@ layout (std140, binding = 1) uniform Light
     vec3 specular;
 } light;
 
-varying struct PiplineStruct
+in struct PiplineStruct
 {
     vec2 UV;
     vec3 Normal;
@@ -24,14 +24,12 @@ varying struct PiplineStruct
 } PS;
 
 
-layout(binding = 0) struct Material {
-    sampler2D diffuse;
-    sampler2D specular;
-    sampler2D ambient;
-    float shininess;
-}; 
+layout(binding = 0) uniform sampler2D diffuse;
+layout(binding = 1) uniform sampler2D specular;
+layout(binding = 2) uniform sampler2D ambient;
+uniform float shininess;
   
-uniform Material material; 
+out vec4 fragColor;
 
 void main()
 {    
@@ -42,12 +40,12 @@ void main()
     // specular
     vec3 viewDir = normalize(view_position - PS.FragPos);
     vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
-    vec3 ambient  = light.ambient  * vec3(texture(material.diffuse, PS.UV));
-    vec3 diffuse  = light.diffuse  * diff * vec3(texture(material.diffuse, PS.UV));  
-    vec3 specular = light.specular * spec * vec3(texture(material.specular, PS.UV));
+    vec3 ambientColor  = light.ambient  * vec3(texture(diffuse, PS.UV));
+    vec3 diffuseColor  = light.diffuse  * diff * vec3(texture(diffuse, PS.UV));  
+    vec3 specularColor = light.specular * spec * vec3(texture(specular, PS.UV));
 
-    vec4 result = vec4(ambient + diffuse + specular, 1.0);
-    gl_FragColor = texture(material.diffuse, PS.UV);
+    vec4 result = vec4(ambientColor + diffuseColor + specularColor, 1.0);
+    fragColor = texture(diffuse, PS.UV);
 }

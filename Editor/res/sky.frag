@@ -3,7 +3,9 @@ in vec3 TexCoords;
   
 layout(binding = 0) uniform samplerCube diffuse;
 
+out vec4 fragColor;
+
 void main()
 {    
-    gl_FragColor = texture(diffuse, TexCoords);
+    fragColor = texture(diffuse, TexCoords);
 }

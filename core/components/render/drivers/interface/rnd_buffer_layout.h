@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <glm/glm.hpp>
 
 namespace rnd::driver
 {
@@ -22,7 +23,7 @@ namespace rnd::driver
 		case SHADER_DATA_TYPE::INT:      return sizeof(int);
 		case SHADER_DATA_TYPE::VEC2_I:   return sizeof(int) * 2;
 		case SHADER_DATA_TYPE::VEC3_I:   return sizeof(int) * 3;
-		case SHADER_DATA_TYPE::VEC4_I:   return sizeof(int) * 4;
+		case SHADER_DATA_TYPE::VEC4_I:   return sizeof(glm::ivec4);
 		case SHADER_DATA_TYPE::BOOL:     return sizeof(bool);
 		}
 

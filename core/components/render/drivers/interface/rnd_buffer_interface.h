@@ -18,7 +18,7 @@ namespace rnd::driver
 	{
 	public:
 		virtual ~buffer_interface() {}
-		// size = count * stride
+		// size == count * stride
 		virtual void set_data(const void* data, size_t size, BUFFER_BINDING binding) = 0;
 
 		template<class T>
@@ -29,6 +29,10 @@ namespace rnd::driver
 		template<class T>
 		void set_data_ptr(const T* data, std::size_t size, BUFFER_BINDING binding = BUFFER_BINDING::DYNAMIC) {
 			set_data(data, size * sizeof(T), binding);
+		}
+
+		void reserve(std::size_t size) {
+			set_data(nullptr, size, rnd::driver::BUFFER_BINDING::DYNAMIC);
 		}
 
 		virtual const BufferLayout& get_layout() const = 0;

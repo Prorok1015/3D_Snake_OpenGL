@@ -9,6 +9,7 @@
 #include <engine_log.h>
 #include <res_resource_system.h>
 
+const aiNodeAnim* find_node_anim(const aiAnimation* pAnimation, const std::string& NodeName);
 
 bool res::Vertex::operator== (const Vertex& rhs) const
 {
@@ -17,7 +18,6 @@ bool res::Vertex::operator== (const Vertex& rhs) const
         uv == rhs.uv &&
         tangent == rhs.tangent &&
         bitangent == rhs.bitangent &&
-        bones == rhs.bones &&
         bones_weight == rhs.bones_weight
         ;
 }
@@ -51,7 +51,7 @@ std::vector<res::Mesh> res::loader::model_loader::load()
 
     aiNode* Root = scene->mRootNode;
     if (tag.name().find(".gltf") != std::string::npos) {
-        for (int i = 0; i < 2; ++i) {
+        for (int i = 0; i < 3; ++i) {
             if (Root->mNumChildren > 0) {
                 Root = Root->mChildren[0];
             }
@@ -60,6 +60,34 @@ std::vector<res::Mesh> res::loader::model_loader::load()
 
     // process ASSIMP's root node recursively
     process_node(Root, scene, model.head);
+
+    for (std::size_t anim_idx = 0; anim_idx < scene->mNumAnimations; ++anim_idx) {
+        auto* pAnimation = scene->mAnimations[anim_idx];
+        res::animation anim;
+        anim.name = pAnimation->mName.C_Str();
+        anim.duration = pAnimation->mDuration;
+        anim.ticks_per_second = pAnimation->mTicksPerSecond;
+
+        model.animations.push_back(anim);
+    }
+
+    enclose_hierarchy(model.head, scene);
+
+    model.data.bones_data.bones_indeces.resize(model.data.vertices.size() * (max_bones_count), -1);
+    for (std::size_t v_idx = 0, offset = 0; v_idx < model.data.vertices.size(); )
+    {
+        auto& bones_indeces = vertex_bone_mapping[v_idx];
+        ASSERT_MSG(bones_indeces.size() <= max_bones_count, "Size > max_size");
+
+        for (int b_idx = 0; b_idx < bones_indeces.size(); ++b_idx)
+        {
+            std::size_t offset_b = b_idx * model.data.vertices.size();
+            model.data.bones_data.bones_indeces[offset_b + v_idx] = bones_indeces[b_idx];
+        }
+        ++v_idx;
+        offset = v_idx * max_bones_count;
+    }
+
 
     egLOG("load/deep", "max deep: {}", deep);
     egLOG("load/meshes", "meshes: {}", meshes.size());
@@ -85,21 +113,19 @@ std::vector<res::Mesh> res::loader::model_loader::load()
     }
 
 
-    for (std::size_t idx = 0; idx < meshes.size(); ++idx)
-    {
-        auto& mesh = meshes[idx];
-        auto& mesh_view = model.meshes_views[idx];
-        for (std::size_t vert_idx = 0; vert_idx < mesh.vertices.size(); ++vert_idx)
-        {
-            auto& vertex = mesh.vertices[vert_idx];
-            auto& vertex_view = model.data.vertices[mesh_view.vx_begin + vert_idx];
-            if (vertex != vertex_view) {
-                egLOG("load/check", "vx {} != {}", vert_idx, mesh_view.vx_begin + vert_idx);
-            }
-
-        }
-
-    }
+    //for (std::size_t idx = 0; idx < meshes.size(); ++idx)
+    //{
+    //    auto& mesh = meshes[idx];
+    //    auto& mesh_view = model.meshes_views[idx];
+    //    for (std::size_t vert_idx = 0; vert_idx < mesh.vertices.size(); ++vert_idx)
+    //    {
+    //        auto& vertex = mesh.vertices[vert_idx];
+    //        auto& vertex_view = model.data.vertices[mesh_view.vx_begin + vert_idx];
+    //        if (vertex != vertex_view) {
+    //            egLOG("load/check", "vx {} != {}", vert_idx, mesh_view.vx_begin + vert_idx);
+    //        }
+    //    }
+    //}
 
     //batch_meshes();
     return meshes;
@@ -148,7 +174,7 @@ res::Mesh res::loader::model_loader::copy_mesh(aiMesh* mesh, const aiScene* scen
 
     std::vector<res::Vertex> vertices = copy_vertices(mesh);
 
-    std::vector<res::bone> bones = copy_bones(vertices, mesh, bone_offset);
+    std::vector<res::bone> bones = copy_bones(vertices, mesh, verx_offset);
 
     std::vector<unsigned int> indices = copy_indeces(mesh);
 
@@ -278,7 +304,7 @@ std::vector<res::Vertex> res::loader::model_loader::copy_vertices(aiMesh* mesh)
 
 std::vector<res::bone> res::loader::model_loader::copy_bones(std::vector<res::Vertex>& vertices, aiMesh* mesh, std::size_t base_vertex)
 {
-    std::vector<res::bone> bones;
+    std::vector<res::bone> bones(mesh->mNumBones);
     model.data.bones.reserve(model.data.bones.size() + mesh->mNumBones);
 
     for (unsigned int i = 0; i < mesh->mNumBones; i++) {
@@ -297,14 +323,15 @@ std::vector<res::bone> res::loader::model_loader::copy_bones(std::vector<res::Ve
 
         for (unsigned int i = 0; i < pBone->mNumWeights; i++) {
             const auto& [vertex_id, weight] = pBone->mWeights[i];
-            auto& vertex = model.data.vertices[base_vertex + vertex_id];
 
-            for (int iw = 0; iw < vertex.bones_weight.length(); ++iw)
-            {
-                if (vertex.bones_weight[iw] == 0.0) {
-                    vertex.bones[iw] = bone_id;
-                    vertex.bones_weight[iw] = weight;
-                    break;
+            auto& vertex = model.data.vertices[base_vertex + vertex_id];     
+            if (weight > 0.0) {
+                auto& bones_indeces = vertex_bone_mapping[base_vertex + vertex_id];
+                std::size_t idx = bones_indeces.size();
+                if (idx < vertex.bones_weight.length()) {
+                    bones_indeces.push_back(bone_id);
+                    vertex.bones_weight[idx] = weight;
+                    max_bones_count = std::max(max_bones_count, idx + 1);
                 }
             }
         }
@@ -342,6 +369,66 @@ res::Tag res::loader::model_loader::find_material_texture(aiMaterial* mat, aiTex
         return tag + Tag::make(texture_name);
     }
     return {};
+}
+
+void res::loader::model_loader::enclose_hierarchy(res::node_hierarchy_view& node, const aiScene* scene)
+{
+    if (auto it = bones_mapping.find(node.name); it != bones_mapping.end()) {
+        node.bone_id = it->second;
+        for (std::size_t anim_idx = 0; anim_idx < scene->mNumAnimations; ++anim_idx) {
+            aiAnimation* pAnimation = scene->mAnimations[anim_idx];
+            std::string animation_name = pAnimation->mName.C_Str();
+            if (auto* pAnimNode = find_node_anim(pAnimation, node.name))
+            {
+                auto& anim = model.data.bones[node.bone_id].anim[animation_name];
+                anim.pos_keys.reserve(pAnimNode->mNumPositionKeys);
+                anim.rotate_keys.reserve(pAnimNode->mNumRotationKeys);
+                anim.scale_keys.reserve(pAnimNode->mNumScalingKeys);
+
+                for (std::size_t idx = 0; idx < pAnimNode->mNumPositionKeys; ++idx)
+                {
+                    animation_pos_key key;
+                    key.value = convert_to_glm(pAnimNode->mPositionKeys[idx].mValue);
+                    key.time = pAnimNode->mPositionKeys[idx].mTime;
+                    anim.pos_keys.push_back(key);
+                }
+
+                for (std::size_t idx = 0; idx < pAnimNode->mNumRotationKeys; ++idx)
+                {
+                    animation_rotate_key key;
+                    key.value = convert_to_glm(pAnimNode->mRotationKeys[idx].mValue);
+                    key.time = pAnimNode->mRotationKeys[idx].mTime;
+                    anim.rotate_keys.push_back(key);
+                }
+
+                for (std::size_t idx = 0; idx < pAnimNode->mNumScalingKeys; ++idx)
+                {
+                    animation_scale_key key;
+                    key.value = convert_to_glm(pAnimNode->mScalingKeys[idx].mValue);
+                    key.time = pAnimNode->mScalingKeys[idx].mTime;
+                    anim.scale_keys.push_back(key);
+                }
+            }
+        }
+    }
+
+    for (auto& child : node.children)
+    {
+        enclose_hierarchy(child, scene);
+    }
+}
+
+const aiNodeAnim* find_node_anim(const aiAnimation* pAnimation, const std::string& NodeName)
+{
+    for (std::size_t i = 0; i < pAnimation->mNumChannels; i++) {
+        const aiNodeAnim* pNodeAnim = pAnimation->mChannels[i];
+
+        if (std::string_view(pNodeAnim->mNodeName.C_Str()) == NodeName) {
+            return pNodeAnim;
+        }
+    }
+
+    return NULL;
 }
 
 void res::loader::model_loader::batch_meshes()

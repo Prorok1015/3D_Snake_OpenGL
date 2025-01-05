@@ -21,7 +21,7 @@ namespace rnd::driver::gl
 
 		const std::vector<std::shared_ptr<buffer>>& get_vertex_buffers() const { return m_VertexBuffers; }
 		const std::shared_ptr<buffer>& get_index_buffer() const { return m_IndexBuffer; }
-		uint32_t m_RendererID;
+		uint32_t vertex_array_id;
 	private:
 		uint32_t m_VertexBufferIndex = 0;
 		std::vector<std::shared_ptr<buffer>> m_VertexBuffers;

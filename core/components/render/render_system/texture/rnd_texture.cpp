@@ -7,7 +7,14 @@ std::unique_ptr<rnd::driver::texture_interface> rnd::Texture::load(driver::drive
 	auto res = res::get_system().require_resource<res::Picture>(tag, true);
     driver::texture_header header;
     header.picture.data = res->data();
-    header.picture.channels = res->channels();
+    switch (res->channels())
+    {
+    case 1: header.picture.channels = driver::texture_header::TYPE::R8; break;
+    case 3: header.picture.channels = driver::texture_header::TYPE::RGB8; break;
+    case 4: header.picture.channels = driver::texture_header::TYPE::RGBA8; break;
+    default:
+        break;
+    }
     header.picture.width = res->size().x;
     header.picture.height = res->size().y;
     header.wrap = driver::texture_header::WRAPPING::REPEAT;
