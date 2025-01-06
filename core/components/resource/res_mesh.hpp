@@ -11,7 +11,6 @@ namespace res
 		glm::vec3 tangent = glm::vec4{ 0 };   // 3
 		glm::vec3 bitangent = glm::vec4{ 0 }; // 4
 		glm::vec4 bones_weight = glm::vec4{0};// 5
-		glm::ivec2 bone_row_offset = glm::ivec2{ 0 }; // 6
 
 		bool operator== (const Vertex& rhs) const;
 	};
@@ -111,6 +110,8 @@ namespace res
 		std::vector<node_hierarchy_view> children;
 		std::string name;
 		glm::mat4 mt{ 1.0 };
+		glm::mat4 original{ 1.0 };
+		std::unordered_map<std::string, res::animation_node> anim;
 		int bone_id = -1;
 	};
 

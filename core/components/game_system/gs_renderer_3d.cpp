@@ -36,7 +36,6 @@ gs::renderer_3d::renderer_3d()
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "tangent"},
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "bitangent"},
             {rnd::driver::SHADER_DATA_TYPE::VEC4_F, "bones_weight"},
-            {rnd::driver::SHADER_DATA_TYPE::VEC2_I, "bones_raw_offset"},
         }
     );
 
@@ -106,7 +105,7 @@ void gs::renderer_3d::setup_instance_buffer()
 
 void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
-    rnd::GlobalUniform common_matrix{ .time = (float)Timer::now() };
+    rnd::global_params common_matrix{ .time = (float)Timer::now() };
 
     for (ecs::entity& ent : ecs::filter<rnd::light_point>()) {
         auto* light = ecs::get_component<rnd::light_point>(ent);
@@ -239,23 +238,29 @@ void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
                 long long test123 = GetTickCount();
                 std::vector<glm::mat4> bones = meshes->model->get_bone_transforms((float(test123 - start_time) / 1000.f), meshes->model->get_model_pres().animations[0].name);
                 shader.uniform("use_animation", 1);
-                shader.uniform("bone_row_height", meshes->model->get_model_pres().data.bones_data.original_size.x);
-                shader.uniform("original_height", meshes->model->get_model_pres().data.bones_data.original_size.y);
-                std::size_t idx = 0;
-                for (const auto& mat : bones) {
-                    shader.uniform("gBones[" + std::to_string(idx++) + "]", mat);
+                
+                rnd::bones_matrices bones_matreces;
+                bones_matreces.row_height = meshes->model->get_model_pres().data.bones_data.original_size.x;
+                bones_matreces.bone_count = meshes->model->get_model_pres().data.bones_data.original_size.y;
+                if (bones.size() < rnd::bones_matrices::MAX_BONE_MATRICES_COUNT) {
+                    std::copy(bones.begin(), bones.end(), bones_matreces.bones);
+                    rnd::get_system().get_shader_manager().update_global_bones_matrices(bones_matreces, bones.size());
+                } else {
+                    ASSERT_FAIL("Bones matrices count too big.");
                 }
             }
             else {
                 shader.uniform("use_animation", 0);
             }
 
+            shader.uniform("uWorldModel", model->world);
             res::node_hierarchy_view& hir = meshes->model->get_model_pres().head;
             draw_hierarchy(meshes->model->get_model_pres().data, shader, model->world, hir, glm::mat4{ 1.0 }, drv);
 
         } else {
             shader.uniform("use_animation", 0);
-            shader.uniform("model", model->world);
+            shader.uniform("uWorldModel", model->world);
+            shader.uniform("uWorldMeshMatr", glm::mat4(1.0));
             for (auto& mesh : meshes->meshes) {
                 draw(mesh, drv);
             }
@@ -271,8 +276,7 @@ void gs::renderer_3d::draw_hierarchy(res::meshes_conteiner& data, rnd::Shader& s
     for (auto& node : hir.children)
     {
         glm::mat4 node_mt = parent * node.mt;
-        shader.uniform("model", model_world/* * node_mt*/);
-        shader.uniform("draw_id", dr++);
+        shader.uniform("uWorldMeshMatr", model_world * node_mt);
         for (auto& v_mesh : node.meshes) {
             draw(v_mesh, data, drv);
         }
@@ -304,7 +308,7 @@ void gs::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
 void gs::renderer_3d::draw(scn::Model& val, rnd::driver::driver_interface* drv)
 {
 	auto shader = rnd::get_system().get_shader_manager().use("scene");
-	shader.uniform("model", val.model);
+	shader.uniform("uWorldModel", val.model);
 
 	for (auto& mesh : val.meshes) {
 		draw(mesh, drv);

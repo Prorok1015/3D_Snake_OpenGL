@@ -38,7 +38,7 @@ std::vector<glm::mat4> res::Model::get_bone_transforms(double TimeInSeconds, std
     return result;
 }
 
-void res::Model::calculate_bone_transform(const res::node_hierarchy_view& node, float time_sec, const res::animation& anim, const glm::mat4& parent, std::vector<glm::mat4>& out_transform)
+void res::Model::calculate_bone_transform(res::node_hierarchy_view& node, float time_sec, const res::animation& anim, const glm::mat4& parent, std::vector<glm::mat4>& out_transform)
 {
     glm::mat4 node_transform = node.mt;
 
@@ -67,6 +67,29 @@ void res::Model::calculate_bone_transform(const res::node_hierarchy_view& node, 
         }
     }
 
+    if (!node.anim.empty()) {
+        if (auto it = node.anim.find(anim.name); it != node.anim.end()) {
+            // Interpolate scaling and generate scaling transformation matrix
+            glm::vec3 Scaling;
+            calc_interpolated_scaling(Scaling, time_sec, it->second);
+            glm::mat4 ScalingM = glm::scale(Scaling);
+
+            // Interpolate rotation and generate rotation transformation matrix
+            glm::quat RotationQ;
+            calc_interpolated_rotation(RotationQ, time_sec, it->second);
+            glm::mat4 RotationM = glm::toMat4(RotationQ);
+
+            // Interpolate translation and generate translation transformation matrix
+            glm::vec3 Translation;
+            calc_interpolated_position(Translation, time_sec, it->second);
+            glm::mat4 TranslationM = glm::translate(Translation);
+
+            // Combine the above transformations
+            node_transform = TranslationM * RotationM * ScalingM;
+            node.mt = node_transform;
+        }
+    }
+
     glm::mat4 GlobalTransformation = parent * node_transform;
 
     if (node.bone_id != -1)
@@ -75,7 +98,7 @@ void res::Model::calculate_bone_transform(const res::node_hierarchy_view& node, 
         out_transform[node.bone_id] = (glm::inverse(model.head.mt) * GlobalTransformation * bone.offset);
     }
 
-    for (const auto& child : node.children) {
+    for (auto& child : node.children) {
         calculate_bone_transform(child, time_sec, anim, GlobalTransformation, out_transform);
     }
 }

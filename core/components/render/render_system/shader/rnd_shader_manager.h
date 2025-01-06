@@ -8,7 +8,7 @@
 
 namespace rnd
 {
-	struct GlobalUniform
+	struct global_params
 	{
 		glm::mat4 projection;
 		glm::mat4 view;
@@ -22,6 +22,18 @@ namespace rnd
 		glm::vec4 diffuse;
 		glm::vec4 ambient;
 		glm::vec4 specular;
+	};
+	
+
+	struct bones_matrices
+	{
+		static constexpr int MAX_BONE_MATRICES_COUNT = 128;
+		int row_height;
+		int bone_count;
+	private:
+		glm::ivec2 _std140padding;
+	public:
+		glm::mat4 bones[MAX_BONE_MATRICES_COUNT];
 	};
 
 	class ShaderManager
@@ -43,8 +55,9 @@ namespace rnd
 		void uniform(const std::string_view shader, const std::string_view field, glm::mat4 val) const;
 		void uniform(const std::string_view shader, const std::string_view field, int val) const;
 
-		void update_global_uniform(const GlobalUniform& val) const;
+		void update_global_uniform(const global_params& val) const;
 		void update_global_sun(const light_point& val) const;
+		void update_global_bones_matrices(const bones_matrices& val, std::size_t count) const;
 	protected:
 		std::unique_ptr<rnd::driver::shader_interface> load(const std::string& tag) const;
 
@@ -52,6 +65,7 @@ namespace rnd
 		driver::driver_interface* drv = nullptr;
 		std::shared_ptr<rnd::driver::uniform_buffer_interface> _matrices;
 		std::shared_ptr<rnd::driver::uniform_buffer_interface> sun_light;
+		std::shared_ptr<rnd::driver::uniform_buffer_interface> bones_buffer;
 		mutable std::unordered_map<std::string_view, std::unique_ptr<rnd::driver::shader_interface>> _cache;
 	};
 

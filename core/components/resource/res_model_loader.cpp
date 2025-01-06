@@ -9,7 +9,34 @@
 #include <engine_log.h>
 #include <res_resource_system.h>
 
-const aiNodeAnim* find_node_anim(const aiAnimation* pAnimation, const std::string& NodeName);
+const aiNodeAnim* find_node_anim(const aiAnimation* pAnimation, const std::string_view NodeName);
+
+
+glm::quat convert_to_glm(const aiQuaternion& vector) {
+    glm::quat result;
+    result.x = vector.x;
+    result.y = vector.y;
+    result.z = vector.z;
+    result.w = vector.w;
+    return result;
+}
+
+glm::vec3 convert_to_glm(const aiVector3D& vector) {
+    glm::vec3 result;
+    result.x = vector.x;
+    result.y = vector.y;
+    result.z = vector.z;
+    return result;
+}
+
+glm::mat4 convert_to_glm(const aiMatrix4x4& transform) {
+    glm::mat4 local(1);
+    local[0] = glm::vec4(transform.a1, transform.b1, transform.c1, transform.d1);
+    local[1] = glm::vec4(transform.a2, transform.b2, transform.c2, transform.d2);
+    local[2] = glm::vec4(transform.a3, transform.b3, transform.c3, transform.d3);
+    local[3] = glm::vec4(transform.a4, transform.b4, transform.c4, transform.d4);
+    return local;
+}
 
 bool res::Vertex::operator== (const Vertex& rhs) const
 {
@@ -53,7 +80,7 @@ std::vector<res::Mesh> res::loader::model_loader::load()
     if (tag.name().find(".gltf") != std::string::npos) {
         for (int i = 0; i < 3; ++i) {
             if (Root->mNumChildren > 0) {
-                Root = Root->mChildren[0];
+                //Root = Root->mChildren[0];
             }
         }
     }
@@ -69,6 +96,12 @@ std::vector<res::Mesh> res::loader::model_loader::load()
         anim.ticks_per_second = pAnimation->mTicksPerSecond;
 
         model.animations.push_back(anim);
+
+        for (std::size_t i = 0; i < pAnimation->mNumChannels; i++) {
+            const aiNodeAnim* pNodeAnim = pAnimation->mChannels[i];
+
+            dbgAnimatedNodes.push_back(pNodeAnim->mNodeName.C_Str());
+        }
     }
 
     enclose_hierarchy(model.head, scene);
@@ -371,6 +404,46 @@ res::Tag res::loader::model_loader::find_material_texture(aiMaterial* mat, aiTex
     return {};
 }
 
+std::optional<res::animation_node> parse_key_frames(aiAnimation* pAnimation, std::string_view node_name)
+{
+    std::optional<res::animation_node> resalt;
+    if (auto* pAnimNode = find_node_anim(pAnimation, node_name))
+    {
+        res::animation_node anim;
+        anim.pos_keys.reserve(pAnimNode->mNumPositionKeys);
+        anim.rotate_keys.reserve(pAnimNode->mNumRotationKeys);
+        anim.scale_keys.reserve(pAnimNode->mNumScalingKeys);
+
+        for (std::size_t idx = 0; idx < pAnimNode->mNumPositionKeys; ++idx)
+        {
+            res::animation_pos_key key;
+            key.value = convert_to_glm(pAnimNode->mPositionKeys[idx].mValue);
+            key.time = pAnimNode->mPositionKeys[idx].mTime;
+            anim.pos_keys.push_back(key);
+        }
+
+        for (std::size_t idx = 0; idx < pAnimNode->mNumRotationKeys; ++idx)
+        {
+            res::animation_rotate_key key;
+            key.value = convert_to_glm(pAnimNode->mRotationKeys[idx].mValue);
+            key.time = pAnimNode->mRotationKeys[idx].mTime;
+            anim.rotate_keys.push_back(key);
+        }
+
+        for (std::size_t idx = 0; idx < pAnimNode->mNumScalingKeys; ++idx)
+        {
+            res::animation_scale_key key;
+            key.value = convert_to_glm(pAnimNode->mScalingKeys[idx].mValue);
+            key.time = pAnimNode->mScalingKeys[idx].mTime;
+            anim.scale_keys.push_back(key);
+        }
+
+        resalt.emplace(std::move(anim));
+    }
+
+    return resalt;
+}
+
 void res::loader::model_loader::enclose_hierarchy(res::node_hierarchy_view& node, const aiScene* scene)
 {
     if (auto it = bones_mapping.find(node.name); it != bones_mapping.end()) {
@@ -378,36 +451,19 @@ void res::loader::model_loader::enclose_hierarchy(res::node_hierarchy_view& node
         for (std::size_t anim_idx = 0; anim_idx < scene->mNumAnimations; ++anim_idx) {
             aiAnimation* pAnimation = scene->mAnimations[anim_idx];
             std::string animation_name = pAnimation->mName.C_Str();
-            if (auto* pAnimNode = find_node_anim(pAnimation, node.name))
-            {
-                auto& anim = model.data.bones[node.bone_id].anim[animation_name];
-                anim.pos_keys.reserve(pAnimNode->mNumPositionKeys);
-                anim.rotate_keys.reserve(pAnimNode->mNumRotationKeys);
-                anim.scale_keys.reserve(pAnimNode->mNumScalingKeys);
-
-                for (std::size_t idx = 0; idx < pAnimNode->mNumPositionKeys; ++idx)
-                {
-                    animation_pos_key key;
-                    key.value = convert_to_glm(pAnimNode->mPositionKeys[idx].mValue);
-                    key.time = pAnimNode->mPositionKeys[idx].mTime;
-                    anim.pos_keys.push_back(key);
-                }
-
-                for (std::size_t idx = 0; idx < pAnimNode->mNumRotationKeys; ++idx)
-                {
-                    animation_rotate_key key;
-                    key.value = convert_to_glm(pAnimNode->mRotationKeys[idx].mValue);
-                    key.time = pAnimNode->mRotationKeys[idx].mTime;
-                    anim.rotate_keys.push_back(key);
-                }
-
-                for (std::size_t idx = 0; idx < pAnimNode->mNumScalingKeys; ++idx)
-                {
-                    animation_scale_key key;
-                    key.value = convert_to_glm(pAnimNode->mScalingKeys[idx].mValue);
-                    key.time = pAnimNode->mScalingKeys[idx].mTime;
-                    anim.scale_keys.push_back(key);
-                }
+            auto anim = parse_key_frames(pAnimation, node.name);
+            if (anim.has_value()) {
+                model.data.bones[node.bone_id].anim[animation_name] = anim.value();
+            }
+        }
+    }
+    else {
+        for (std::size_t anim_idx = 0; anim_idx < scene->mNumAnimations; ++anim_idx) {
+            aiAnimation* pAnimation = scene->mAnimations[anim_idx];
+            std::string animation_name = pAnimation->mName.C_Str();
+            auto anim = parse_key_frames(pAnimation, node.name);
+            if (anim.has_value()) {
+                node.anim[animation_name] = anim.value();
             }
         }
     }
@@ -418,7 +474,7 @@ void res::loader::model_loader::enclose_hierarchy(res::node_hierarchy_view& node
     }
 }
 
-const aiNodeAnim* find_node_anim(const aiAnimation* pAnimation, const std::string& NodeName)
+const aiNodeAnim* find_node_anim(const aiAnimation* pAnimation, const std::string_view NodeName)
 {
     for (std::size_t i = 0; i < pAnimation->mNumChannels; i++) {
         const aiNodeAnim* pNodeAnim = pAnimation->mChannels[i];

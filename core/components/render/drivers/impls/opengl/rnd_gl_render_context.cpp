@@ -20,20 +20,37 @@ rnd::driver::gl::render_context::render_context(GLADloadproc load)
 	ASSERT_MSG(success, "glad didnt loaded in this process!");
 	GLint maxTextureSize;
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-	gMaxTexture2DSize = 22;// maxTextureSize;
+	gMaxTexture2DSize = maxTextureSize;
+
+	GLint maxVertexUniformVectors;
+	glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS, &maxVertexUniformVectors);
+	GLint maxFragmentUniformVectors;
+	glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_VECTORS, &maxFragmentUniformVectors);
+	GLint maxUniformBlockSize;
+	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxUniformBlockSize);
+	GLint maxUniformBufferBindings;
+	glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUniformBufferBindings);
 
 	egLOG("render_context/init",
 		"OpenGL Info: \n"
-		"Vendor: {0}  \n"
+		"Vendor:   {0}  \n"
 		"Renderer: {1}\n"
-		"Version: {2}\n"
+		"Version:      {2}\n"
 		"GLSL Version: {3}\n"
-		"Max Texture2D size {4}x{4}\n",
+		"Max Texture2D size:                 {4}x{4}\n"
+		"Max Vertex Uniform Vectors(vec4):   {5}\n"
+		"Max Fragment Uniform Vectors(vec4): {6}\n"
+		"Max Uniform Block Size(b):          {7}\n"
+		"Max Uniform Buffer Bindings:        {8}\n",
 		(const char*)glGetString(GL_VENDOR),
 		(const char*)glGetString(GL_RENDERER),
 		(const char*)glGetString(GL_VERSION),
 		(const char*)glGetString(GL_SHADING_LANGUAGE_VERSION),
-		maxTextureSize);
+		maxTextureSize,
+		maxVertexUniformVectors,
+		maxFragmentUniformVectors,
+		maxUniformBlockSize,
+		maxUniformBufferBindings);
 
 	ASSERT_MSG(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "Engine requires at least OpenGL version 4.5!");
 

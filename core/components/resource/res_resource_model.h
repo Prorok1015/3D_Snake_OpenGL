@@ -17,7 +17,7 @@ namespace res
 		std::vector<glm::mat4> get_bone_transforms(double TimeInSeconds, std::string_view animation_name);
 
 	private:
-		void calculate_bone_transform(const res::node_hierarchy_view& node, float time_sec, const res::animation& anim, const glm::mat4& parent, std::vector<glm::mat4>& out_transform);
+		void calculate_bone_transform(res::node_hierarchy_view& node, float time_sec, const res::animation& anim, const glm::mat4& parent, std::vector<glm::mat4>& out_transform);
 
 		void calc_interpolated_scaling(glm::vec3& Out, float AnimationTimeTicks, const res::animation_node& anim);
 		void calc_interpolated_position(glm::vec3& Out, float AnimationTimeTicks, const res::animation_node& anim);

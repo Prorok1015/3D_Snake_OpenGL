@@ -32,6 +32,7 @@ editor::EditorSystem::EditorSystem()
 	auto logo = res::get_system().require_resource<res::Picture>(res::Tag::make("icons/editor_engine_logo.png"));
 	gs::get_system().get_window()->set_logo(logo);
 	gs::get_system().get_window()->set_title("Snake Editor");
+	dbg_ui::get_system().set_show_title_bar(true);
 
 	glm::ivec4 viewport{ glm::zero<glm::ivec2>(), gs::get_system().get_window()->get_size() };
 
@@ -53,7 +54,7 @@ editor::EditorSystem::EditorSystem()
 		}
 	});
 
-	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag("memory", "__black"), {1,1}, 3, {0, 0, 0});
+	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag("memory", "__black"), {1,1}, rnd::driver::texture_header::TYPE::RGB8, {0, 0, 0});
 
 	scn::Model web = generate_web({ 50, 50 });
 	web.meshes.back().material.diffuse = res::Tag("memory", "__black");
@@ -374,12 +375,12 @@ bool editor::EditorSystem::show_web()
 	const bool cur_is_show = DBG_UI_IS_ITEM_CHECKED("EDITOR/SHOW_WEP");
 	if (!cur_is_show && cur_is_show != is_show_web) {
 		ecs::remove_component<scn::is_render_component_flag>(editor_web);
-		ecs::remove_component<scn::is_render_component_flag>(sky);
+		//ecs::remove_component<scn::is_render_component_flag>(sky);
 	}
 	else if (cur_is_show && cur_is_show != is_show_web){
 		ecs::add_component(editor_web, scn::is_render_component_flag{});
-		ecs::add_component(sky, scn::is_render_component_flag{});
-	}
+		//ecs::add_component(sky, scn::is_render_component_flag{});
+	} 
 
 	is_show_web = cur_is_show;
 	return true;

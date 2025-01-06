@@ -44,6 +44,10 @@ namespace editor
 
 		std::vector<std::string> models_list
 		{
+			"objects/anim_cube_f/tail_cube.glb",
+			"objects/anim_cube_f/bird_cube.glb",
+			"objects/anim_cube_f/jump_cube.glb",
+			"objects/anim_cube_f/anim_cube.glb",
 			"objects/getaur/scene.gltf",
 			"objects/train/scene.gltf",
 			"objects/fsb/scene.gltf",

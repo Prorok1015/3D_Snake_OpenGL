@@ -31,32 +31,6 @@ namespace res::loader {
 
         Tag find_material_texture(aiMaterial* mat, aiTextureType type);
 
-        glm::mat4 convert_to_glm(const aiMatrix4x4& transform) const {
-            glm::mat4 local(1);
-            local[0] = glm::vec4(transform.a1, transform.b1, transform.c1, transform.d1);
-            local[1] = glm::vec4(transform.a2, transform.b2, transform.c2, transform.d2);
-            local[2] = glm::vec4(transform.a3, transform.b3, transform.c3, transform.d3);
-            local[3] = glm::vec4(transform.a4, transform.b4, transform.c4, transform.d4);
-            return local;
-        }
-
-        glm::vec3 convert_to_glm(const aiVector3D& vector) const {
-            glm::vec3 result;
-            result.x = vector.x;
-            result.y = vector.y;
-            result.z = vector.z;
-            return result;
-        }
-
-        glm::quat convert_to_glm(const aiQuaternion& vector) const {
-            glm::quat result;
-            result.x = vector.x;
-            result.y = vector.y;
-            result.z = vector.z;
-            result.w = vector.w;
-            return result;
-        }
-
         void increase_txt_counter(const res::Tag& txt)
         {
             if (txt.is_valid()) {
@@ -75,6 +49,8 @@ namespace res::loader {
         Tag tag;
 
         std::size_t max_bones_count = 0;
+
+        std::vector<std::string> dbgAnimatedNodes;
 
         std::unordered_map<std::string, std::size_t> bones_mapping;
         std::unordered_map<std::size_t, std::vector<int32_t>> vertex_bone_mapping;

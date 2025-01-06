@@ -74,7 +74,7 @@ void gs::GameSystem::check_loaded_model()
 
 		ecs::entity obj = ecs::create_entity();
 		if (auto& bones_data = res->get_model_pres().data.bones_data.bones_indeces; !bones_data.empty()) {
-			res::Tag txm = res::Tag("memory", "__bones_indeces_" + std::to_string(obj.index));
+			res::Tag txm = res::Tag("memory", "__bones_indeces_" + std::to_string(obj.index)); // TODO: create texture only for model desc
 			auto& last_bone_view = res->get_model_pres().data.bones_data;
 			last_bone_view.bones_indeces_txm = txm;
 
@@ -83,6 +83,7 @@ void gs::GameSystem::check_loaded_model()
 
 			const auto& origin_width = size.x;
 			const auto& origin_height = size.y;
+			last_bone_view.original_size = { 1, origin_height };
 
 			if (origin_width > gMaxTexture2DSize)
 			{
@@ -99,10 +100,10 @@ void gs::GameSystem::check_loaded_model()
 
 				int add = (real_width * pices_count) - origin_width;
 
-				bones_data.resize(bones_data.size() + (add * origin_height));
+				bones_data.reserve(bones_data.size() + (add * origin_height));
 				for (int i = 0; i < add; ++i)
 				{
-					for (int j = 0; j < origin_height; ++j) {
+					for (int j = 1; j <= origin_height; ++j) {
 						int offset = j * origin_width;
 						bones_data.insert(bones_data.begin() + offset, -1);
 					}
@@ -111,14 +112,6 @@ void gs::GameSystem::check_loaded_model()
 				last_bone_view.original_size = { pices_count, origin_height };
 				size.x = real_width;
 				size.y = bones_data.size() / real_width;
-				
-				for (int i = real_width, bOffset = real_width; i < res->get_model_pres().data.vertices.size(); ++i)
-				{
-					if (bOffset < i) {
-						bOffset += real_width;
-					}
-					//res->get_model_pres().data.vertices[i].bone_row_offset = bOffset;
-				}
 			}
 			
 
