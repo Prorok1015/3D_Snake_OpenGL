@@ -42,6 +42,7 @@ namespace res
 		const std::string_view protocol() const { return std::string_view(full_.data() + protocol_.x, protocol_.y); }
 		const std::string_view path() const { return std::string_view(full_.data() + path_.x, path_.y); }
 		const std::string_view name() const { return std::string_view(full_.data() + name_.x, name_.y); }
+		const std::string_view pure_name() const { auto result = name(); return result.substr(0, result.find_last_of('.'));  }
 		const std::string_view get_full() const { return full_; }
 
 		bool operator== (const Tag& tag) const { return get_hash() == tag.get_hash(); }

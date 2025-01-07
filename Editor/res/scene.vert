@@ -4,8 +4,8 @@ layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
 layout (location = 3) in vec3 aTangent;
 layout (location = 4) in vec3 aBitangent;
-layout (location = 5) in vec4 aBonesWeight;
-layout (location = 6) in ivec2 aTextureRowOffset;
+layout (location = 5) in vec4 aBonesWeight; //TODO: move to texture2D
+layout (location = 6) in vec4 aColor;
 
 layout (std140, binding = 0) uniform Matrices 
 {
@@ -20,14 +20,21 @@ out struct PiplineStruct
     vec2 UV;
     vec3 Normal;
     vec3 FragPos;
+    vec4 Color;
 } PS;
 
-uniform mat4 model;
+#define MAX_BONE_MATRICES_COUNT 128
+#define MAX_BONE_COUNT (boneCount < 5 ? boneCount : 4) // temporary while max bone weight == 4
 
-const int MAX_BONES = 200;
-uniform int bone_row_height;
-uniform int original_height;
-uniform mat4 gBones[MAX_BONES];
+layout (std140, binding = 2) uniform BoneMatrices // TODO: perhaps change to SSBO 
+{
+    int rowHeight;
+    int boneCount;
+    mat4 bones[MAX_BONE_MATRICES_COUNT];
+};
+
+uniform mat4 uWorldModel;
+uniform mat4 uWorldMeshMatr;
 layout(binding = 3) uniform isampler2D boneIndicesTexture;
 const int MIPMAPLVL0 = 0;
 
@@ -38,30 +45,13 @@ uniform int draw_id;
 out vec4 bones_wieght;
 // DEBUG REGION END
 
-int GetBonesHeight()
+int getBoneIndex(int x, int y)
 {
-    return original_height;
-//    int count = 0;
-//    int boneIndex = -2;
-//    do{
-//        boneIndex = texelFetch(boneIndicesTexture, ivec2(0, count), MIPMAPLVL0).r;
-//        count++;
-//    } while(boneIndex > -2);
-//
-//    return count;
-}
-
-int GetBoneIndex(int x, int y)
-{
-    ivec2 boneCoord = ivec2(x, y);
     ivec2 texSize = textureSize(boneIndicesTexture, MIPMAPLVL0);
-    //if (boneCoord.x > (texSize.x - 1))
-    //{
-        int power = boneCoord.x / texSize.x;
-        int tmpX = boneCoord.x - (texSize.x * power);
-        int tmpY = boneCoord.y * bone_row_height + power;
-        boneCoord = ivec2(tmpX, tmpY);
-    //}
+    int power = x / texSize.x;
+    int tmpX = x - (texSize.x * power);
+    int tmpY = y * rowHeight + power;
+    ivec2 boneCoord = ivec2(tmpX, tmpY);
     return texelFetch(boneIndicesTexture, boneCoord, MIPMAPLVL0).r;
 }
 
@@ -71,14 +61,13 @@ mat4 culcSkinMatrix()
     mat4 skinMatrix = mat4(0.0);
 
     int boneIndex = -1;
-    const int count = GetBonesHeight();
 
-    for(int i = 0; i < count; ++i)
+    for(int i = 0; i < MAX_BONE_COUNT; ++i)
     {
-        boneIndex = GetBoneIndex(gl_VertexID, i);
+        boneIndex = getBoneIndex(gl_VertexID, i);
 
         if(boneIndex > -1) {
-            skinMatrix += gBones[boneIndex] * aBonesWeight[i];
+            skinMatrix += bones[boneIndex] * aBonesWeight[i];
             is_at_least_one_bone = true;
         } else {
             break;
@@ -88,18 +77,19 @@ mat4 culcSkinMatrix()
     if (is_at_least_one_bone)
         return skinMatrix;
 
-    return mat4(1.0);
+    return uWorldMeshMatr;
 }
 
 void main()
 {
-    mat4 mesh = mat4(1.0);
+    mat4 mesh = uWorldMeshMatr;
     if (use_animation == 1) {
         mesh = culcSkinMatrix();
     }
     bones_wieght = aBonesWeight;
+    PS.Color = aColor;
     PS.UV = aTexCoords;
-    PS.FragPos = vec3(model * vec4(aPos, 1.0));
-    PS.Normal = mat3(transpose(inverse(model))) * aNormal;
-    gl_Position = projection * view * model * mesh * vec4(aPos, 1.0);
+    PS.FragPos = vec3(uWorldModel * vec4(aPos, 1.0));
+    PS.Normal = mat3(transpose(inverse(uWorldModel))) * aNormal;
+    gl_Position = projection * view * uWorldModel * mesh * vec4(aPos, 1.0);
 }

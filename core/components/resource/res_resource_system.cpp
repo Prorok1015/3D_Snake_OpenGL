@@ -36,7 +36,7 @@ std::string res::ResourceSystem::get_absolut_path(const Tag& tag)
 	return std::string{};
 }
 
-std::shared_ptr<Resource> res::ResourceSystem::find_cache(const Tag& tag)
+std::shared_ptr<Resource> res::ResourceSystem::find_cache(const Tag& tag) const
 {
 	auto it = std::find_if(cache_.begin(), cache_.end(), [&tag](auto res) { return *res == tag; });
 	if (it != cache_.end()) {

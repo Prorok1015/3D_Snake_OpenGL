@@ -21,7 +21,7 @@ namespace res::loader {
 
         Mesh copy_mesh(aiMesh* mesh, const aiScene* scene, res::node_hierarchy_view& hierarchy);
 
-        Material copy_material(aiMaterial* mat);
+        Material copy_material(const aiScene* scene, aiMaterial* mat);
 
         std::vector<res::Vertex> copy_vertices(aiMesh* mesh);
 
@@ -29,7 +29,7 @@ namespace res::loader {
 
         std::vector<unsigned int> copy_indeces(aiMesh* mesh);
 
-        Tag find_material_texture(aiMaterial* mat, aiTextureType type);
+        Tag find_material_texture(const aiScene* scene, aiMaterial* mat, aiTextureType type);
 
         void increase_txt_counter(const res::Tag& txt)
         {

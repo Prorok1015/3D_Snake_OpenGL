@@ -19,7 +19,22 @@ res::Picture::Picture(const res::Tag& tag)
 	}
 }
 
+res::Picture::Picture(const Tag& tag, glm::ivec2 size_1, int channels_1, unsigned char* data_1)
+	: res::Resource(tag)
+	, is_embedded_picture(true)
+	, size_(size_1)
+	, channels_(channels_1)
+	, data_(data_1)
+{
+
+}
+
 res::Picture::~Picture()
 {
-	stb_image::Image::free_image_data(data_);
+	if (!is_embedded_picture) {
+		stb_image::Image::free_image_data(data_);
+	}
+	else {
+		delete[] data_;
+	}
 }

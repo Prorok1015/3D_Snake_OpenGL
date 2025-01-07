@@ -3,8 +3,10 @@
 
 namespace res
 {
+	class ResourceSystem;
 	class Resource
 	{
+		friend res::ResourceSystem;
 	public:
 		Resource(const Tag& tag) : tag_(tag) {}
 

@@ -21,6 +21,7 @@ in struct PiplineStruct
     vec2 UV;
     vec3 Normal;
     vec3 FragPos;
+    vec4 Color;
 } PS;
 
 layout(binding = 0) uniform sampler2D diffuse;
@@ -45,25 +46,16 @@ void main()
     vec3 reflectDir = reflect(-lightDir, norm);  
 
     vec4 result;
-    #ifndef TEST_NO_MATERIAL
-    if (use_animation == 0){
-        float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
 
-        vec3 ambientColor  = light.ambient  * vec3(texture(diffuse, PS.UV));
-        vec3 diffuseColor  = light.diffuse  * diff * vec3(texture(diffuse, PS.UV));  
-        vec3 specularColor = light.specular * spec * vec3(texture(specular, PS.UV));
+    vec3 ambientColor  = light.ambient  * vec3(texture(diffuse, PS.UV));
+    vec3 diffuseColor  = light.diffuse  * diff * vec3(texture(diffuse, PS.UV));  
+    vec3 specularColor = light.specular * spec * vec3(texture(specular, PS.UV));
     
-        result = vec4(ambientColor + diffuseColor + specularColor, 1.0);
-        }else {
-    //#else
-        vec3 ambientColor  = light.ambient;
-        vec3 diffuseColor  = light.diffuse  * diff;  
-        vec3 specularColor = light.specular * max(dot(viewDir, reflectDir), 0.0);
-
-        vec3 color = ambientColor + diffuseColor + specularColor;
-        //color = vec3(bonesWeight) * vec3(boneId);
-        result = vec4(color, 1.0);
-        }
-    #endif
-    fragColor = result;
+    result = vec4(ambientColor + diffuseColor + specularColor, 1.0) * PS.Color;
+    if (result.r < 0.1 && result.g < 0.1 && result.b < 0.1) {
+        fragColor = PS.Color;
+    } else {
+        fragColor = result;
+    }
 }

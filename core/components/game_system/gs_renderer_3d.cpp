@@ -36,6 +36,7 @@ gs::renderer_3d::renderer_3d()
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "tangent"},
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "bitangent"},
             {rnd::driver::SHADER_DATA_TYPE::VEC4_F, "bones_weight"},
+            {rnd::driver::SHADER_DATA_TYPE::VEC4_F, "color"},
         }
     );
 

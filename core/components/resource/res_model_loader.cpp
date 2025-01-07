@@ -1,13 +1,12 @@
 #include "res_model_loader.h"
-#include "res_model_loader.h"
-#include "res_model_loader.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include "res_model_loader.h"
 #include <common.h>
 #include <engine_log.h>
 #include <res_resource_system.h>
+#include "res_resource_texture.h"
+#include "image.h"
 
 const aiNodeAnim* find_node_anim(const aiAnimation* pAnimation, const std::string_view NodeName);
 
@@ -218,9 +217,8 @@ res::Mesh res::loader::model_loader::copy_mesh(aiMesh* mesh, const aiScene* scen
     // Same applies to other texture as the following list summarizes:
     // diffuse: texture_diffuseN
     // specular: texture_specularN
-    // normal: texture_normalN
-
-    res::Material mesh_material = copy_material(material);
+    // normal: texture_normalN 
+    res::Material mesh_material = copy_material(scene, material);
 
     res::mesh_view v_mesh;
     v_mesh.ind_begin = ind_offset;
@@ -238,20 +236,20 @@ res::Mesh res::loader::model_loader::copy_mesh(aiMesh* mesh, const aiScene* scen
     return res::Mesh{ .vertices = vertices, .indices = indices, .bones = bones, .material = mesh_material };
 }
 
-res::Material res::loader::model_loader::copy_material(aiMaterial* material)
+res::Material res::loader::model_loader::copy_material(const aiScene* scene, aiMaterial* material)
 {
     res::Material mesh_material;
     // 1. diffuse maps
-    mesh_material.diffuse = find_material_texture(material, aiTextureType_DIFFUSE);
+    mesh_material.diffuse = find_material_texture(scene, material, aiTextureType_DIFFUSE);
     increase_txt_counter(mesh_material.diffuse);
     // 2. specular maps
-    mesh_material.specular = find_material_texture(material, aiTextureType_SPECULAR);
+    mesh_material.specular = find_material_texture(scene, material, aiTextureType_SPECULAR);
     increase_txt_counter(mesh_material.specular);
     // 3. normal maps
-    mesh_material.normal = find_material_texture(material, aiTextureType_HEIGHT);
+    mesh_material.normal = find_material_texture(scene, material, aiTextureType_HEIGHT);
     increase_txt_counter(mesh_material.normal);
     // 4. ambient maps
-    mesh_material.ambient = find_material_texture(material, aiTextureType_AMBIENT);
+    mesh_material.ambient = find_material_texture(scene, material, aiTextureType_AMBIENT);
     increase_txt_counter(mesh_material.ambient);
 
     model.data.materials.push_back(mesh_material);
@@ -328,6 +326,17 @@ std::vector<res::Vertex> res::loader::model_loader::copy_vertices(aiMesh* mesh)
         else
             vertex.uv = glm::vec2(0.0f, 0.0f);
 
+        for (int i = 0; i < 8; ++i) {
+            if (mesh->HasVertexColors(i))
+            {
+                glm::vec4 color;
+                color.r = mesh->mColors[i]->r;
+                color.g = mesh->mColors[i]->g;
+                color.b = mesh->mColors[i]->b;
+                color.a = mesh->mColors[i]->a;
+                vertex.color = color;
+            }
+        }
         vertices.push_back(vertex);
         model.data.vertices.push_back(vertex);
     }
@@ -393,12 +402,46 @@ std::vector<unsigned int> res::loader::model_loader::copy_indeces(aiMesh* mesh)
     return indices;
 }
 
-res::Tag res::loader::model_loader::find_material_texture(aiMaterial* mat, aiTextureType type) {
+res::Tag res::loader::model_loader::find_material_texture(const aiScene* scene, aiMaterial* mat, aiTextureType type) {
     for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
     {
         aiString str;
         mat->GetTexture(type, i, &str);
         std::string_view texture_name = str.C_Str();
+        if (auto* pEmbededTxm = scene->GetEmbeddedTexture(texture_name.data()))
+        {
+            std::string embedded_path = "__embedded_txm_" + std::string(tag.pure_name()) + "/" + std::string(pEmbededTxm->mFilename.C_Str()) + "." + std::string(pEmbededTxm->achFormatHint);
+            res::Tag embedded_tag = res::Tag("memory", embedded_path);
+
+            if (res::get_system().is_exist(embedded_tag)) {
+                return embedded_tag;
+            }
+
+            glm::ivec2 size;
+            int channel = 4;
+            unsigned char* data;
+
+            if (pEmbededTxm->mHeight != 0) {
+                size.x = pEmbededTxm->mWidth;
+                size.y = pEmbededTxm->mHeight;
+
+                data = new unsigned char[size.x * size.y * channel];
+                std::copy((unsigned char*)pEmbededTxm->pcData, (unsigned char*)pEmbededTxm->pcData + (size.x * size.y * channel), data);
+            }
+            else {
+                auto img = stb_image::Image::read_from_memory((unsigned char*)pEmbededTxm->pcData, pEmbededTxm->mWidth);
+                size.x = img.width();
+                size.y = img.height();
+                channel = img.channels_count();
+                data = new unsigned char[img.size()];
+                std::copy(img.data(), img.data() + img.size(), data);
+            }
+
+            auto pct = std::make_shared<res::Picture>(embedded_tag, size, channel, data);
+            res::get_system().add_resource(pct);
+
+            return embedded_tag;
+        }
         return tag + Tag::make(texture_name);
     }
     return {};

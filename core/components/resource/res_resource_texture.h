@@ -8,6 +8,7 @@ namespace res
 	{
 	public:
 		Picture(const Tag& tag);
+		Picture(const Tag& tag, glm::ivec2 size_, int channels_, unsigned char* data_);
 		~Picture();
 
 		unsigned char* data() const { return data_; }
@@ -18,6 +19,7 @@ namespace res
 		unsigned char* data_ = nullptr;
 		int channels_ = 0;
 		glm::ivec2 size_{ 0, 0 };
+		bool is_embedded_picture = false;
 	};
 
 	using ImageRef = std::shared_ptr<Picture>;

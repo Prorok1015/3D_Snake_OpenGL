@@ -11,6 +11,7 @@ namespace res
 		glm::vec3 tangent = glm::vec4{ 0 };   // 3
 		glm::vec3 bitangent = glm::vec4{ 0 }; // 4
 		glm::vec4 bones_weight = glm::vec4{0};// 5
+		glm::vec4 color = glm::vec4{ 1 };	  // 6
 
 		bool operator== (const Vertex& rhs) const;
 	};
