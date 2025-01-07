@@ -33,8 +33,6 @@ in vec4 bones_wieght;
 uniform int use_animation;
 out vec4 fragColor;
 
-//#define TEST_NO_MATERIAL
-
 void main()
 {    
     // diffuse
@@ -52,10 +50,6 @@ void main()
     vec3 diffuseColor  = light.diffuse  * diff * vec3(texture(diffuse, PS.UV));  
     vec3 specularColor = light.specular * spec * vec3(texture(specular, PS.UV));
     
-    result = vec4(ambientColor + diffuseColor + specularColor, 1.0) * PS.Color;
-    if (result.r < 0.1 && result.g < 0.1 && result.b < 0.1) {
-        fragColor = PS.Color;
-    } else {
-        fragColor = result;
-    }
+    result = vec4(ambientColor + diffuseColor + specularColor, 1.0);
+    fragColor = result;
 }

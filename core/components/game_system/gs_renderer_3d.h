@@ -24,12 +24,12 @@ namespace gs
 
 		void draw(scn::Model& val, rnd::driver::driver_interface* drv);
 		void draw(res::Mesh& mesh, rnd::driver::driver_interface* drv);
-		void draw(res::mesh_view& mesh, res::meshes_conteiner& data, rnd::driver::driver_interface* drv);
+		void draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, res::meshes_conteiner& data, rnd::driver::driver_interface* drv);
 		void draw_line(rnd::driver::driver_interface* drv);
 		void draw_instances(rnd::driver::driver_interface* drv);
 		void draw_sky(rnd::driver::driver_interface* drv);
 		void draw_model(rnd::driver::driver_interface* drv);
-		void draw_hierarchy(res::meshes_conteiner& data, rnd::Shader& shader, glm::mat4& model_world, res::node_hierarchy_view& hir, glm::mat4 parent, rnd::driver::driver_interface* drv);
+		void draw_hierarchy(res::meshes_conteiner& data, rnd::shader_scene_desc& shader, glm::mat4& model_world, res::node_hierarchy_view& hir, glm::mat4 parent, rnd::driver::driver_interface* drv);
 		void setup_instance_buffer();
 
 	public:

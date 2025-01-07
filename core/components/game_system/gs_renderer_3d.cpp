@@ -217,14 +217,9 @@ void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
     //drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
 
-    auto shader = rnd::get_system().get_shader_manager().use("scene");
 
     for (auto ent : ecs::filter<scn::is_render_component_flag, scn::model_comonent, scn::transform_component>()) {
         auto* model = ecs::get_component<scn::transform_component>(ent);
-
-        shader.uniform("ambient", glm::vec3(1.0f, 0.5f, 0.31f));
-        shader.uniform("shininess", 32.0f);
-
         auto* meshes = ecs::get_component<scn::model_comonent>(ent);
         
         rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
@@ -234,12 +229,13 @@ void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
         }
 
         if (meshes->model && is_flag_test_render) {
+            rnd::shader_scene_desc scene;
+
             if (meshes->model->get_model_pres().animations.size() > 0 && is_flag_show_anim) {
 
                 long long test123 = GetTickCount();
                 std::vector<glm::mat4> bones = meshes->model->get_bone_transforms((float(test123 - start_time) / 1000.f), meshes->model->get_model_pres().animations[0].name);
-                shader.uniform("use_animation", 1);
-                
+                scene.use_animation = 1;
                 rnd::bones_matrices bones_matreces;
                 bones_matreces.row_height = meshes->model->get_model_pres().data.bones_data.original_size.x;
                 bones_matreces.bone_count = meshes->model->get_model_pres().data.bones_data.original_size.y;
@@ -251,14 +247,19 @@ void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
                 }
             }
             else {
-                shader.uniform("use_animation", 0);
+                scene.use_animation = 0;
             }
 
-            shader.uniform("uWorldModel", model->world);
+            scene.uWorldModel = model->world;
             res::node_hierarchy_view& hir = meshes->model->get_model_pres().head;
-            draw_hierarchy(meshes->model->get_model_pres().data, shader, model->world, hir, glm::mat4{ 1.0 }, drv);
+            auto& data = meshes->model->get_model_pres().data;
+            vertex_buffer->set_data(data.vertices);
+            draw_hierarchy(data, scene, model->world, hir, glm::mat4{ 1.0 }, drv);
 
         } else {
+            auto shader = rnd::get_system().get_shader_manager().use("scene");
+            shader.uniform("ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+            shader.uniform("shininess", 32.0f);
             shader.uniform("use_animation", 0);
             shader.uniform("uWorldModel", model->world);
             shader.uniform("uWorldMeshMatr", glm::mat4(1.0));
@@ -271,18 +272,18 @@ void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
     }
 }
 
-void gs::renderer_3d::draw_hierarchy(res::meshes_conteiner& data, rnd::Shader& shader, glm::mat4& model_world, res::node_hierarchy_view& hir, glm::mat4 parent, rnd::driver::driver_interface* drv)
+void gs::renderer_3d::draw_hierarchy(res::meshes_conteiner& data, rnd::shader_scene_desc& desc, glm::mat4& model_world, res::node_hierarchy_view& hir, glm::mat4 parent, rnd::driver::driver_interface* drv)
 {
     int dr = 0;
     for (auto& node : hir.children)
     {
         glm::mat4 node_mt = parent * node.mt;
-        shader.uniform("uWorldMeshMatr", model_world * node_mt);
+        desc.uWorldMeshMatr = model_world * node_mt;
         for (auto& v_mesh : node.meshes) {
-            draw(v_mesh, data, drv);
+            draw(desc, v_mesh, data, drv);
         }
 
-        draw_hierarchy(data, shader, model_world, node, node_mt, drv);
+        draw_hierarchy(data, desc, model_world, node, node_mt, drv);
     }
 }
 
@@ -293,15 +294,14 @@ void gs::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
 
     for (auto sky : ecs::filter<scn::is_render_component_flag, rnd::cubemap_component>()) {
         auto* cube_map = ecs::get_component<rnd::cubemap_component>(sky);
-        auto shader = rnd::get_system().get_shader_manager().use("sky");
+        rnd::shader_sky_desc sky;
+        sky.cubemap0 = cube_map->cube_map;
+        auto& vs = cube_map->mesh.vertices;
+        auto& is = cube_map->mesh.indices;
+        vertex_buffer->set_data(vs);
+        index_buffer->set_data(is);
 
-        auto vs = cube_map->mesh.vertices;
-        auto is = cube_map->mesh.indices;
-        vertex_buffer->set_data(vs.data(), vs.size() * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
-        index_buffer->set_data(is.data(), is.size() * sizeof(unsigned int), rnd::driver::BUFFER_BINDING::DYNAMIC);
-
-        rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map)->bind(0);
-
+        rnd::get_system().get_shader_manager().use(sky);
         drv->draw_indeces(vertex_array, rnd::RENDER_MODE::TRIANGLE, is.size());
     }
 }
@@ -341,32 +341,17 @@ void gs::renderer_3d::draw(res::Mesh& mesh, rnd::driver::driver_interface* drv)
 }
 
 
-void gs::renderer_3d::draw(res::mesh_view& mesh, res::meshes_conteiner& data, rnd::driver::driver_interface* drv)
+void gs::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, res::meshes_conteiner& data, rnd::driver::driver_interface* drv)
 {
-    // A great thing about structs is that their memory layout is sequential for all its items.
-    // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
-    // again translates to 3/2 floats which translates to a byte array.
-    vertex_buffer->set_data(data.vertices);
     index_buffer->set_data_ptr(&data.indices[mesh.ind_begin], mesh.get_indices_count());
 
     auto& material = data.materials[mesh.material_id];
+    desc.tex0 = material.diffuse;
+    desc.tex1 = material.specular;
+    desc.tex2 = material.ambient;
+    desc.tex3 = data.bones_data.bones_indeces_txm;
 
-    if (material.diffuse.is_valid()) {
-        rnd::get_system().get_texture_manager().require_texture(material.diffuse)->bind(0);
-    }
-
-    if (material.specular.is_valid()) {
-        rnd::get_system().get_texture_manager().require_texture(material.specular)->bind(1);
-    }
-
-    if (material.ambient.is_valid()) {
-        rnd::get_system().get_texture_manager().require_texture(material.ambient)->bind(2);
-    }
-
-    if (data.bones_data.bones_indeces_txm.is_valid()) {
-        rnd::get_system().get_texture_manager().require_texture(data.bones_data.bones_indeces_txm)->bind(3);
-    }
-
+    rnd::get_system().get_shader_manager().use(desc);
     // draw mesh
     drv->draw_indeces(vertex_array, rnd::get_system().get_render_mode(), mesh.get_indices_count(), mesh.vx_begin);
 }
