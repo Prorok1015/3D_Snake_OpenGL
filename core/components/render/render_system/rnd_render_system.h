@@ -50,4 +50,11 @@ namespace rnd
 	struct render_mode_component {
 		RENDER_MODE mode;
 	};
+
+
+	template<class T>
+	void configure_pass(T& desc)
+	{
+		rnd::get_system().get_shader_manager().use(desc);
+	}
 }

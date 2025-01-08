@@ -44,6 +44,7 @@ bool res::Vertex::operator== (const Vertex& rhs) const
         uv == rhs.uv &&
         tangent == rhs.tangent &&
         bitangent == rhs.bitangent &&
+        color == rhs.color &&
         bones_weight == rhs.bones_weight
         ;
 }

@@ -85,9 +85,9 @@ namespace res
 	{
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
-		std::vector<bone> bones;
+		std::vector<bone> bones; //?
 		std::vector<Material> materials;
-		bone_container bones_data;
+		bone_container bones_data; //?
 	};
 
 	struct mesh_view
@@ -108,19 +108,19 @@ namespace res
 	struct node_hierarchy_view
 	{
 		std::vector<mesh_view> meshes;
-		std::vector<node_hierarchy_view> children;
+		std::vector<node_hierarchy_view> children; //?
 		std::string name;
-		glm::mat4 mt{ 1.0 };
-		glm::mat4 original{ 1.0 };
+		glm::mat4 mt{ 1.0 };//?
+		glm::mat4 original{ 1.0 };//?
 		std::unordered_map<std::string, res::animation_node> anim;
-		int bone_id = -1;
+		int bone_id = -1;//?
 	};
 
 	struct model_presintation
 	{
 		meshes_conteiner data;
 		std::vector<animation> animations;
-		std::vector<mesh_view> meshes_views;
+		std::vector<mesh_view> meshes_views;//?
 		node_hierarchy_view head;
 	};
 }

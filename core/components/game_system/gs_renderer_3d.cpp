@@ -135,6 +135,8 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
         draw_model(drv);
 
+        draw_ecs_model(drv);
+
         draw_sky(drv);
     }
 }
@@ -213,6 +215,47 @@ void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
     }
 }
 
+void gs::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv)
+{
+    glm::mat4 parent = scene.uWorldMeshMatr;
+    glm::mat4 world = parent;
+    if (auto* transform = ecs::get_component<scn::transform_component>(ent))
+    {
+        glm::mat4& local = transform->local;
+        world = parent * local;
+    }
+
+    if (auto* meshes = ecs::get_component<scn::mesh_component>(ent))
+    {
+        scene.uWorldMeshMatr = world;
+        draw(scene, meshes->mesh, data, drv);
+    }
+
+    if (auto* children = ecs::get_component<scn::children_component>(ent))
+    {
+        for (auto& child : children->children)
+        {
+            scene.uWorldMeshMatr = world;
+            draw_ecs_meshes(child, data, scene, drv);
+        }
+    }
+}
+
+void gs::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
+{
+    drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
+    //drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
+
+    for (auto ent : ecs::filter<scn::model_root_component>()) {
+        auto* transform = ecs::get_component<scn::transform_component>(ent);
+        auto* root = ecs::get_component<scn::model_root_component>(ent);
+        vertex_buffer->set_data(root->data.vertices);
+        rnd::shader_scene_desc scene;
+        scene.uWorldModel = transform->world;
+        draw_ecs_meshes(ent, root->data, scene, drv);
+    }
+}
+
 void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
 {
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
@@ -273,7 +316,6 @@ void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
 
 void gs::renderer_3d::draw_hierarchy(res::meshes_conteiner& data, rnd::shader_scene_desc& desc, glm::mat4& model_world, res::node_hierarchy_view& hir, glm::mat4 parent, rnd::driver::driver_interface* drv)
 {
-    int dr = 0;
     for (auto& node : hir.children)
     {
         glm::mat4 node_mt = parent * node.mt;
@@ -340,7 +382,7 @@ void gs::renderer_3d::draw(rnd::shader_scene_desc& desc, res::Mesh& mesh, rnd::d
 }
 
 
-void gs::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, res::meshes_conteiner& data, rnd::driver::driver_interface* drv)
+void gs::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, const res::meshes_conteiner& data, rnd::driver::driver_interface* drv)
 {
     index_buffer->set_data_ptr(&data.indices[mesh.ind_begin], mesh.get_indices_count());
 
@@ -361,7 +403,7 @@ void gs::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, r
         desc.tex3 = rnd::get_system().get_texture_manager().require_texture(data.bones_data.bones_indeces_txm)->get();
     }
 
-    rnd::get_system().get_shader_manager().use(desc);
+    rnd::configure_pass(desc);
     // draw mesh
     drv->draw_indeces(vertex_array, rnd::get_system().get_render_mode(), mesh.get_indices_count(), mesh.vx_begin);
 }

@@ -54,10 +54,10 @@ editor::EditorSystem::EditorSystem()
 		}
 	});
 
-	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag("memory", "__black"), {1,1}, rnd::driver::texture_header::TYPE::RGB8, {0, 0, 0});
+	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag(res::Tag::memory, "__black"), {1,1}, rnd::driver::texture_header::TYPE::RGB8, {0, 0, 0});
 
 	scn::Model web = generate_web({ 50, 50 });
-	web.meshes.back().material.diffuse = res::Tag("memory", "__black");
+	web.meshes.back().material.diffuse = res::Tag(res::Tag::memory, "__black");
 	web.model = glm::scale(web.model, glm::vec3(20, 0, 20));
 
 	editor_web = ecs::create_entity();

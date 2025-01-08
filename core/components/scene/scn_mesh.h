@@ -1,6 +1,5 @@
 #pragma once
 #include <common.h>
-#include <shader/rnd_shader.h>
 #include <texture/rnd_texture.h>
 #include <res_resource_model.h>
 #include <rnd_material.h>

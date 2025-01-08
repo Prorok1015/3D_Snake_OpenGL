@@ -64,13 +64,59 @@ void gs::GameSystem::load_model(std::string_view path)
 	future_model = std::make_shared<std::future<std::shared_ptr<res::Model>>>(res::get_system().require_resource_async<res::Model>(res::Tag::make(path)));
 }
 
+void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, const res::meshes_conteiner& data)
+{
+	ecs::add_component(ent, scn::is_render_component_flag{});
+	ecs::add_component(ent, scn::name_component{ .name = node.name });
+	ecs::add_component(ent, scn::transform_component{ .local = node.mt });
+
+	if (!node.anim.empty()) {
+		ecs::add_component(ent, scn::keyframes_component{ .keyframes = node.anim });
+	}
+
+	if (node.bone_id != -1) {
+		auto& bone = data.bones[node.bone_id];
+		ecs::add_component(ent, scn::bone_component{ .offset = bone.offset });
+		if (auto* key = ecs::get_component<scn::keyframes_component>(ent)) {
+			key->keyframes = bone.anim;
+			egLOG("model/fill_components", "There is double animation on a node '{0}'", node.name);
+		} else {
+			ecs::add_component(ent, scn::keyframes_component{ .keyframes = bone.anim });
+		}
+	}
+
+	std::vector<ecs::entity> children;
+	for (auto& mesh : node.meshes)
+	{
+		ecs::entity mesh_ent = ecs::create_entity();
+		children.push_back(mesh_ent);
+		ecs::add_component(mesh_ent, scn::parent_component{ .parent = ent });
+		ecs::add_component(mesh_ent, scn::mesh_component{ .mesh = mesh });
+		ecs::add_component(mesh_ent, scn::transform_component{});
+		ecs::add_component(mesh_ent, scn::is_render_component_flag{});
+	}
+
+	for (auto& child : node.children)
+	{
+		ecs::entity child_ent = ecs::create_entity();
+		children.push_back(child_ent);
+		ecs::add_component(child_ent, scn::parent_component{ .parent = ent });
+		ensure_ecs_node(child_ent, child, data);
+	}
+
+	if (!children.empty()) {
+		ecs::add_component(ent, scn::children_component{ .children = children });
+	}
+}
+
 void gs::GameSystem::check_loaded_model()
 {
 	if (future_model && is_ready(*future_model)) {
 		auto res = future_model->get();
+		auto& pres = res->get_model_pres();
 		auto rand_pos = glm::ballRand(20.f);
 		auto model = glm::translate(glm::mat4(1.0), glm::vec3{ 0 });
-		//m.model = glm::scale(m.model, glm::vec3{ 20 });
+		model = glm::scale(model, glm::vec3{ 30 });
 
 		ecs::entity obj = ecs::create_entity();
 		if (auto& bones_data = res->get_model_pres().data.bones_data.bones_indeces; !bones_data.empty()) {
@@ -129,9 +175,13 @@ void gs::GameSystem::check_loaded_model()
 			rnd::get_system().get_texture_manager().generate_texture(txm, header);
 		}
 
-		ecs::add_component(obj, scn::model_comonent{ res->get_meshes(), res });
-		ecs::add_component(obj, scn::transform_component{ model });
-		ecs::add_component(obj, scn::is_render_component_flag{});
+		pres.head.mt = model * pres.head.mt;
+		ecs::add_component(obj, scn::model_root_component{ .data = pres.data });
+		if (!pres.animations.empty()) {
+			ecs::add_component(obj, scn::animations_component{ .animations = pres.animations });
+		}		
+
+		ensure_ecs_node(obj, pres.head, pres.data);
 
 		renderer->scene_objects.push_back(obj);
 		future_model = nullptr;

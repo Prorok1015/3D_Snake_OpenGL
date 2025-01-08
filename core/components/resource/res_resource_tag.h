@@ -15,6 +15,7 @@ namespace res
 		};
 
 		static const std::string_view default_protocol() { return "res"; }
+		static constexpr std::string_view memory = "memory";
 		static Tag make(const std::string_view path) {
 			return Tag{ default_protocol(), path };
 		}
@@ -22,7 +23,7 @@ namespace res
 	public:
 		explicit Tag(const std::string_view pref, const std::string_view path) 
 		{
-			full_ = std::vformat("{}://{}", std::make_format_args(pref, path));
+			full_ = std::vformat("{0}://{1}", std::make_format_args(pref, path));
 
 			protocol_ = { 0, pref.length() };
 			const std::size_t name_start_idx = full_.find_last_of("/");
