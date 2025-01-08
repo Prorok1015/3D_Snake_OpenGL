@@ -23,7 +23,7 @@ namespace gs
 		virtual void on_render(rnd::driver::driver_interface* drv);
 
 		void draw(scn::Model& val, rnd::driver::driver_interface* drv);
-		void draw(res::Mesh& mesh, rnd::driver::driver_interface* drv);
+		void draw(rnd::shader_scene_desc& desc, res::Mesh& mesh, rnd::driver::driver_interface* drv);
 		void draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, res::meshes_conteiner& data, rnd::driver::driver_interface* drv);
 		void draw_line(rnd::driver::driver_interface* drv);
 		void draw_instances(rnd::driver::driver_interface* drv);

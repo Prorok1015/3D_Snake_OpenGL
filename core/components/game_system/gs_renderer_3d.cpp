@@ -173,8 +173,6 @@ void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
     drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
 
-    auto shader = rnd::get_system().get_shader_manager().use("scene_inst");
-
     for (auto ent : ecs::filter<res::instance_object>()) {
         res::instance_object* inst = ecs::get_component<res::instance_object>(ent);
         if (inst->worlds.empty()) {
@@ -192,17 +190,20 @@ void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 
         matrices_buffer_inst->set_data(inst->worlds);
 
+        rnd::shader_scene_instance_desc desc;
         if (inst->tpl.material.diffuse.is_valid()) {
-            rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.diffuse)->bind(0);
+            desc.tex0 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.diffuse)->get();
         }
 
         if (inst->tpl.material.specular.is_valid()) {
-            rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.specular)->bind(1);
+            desc.tex1 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.specular)->get();
         }
 
         if (inst->tpl.material.ambient.is_valid()) {
-            rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.ambient)->bind(2);
+            desc.tex2 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.ambient)->get();
         }
+
+        rnd::get_system().get_shader_manager().use(desc);
 
         if (inst->worlds.size() == 1) {
             drv->draw_indeces(vertex_array_inst, tmp, inst->tpl.indices.size());
@@ -257,14 +258,12 @@ void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
             draw_hierarchy(data, scene, model->world, hir, glm::mat4{ 1.0 }, drv);
 
         } else {
-            auto shader = rnd::get_system().get_shader_manager().use("scene");
-            shader.uniform("ambient", glm::vec3(1.0f, 0.5f, 0.31f));
-            shader.uniform("shininess", 32.0f);
-            shader.uniform("use_animation", 0);
-            shader.uniform("uWorldModel", model->world);
-            shader.uniform("uWorldMeshMatr", glm::mat4(1.0));
+            rnd::shader_scene_desc scene;
+            scene.uWorldModel = model->world;
+            scene.uWorldMeshMatr = glm::mat4(1.0);
+            scene.use_animation = 0;
             for (auto& mesh : meshes->meshes) {
-                draw(mesh, drv);
+                draw(scene, mesh, drv);
             }
         }
 
@@ -295,7 +294,7 @@ void gs::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
     for (auto sky : ecs::filter<scn::is_render_component_flag, rnd::cubemap_component>()) {
         auto* cube_map = ecs::get_component<rnd::cubemap_component>(sky);
         rnd::shader_sky_desc sky;
-        sky.cubemap0 = cube_map->cube_map;
+        sky.tex0 = rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map)->get();
         auto& vs = cube_map->mesh.vertices;
         auto& is = cube_map->mesh.indices;
         vertex_buffer->set_data(vs);
@@ -308,15 +307,14 @@ void gs::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
 
 void gs::renderer_3d::draw(scn::Model& val, rnd::driver::driver_interface* drv)
 {
-	auto shader = rnd::get_system().get_shader_manager().use("scene");
-	shader.uniform("uWorldModel", val.model);
-
+    rnd::shader_scene_desc scene;
+    scene.uWorldModel = val.model;
 	for (auto& mesh : val.meshes) {
-		draw(mesh, drv);
+		draw(scene, mesh, drv);
 	}
 }
 
-void gs::renderer_3d::draw(res::Mesh& mesh, rnd::driver::driver_interface* drv)
+void gs::renderer_3d::draw(rnd::shader_scene_desc& desc, res::Mesh& mesh, rnd::driver::driver_interface* drv)
 {
     // A great thing about structs is that their memory layout is sequential for all its items.
     // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
@@ -325,17 +323,18 @@ void gs::renderer_3d::draw(res::Mesh& mesh, rnd::driver::driver_interface* drv)
     index_buffer->set_data(mesh.indices);
 
     if (mesh.material.diffuse.is_valid()) {
-        rnd::get_system().get_texture_manager().require_texture(mesh.material.diffuse)->bind(0);
+        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(mesh.material.diffuse)->get();
     }
 
     if (mesh.material.specular.is_valid()) {
-        rnd::get_system().get_texture_manager().require_texture(mesh.material.specular)->bind(1);
+        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(mesh.material.specular)->get();
     }
 
     if (mesh.material.ambient.is_valid()) {
-        rnd::get_system().get_texture_manager().require_texture(mesh.material.ambient)->bind(2);
+        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(mesh.material.ambient)->get();
     }
 
+    rnd::get_system().get_shader_manager().use(desc);
     // draw mesh
     drv->draw_indeces(vertex_array, rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());
 }
@@ -346,10 +345,21 @@ void gs::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, r
     index_buffer->set_data_ptr(&data.indices[mesh.ind_begin], mesh.get_indices_count());
 
     auto& material = data.materials[mesh.material_id];
-    desc.tex0 = material.diffuse;
-    desc.tex1 = material.specular;
-    desc.tex2 = material.ambient;
-    desc.tex3 = data.bones_data.bones_indeces_txm;
+    if (material.diffuse.is_valid()) {
+        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(material.diffuse)->get();
+    }
+
+    if (material.specular.is_valid()) {
+        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(material.specular)->get();
+    }
+
+    if (material.ambient.is_valid()) {
+        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(material.ambient)->get();
+    }
+
+    if (data.bones_data.bones_indeces_txm.is_valid()) {
+        desc.tex3 = rnd::get_system().get_texture_manager().require_texture(data.bones_data.bones_indeces_txm)->get();
+    }
 
     rnd::get_system().get_shader_manager().use(desc);
     // draw mesh

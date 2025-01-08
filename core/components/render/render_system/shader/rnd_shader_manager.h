@@ -50,8 +50,6 @@ namespace rnd
 
 		void clear_cache() const { _cache.clear(); _cache_new.clear();}
 
-		Shader use(std::string_view shader) const;
-		Shader use(const char* shader) const { return use(std::string_view(shader)); }
 		void unuse() const;
 
 		template<class T>
@@ -71,19 +69,13 @@ namespace rnd
 
 			if (shader) {
 				shader->use();
-				T::configure_render_pass(desc, shader);
+				rnd::configure_render_pass(desc, shader);
 			}
 		}
-
-		void uniform(const std::string_view shader, const std::string_view field, glm::mat4 val) const;
-		void uniform(const std::string_view shader, const std::string_view field, int val) const;
 
 		void update_global_uniform(const global_params& val) const;
 		void update_global_sun(const light_point& val) const;
 		void update_global_bones_matrices(const bones_matrices& val, std::size_t count) const;
-	protected:
-		std::unique_ptr<rnd::driver::shader_interface> load(const std::string& tag) const;
-
 	private:
 		driver::driver_interface* drv = nullptr;
 		std::shared_ptr<rnd::driver::uniform_buffer_interface> _matrices;

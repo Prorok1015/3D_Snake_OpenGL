@@ -25,10 +25,10 @@ namespace rnd
 			return name == desc.name;
 		}
 
-		res::Tag tex0;
-		res::Tag tex1;
-		res::Tag tex2;
-		res::Tag tex3;
+		rnd::driver::texture_interface* tex0 = nullptr;
+		rnd::driver::texture_interface* tex1 = nullptr;
+		rnd::driver::texture_interface* tex2 = nullptr;
+		rnd::driver::texture_interface* tex3 = nullptr;
 		std::string name;
 	};
 	
@@ -42,7 +42,6 @@ namespace rnd
 		int use_animation = 0;
 
 		static std::vector<driver::shader_header> load();
-		static void configure_render_pass(const shader_scene_desc& decs, rnd::driver::shader_interface* shader);
 	};
 
 	struct shader_sky_desc : public shader_desc
@@ -51,8 +50,16 @@ namespace rnd
 			name = "sky";
 		}
 		static std::vector<driver::shader_header> load();
-		static void configure_render_pass(const shader_sky_desc& decs, rnd::driver::shader_interface* shader);
-
-		std::vector<res::Tag> cubemap0;
 	};
+
+	struct shader_scene_instance_desc : public shader_desc
+	{
+		shader_scene_instance_desc() {
+			name = "scene_inst";
+		}
+		static std::vector<driver::shader_header> load();
+	};
+
+	void configure_render_pass(const shader_desc& decs, rnd::driver::shader_interface* shader);
+	void configure_render_pass(const shader_scene_desc& decs, rnd::driver::shader_interface* shader);
 }

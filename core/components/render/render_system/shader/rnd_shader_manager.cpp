@@ -23,36 +23,9 @@ rnd::ShaderManager::~ShaderManager()
 {
 }
 
-rnd::Shader rnd::ShaderManager::use(std::string_view shader) const
-{
-	auto it = _cache.find(shader);
-	if (it == _cache.end()) {
-		auto new_shader = load(shader.data());
-		new_shader->use();
-		auto& ref = _cache[shader] = std::move(new_shader);
-		return Shader(ref.get());
-	}
-	it->second->use();
-	return Shader(it->second.get());
-}
-
 void rnd::ShaderManager::unuse() const
 {
 	drv->unuse();
-}
-
-void rnd::ShaderManager::uniform(const std::string_view shader, const std::string_view field, glm::mat4 val) const
-{
-	auto sh = use(shader);
-	sh.uniform(field, val);
-	unuse();
-}
-
-void rnd::ShaderManager::uniform(const std::string_view shader, const std::string_view field, int val) const
-{
-	auto sh = use(shader);
-	sh.uniform(field, val);
-	unuse();
 }
 
 void rnd::ShaderManager::update_global_uniform(const global_params& val) const
@@ -76,18 +49,4 @@ void rnd::ShaderManager::update_global_bones_matrices(const bones_matrices& val,
 	bones_buffer->set_data(glm::value_ptr(val.row_height), sizeof(decltype(val.row_height)), offsetof(bones_matrices, row_height));
 	bones_buffer->set_data(glm::value_ptr(val.bone_count), sizeof(decltype(val.bone_count)), offsetof(bones_matrices, bone_count));
 	bones_buffer->set_data(glm::value_ptr(val.bones), sizeof(decltype(val.bones)), offsetof(bones_matrices, bones));
-}
-
-std::unique_ptr<rnd::driver::shader_interface> rnd::ShaderManager::load(const std::string& name) const
-{
-	auto vertexCode = res::get_system().require_resource<res::Shader>(res::Tag::make(name + ".vert"), true);
-	auto fragmentCode = res::get_system().require_resource<res::Shader>(res::Tag::make(name + ".frag"), true);
-	//auto geomCode = res::get_system().require_resource<res::Shader>(res::Tag::make(name + ".geom"), true);
-	std::vector<driver::shader_header> headers
-	{
-		driver::shader_header{.title = name + ".vert", .body = vertexCode->c_str(), .type = driver::shader_header::TYPE::VERTEX},
-		driver::shader_header{.title = name + ".frag", .body = fragmentCode->c_str(), .type = driver::shader_header::TYPE::FRAGMENT},
-	};
-
-	return drv->create_shader(headers);
 }
