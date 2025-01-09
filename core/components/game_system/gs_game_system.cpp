@@ -79,7 +79,7 @@ void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, cons
 		ecs::add_component(ent, scn::bone_component{ .offset = bone.offset });
 		if (auto* key = ecs::get_component<scn::keyframes_component>(ent)) {
 			key->keyframes = bone.anim;
-			egLOG("model/fill_components", "There is double animation on a node '{0}'", node.name);
+			egLOG("model/fill_components", "There is double animation on the node '{0}'", node.name);
 		} else {
 			ecs::add_component(ent, scn::keyframes_component{ .keyframes = bone.anim });
 		}
@@ -116,7 +116,7 @@ void gs::GameSystem::check_loaded_model()
 		auto& pres = res->get_model_pres();
 		auto rand_pos = glm::ballRand(20.f);
 		auto model = glm::translate(glm::mat4(1.0), glm::vec3{ 0 });
-		model = glm::scale(model, glm::vec3{ 30 });
+		model = glm::scale(model, glm::vec3{ 50 });
 
 		ecs::entity obj = ecs::create_entity();
 		if (auto& bones_data = res->get_model_pres().data.bones_data.bones_indeces; !bones_data.empty()) {
@@ -176,6 +176,27 @@ void gs::GameSystem::check_loaded_model()
 		}
 
 		pres.head.mt = model * pres.head.mt;
+
+		auto anchors = ecs::filter<scn::scene_anchor_component>();
+		ecs::entity world_anchor;
+		if (anchors.empty()) {
+			world_anchor = ecs::create_entity();
+			ecs::add_component(world_anchor, scn::scene_anchor_component{});
+			ecs::add_component(world_anchor, scn::name_component{ .name = "Anchor" });
+			anchors.push_back(world_anchor);
+		} else {
+			world_anchor = anchors.front();
+		}
+		decltype(scn::children_component::children) children;
+		if (auto* kids = ecs::get_component<scn::children_component>(world_anchor)) {
+			children = kids->children;
+			ecs::remove_component<scn::children_component>(world_anchor);
+		}
+
+		children.push_back(obj);
+		ecs::add_component(anchors.front(), scn::children_component{ .children = children });
+
+		ecs::add_component(obj, scn::parent_component{ .parent = anchors.front() });
 		ecs::add_component(obj, scn::model_root_component{ .data = pres.data });
 		if (!pres.animations.empty()) {
 			ecs::add_component(obj, scn::animations_component{ .animations = pres.animations });

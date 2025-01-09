@@ -5,7 +5,8 @@
 scn::mouse_camera_controller::mouse_camera_controller(rnd::camera* camera_)
 	: camera(camera_)
 {
-	anchor.set_pitch(-glm::radians(45.0f));
+	rotation.x = -glm::radians(45.0f);
+	anchor.set_euler_angles(rotation);
 	ecs_connected_entity = camera_->ecs_entity;
 	calculate_world_matrix();
 }
@@ -52,6 +53,12 @@ void scn::mouse_camera_controller::on_is_rotate(float dt, inp::KEY_ACTION act)
 	is_rotate = act == inp::KEY_ACTION::DOWN || act == inp::KEY_ACTION::NONE;
 }
 
+glm::quat remove_roll(const glm::quat& q) {
+	glm::vec3 f = q * glm::vec3(0, 0, 1);
+	glm::quat correction = glm::rotation(f, glm::vec3(0, 0, 1));
+	return q * correction;
+}
+
 void scn::mouse_camera_controller::on_mouse_move(glm::vec2 cur, glm::vec2 prev)
 {
 	glm::vec2 delta = cur - prev;
@@ -62,13 +69,15 @@ void scn::mouse_camera_controller::on_mouse_move(glm::vec2 cur, glm::vec2 prev)
 		float pitch = delta.y;
 		float yaw = delta.x;
 
-		anchor.set_yaw(anchor.get_yaw() + yaw);
-		anchor.set_pitch(std::clamp(anchor.get_pitch() + pitch, -glm::radians(90.0f), glm::radians(90.0f)));
+		this->rotation.x = std::clamp(this->rotation.x + pitch, -glm::radians(90.0f), glm::radians(90.0f));
+		this->rotation.y += yaw;
+		
+		anchor.set_euler_angles(rotation);
 	}
 
 	if (get_is_move()) {
 		glm::vec3 addition = glm::vec3(delta.x, 0, delta.y);
-		glm::vec3 new_position = anchor.get_pos() + (glm::rotateY(addition, anchor.get_yaw()) * get_movement_speed());
+		glm::vec3 new_position = anchor.get_pos() + (glm::rotateY(addition, rotation.y) * get_movement_speed());
 		anchor.set_pos(new_position);
 	}
 
@@ -86,7 +95,8 @@ void scn::mouse_camera_controller::on_mouse_whell(glm::vec2 cur, glm::vec2)
 
 void scn::mouse_camera_controller::calculate_world_matrix()
 {
-	glm::mat4 world = anchor.to_matrix() * glm::translate(glm::mat4(1.0), glm::vec3(0, 0, distance));
+	glm::mat4 orientation = glm::toMat4(anchor.get_rotation());
+	glm::mat4 world = glm::translate(anchor.get_pos()) * orientation * glm::translate(glm::mat4(1.0), glm::vec3(0, 0, distance));
 	ecs::add_component(ecs_connected_entity, update_camera_matrix_component{ .world = world });
 }
 

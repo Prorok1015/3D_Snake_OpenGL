@@ -39,6 +39,7 @@ namespace scn
 		ecs::entity ecs_connected_entity;
 		rnd::camera* camera = nullptr;
 		eng::transform3d anchor;
+		glm::vec3 rotation{ 0 };
 		float distance = 20;
 		float movement_speed = 15.f;
 		bool is_move = false;

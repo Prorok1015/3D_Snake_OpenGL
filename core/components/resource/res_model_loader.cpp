@@ -120,7 +120,7 @@ std::vector<res::Mesh> res::loader::model_loader::load()
         ++v_idx;
         offset = v_idx * max_bones_count;
     }
-
+    model.data.bones_matrices.reserve(model.data.bones.size());
 
     egLOG("load/deep", "max deep: {}", deep);
     egLOG("load/meshes", "meshes: {}", meshes.size());

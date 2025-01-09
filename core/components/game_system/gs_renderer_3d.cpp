@@ -217,17 +217,13 @@ void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 
 void gs::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv)
 {
-    glm::mat4 parent = scene.uWorldMeshMatr;
-    glm::mat4 world = parent;
-    if (auto* transform = ecs::get_component<scn::transform_component>(ent))
-    {
-        glm::mat4& local = transform->local;
-        world = parent * local;
-    }
-
     if (auto* meshes = ecs::get_component<scn::mesh_component>(ent))
     {
-        scene.uWorldMeshMatr = world;
+        scene.uWorldMeshMatr = glm::mat4{ 1.0 };
+        if (auto* transform = ecs::get_component<scn::transform_component>(ent))
+        {
+            scene.uWorldMeshMatr = transform->world;
+        }
         draw(scene, meshes->mesh, data, drv);
     }
 
@@ -235,7 +231,6 @@ void gs::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_contein
     {
         for (auto& child : children->children)
         {
-            scene.uWorldMeshMatr = world;
             draw_ecs_meshes(child, data, scene, drv);
         }
     }
@@ -249,10 +244,29 @@ void gs::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
     for (auto ent : ecs::filter<scn::model_root_component>()) {
         auto* transform = ecs::get_component<scn::transform_component>(ent);
         auto* root = ecs::get_component<scn::model_root_component>(ent);
+        rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
+
+        if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
+            rnd::get_system().set_render_mode(rnd_mode->mode);
+        }
+
         vertex_buffer->set_data(root->data.vertices);
         rnd::shader_scene_desc scene;
-        scene.uWorldModel = transform->world;
+        scene.use_animation = 1;
+        rnd::bones_matrices bones_matreces;
+        bones_matreces.row_height = root->data.bones_data.original_size.x;
+        bones_matreces.bone_count = root->data.bones_data.original_size.y;
+        auto& bones = root->data.bones_matrices;
+        if (bones.size() < rnd::bones_matrices::MAX_BONE_MATRICES_COUNT) {
+            std::copy(bones.begin(), bones.end(), bones_matreces.bones);
+            rnd::get_system().get_shader_manager().update_global_bones_matrices(bones_matreces, bones.size());
+        } else {
+            ASSERT_FAIL("Bones matrices count too big.");
+        }
+
         draw_ecs_meshes(ent, root->data, scene, drv);
+
+        rnd::get_system().set_render_mode(tmp);
     }
 }
 

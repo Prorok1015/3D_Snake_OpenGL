@@ -50,6 +50,10 @@ namespace scn {
         glm::mat4 local = glm::mat4{ 1.0 };
     };
 
+    struct scene_anchor_component {
+
+    };
+
     struct is_render_component_flag {
 
     };

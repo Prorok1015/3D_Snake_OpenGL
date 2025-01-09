@@ -86,6 +86,7 @@ namespace res
 		std::vector<Vertex> vertices;
 		std::vector<unsigned int> indices;
 		std::vector<bone> bones; //?
+		std::vector<glm::mat4> bones_matrices;
 		std::vector<Material> materials;
 		bone_container bones_data; //?
 	};

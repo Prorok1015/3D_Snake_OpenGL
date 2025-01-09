@@ -33,7 +33,7 @@ namespace snakeengine
 			: camera(glm::vec3(0), size)
 		{
 			transform.set_pos(glm::vec3(0, 0, distance));
-			anchor.set_pitch(-glm::radians(45.0f));
+			anchor.add_pitch(-glm::radians(45.0f));
 			anchor.set_pos(position);
 		}
 

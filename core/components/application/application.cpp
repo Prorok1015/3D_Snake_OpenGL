@@ -4,6 +4,8 @@
 #include <inp_input_system.h>
 #include <ecs/ecs_system.h>
 
+#include <Windows.h>
+
 app::Application* p_app_system = nullptr;
 
 application::Application& application::get_app_system()
@@ -25,11 +27,11 @@ int application::Application::run()
 	auto& window_system_ref = wnd::get_system();
 
 	window_system_ref.init_windows_frame_time();
-
+	long long time = GetTickCount(); // todo
 	while (!window_system_ref.is_stop_running()) {
 		inp::get_system().process_input(window_system_ref.get_active_window()->get_delta());
 		 
-		ecs::process_systems();
+		ecs::process_systems(float(GetTickCount() - time) / 1000.f);
 
 		rnd::get_system().process_renderers();
  

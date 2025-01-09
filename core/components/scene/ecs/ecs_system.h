@@ -2,5 +2,5 @@
 
 namespace ecs
 {
-	void process_systems();
+	void process_systems(float time_second);
 }

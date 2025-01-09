@@ -25,7 +25,7 @@ void snakeengine::WASDCamera::mouse_move(glm::vec2 pos, glm::vec2 prev)
 	delta = -delta / (glm::vec2)viewport_size * 2.f;
 
 	//transform.add_rotate(delta.y, delta.x);
-	transform.set_pitch(std::clamp(transform.get_pitch(), -glm::radians(89.0f), glm::radians(89.0f)));
+	transform.add_pitch(std::clamp(transform.get_pitch(), -glm::radians(89.0f), glm::radians(89.0f)));
 }
 
 void snakeengine::WASDCamera::wasd_move(inp::KEYBOARD_BUTTONS key, float dt)
@@ -92,7 +92,7 @@ void snakeengine::MouseCamera::on_mouse_move(glm::vec2 cur, glm::vec2 prev)
 		float yaw = delta.x;
 		
 		anchor.set_yaw(anchor.get_yaw() + yaw);
-		anchor.set_pitch(std::clamp(anchor.get_pitch() + pitch, -glm::radians(90.0f), glm::radians(90.0f)));
+		anchor.add_pitch(std::clamp(anchor.get_pitch() + pitch, -glm::radians(90.0f), glm::radians(90.0f)));
 	}
 
 	if (isMove) {

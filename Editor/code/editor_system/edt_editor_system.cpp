@@ -56,40 +56,97 @@ editor::EditorSystem::EditorSystem()
 
 	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag(res::Tag::memory, "__black"), {1,1}, rnd::driver::texture_header::TYPE::RGB8, {0, 0, 0});
 
-	scn::Model web = generate_web({ 50, 50 });
-	web.meshes.back().material.diffuse = res::Tag(res::Tag::memory, "__black");
-	web.model = glm::scale(web.model, glm::vec3(20, 0, 20));
+	auto anchors = ecs::filter<scn::scene_anchor_component>();
+	ecs::entity world_anchor;
+	if (anchors.empty()) {
+		world_anchor = ecs::create_entity();
+		ecs::add_component(world_anchor, scn::scene_anchor_component{});
+		ecs::add_component(world_anchor, scn::name_component{ .name = "Anchor" });
+		anchors.push_back(world_anchor);
+	}
+	else {
+		world_anchor = anchors.front();
+	}
+	decltype(scn::children_component::children) children;
+	if (auto* kids = ecs::get_component<scn::children_component>(world_anchor)) {
+		children = kids->children;
+		ecs::remove_component<scn::children_component>(world_anchor);
+	}
 
-	editor_web = ecs::create_entity();
-	ecs::add_component(editor_web, scn::model_comonent{ web.meshes });
-	ecs::add_component(editor_web, scn::transform_component{ web.model });
-	ecs::add_component(editor_web, scn::is_render_component_flag{});
-	ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});
 
-	light = ecs::create_entity();
-	ecs::add_component(light, rnd::light_point{ 
-		.position = glm::vec4(50), 
-		.diffuse = glm::vec4(0.5f, 0.5f, 0.5f, 1.0),
-		.ambient = glm::vec4(0.2f, 0.2f, 0.2f, 1.0),
-		.specular = glm::vec4(1)
-		});
-	ecs::add_component(light, scn::transform_component{ .world = glm::translate(glm::mat4{1.0}, glm::vec3(50, 50, 50)) });
-	scn::Model m = generate_sphere();
-	ecs::add_component(light, scn::model_comonent{ m.meshes });
-	ecs::add_component(light, scn::is_render_component_flag{});
+	{
+		editor_web = ecs::create_entity();
+		children.push_back(editor_web);
+		scn::Model web = generate_web({ 50, 50 });
+		web.meshes.back().material.diffuse = res::Tag(res::Tag::memory, "__black");
+		web.model = glm::scale(web.model, glm::vec3(20, 0, 20));
+		res::meshes_conteiner data;
+		data.vertices = web.meshes.back().vertices;
+		data.indices = web.meshes.back().indices;
+		data.materials.push_back(web.meshes.back().material);
+		res::mesh_view mesh;
+		mesh.vx_begin = 0;
+		mesh.vx_end = data.vertices.size();
+		mesh.ind_begin = 0;
+		mesh.ind_end = data.indices.size();
+		mesh.material_id = 0;
 
-	sky = ecs::create_entity();
-	ecs::add_component(sky, rnd::cubemap_component{ m.meshes.front(), std::vector<res::Tag>{
-		res::Tag::make("skybox/right.jpg"),
-		res::Tag::make("skybox/left.jpg"),
-		res::Tag::make("skybox/bottom.jpg"),
-		res::Tag::make("skybox/top.jpg"),
-		res::Tag::make("skybox/back.jpg"),
-		res::Tag::make("skybox/front.jpg"),
-		}
-	});
-	ecs::add_component(sky, scn::is_render_component_flag{});
+		ecs::add_component(editor_web, scn::model_root_component{ .data = data });
+		ecs::add_component(editor_web, scn::mesh_component{ .mesh = mesh });
+		ecs::add_component(editor_web, scn::transform_component{ .local = web.model });
+		ecs::add_component(editor_web, scn::parent_component{ .parent = world_anchor });
+		ecs::add_component(editor_web, scn::name_component{ .name = "Editor Web"});
+		ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});
+	}
 
+	{
+		light = ecs::create_entity();
+		children.push_back(light);
+		ecs::add_component(light, rnd::light_point{
+			.position = glm::vec4(50),
+			.diffuse = glm::vec4(0.5f, 0.5f, 0.5f, 1.0),
+			.ambient = glm::vec4(0.2f, 0.2f, 0.2f, 1.0),
+			.specular = glm::vec4(1)
+			});
+
+		scn::Model m = generate_sphere();
+		res::meshes_conteiner data;
+		data.vertices = m.meshes.back().vertices;
+		data.indices = m.meshes.back().indices;
+		data.materials.push_back(m.meshes.back().material);
+		res::mesh_view mesh;
+		mesh.vx_begin = 0;
+		mesh.vx_end = data.vertices.size();
+		mesh.ind_begin = 0;
+		mesh.ind_end = data.indices.size();
+		mesh.material_id = 0;
+
+		ecs::add_component(light, scn::model_root_component{ .data = data });
+		ecs::add_component(light, scn::mesh_component{ .mesh = mesh });
+		ecs::add_component(light, scn::transform_component{ .local = glm::translate(glm::mat4{1.0}, glm::vec3(50, 50, 50)) });
+		ecs::add_component(light, scn::parent_component{ .parent = world_anchor });
+		ecs::add_component(light, scn::name_component{ .name = "Light" });
+	}
+
+	{
+		sky = ecs::create_entity();
+		children.push_back(sky);
+		scn::Model m = generate_cube();
+		ecs::add_component(sky, rnd::cubemap_component{ m.meshes.front(), std::vector<res::Tag>{
+			res::Tag::make("skybox/right.jpg"),
+			res::Tag::make("skybox/left.jpg"),
+			res::Tag::make("skybox/bottom.jpg"),
+			res::Tag::make("skybox/top.jpg"),
+			res::Tag::make("skybox/back.jpg"),
+			res::Tag::make("skybox/front.jpg"),
+			}
+			});
+		ecs::add_component(sky, scn::is_render_component_flag{});
+		ecs::add_component(sky, scn::parent_component{ .parent = world_anchor });
+		ecs::add_component(sky, scn::name_component{ .name = "Sky" });
+	}
+
+	ecs::add_component(world_anchor, scn::children_component{ .children = children });
 }
 
 
@@ -97,6 +154,72 @@ editor::EditorSystem::~EditorSystem()
 {
 	camera_controller->disable_input_actions(gs::get_system().get_input_manager());
 	second_camera_controller->disable_input_actions(gs::get_system().get_input_manager());
+}
+
+void show_tree_items(ecs::entity ent)
+{
+	std::string obj_idx = std::to_string(ent.index);
+	std::string name = "Node##" + obj_idx;
+	if (auto* com_name = ecs::get_component<scn::name_component>(ent)) {
+		if (!com_name->name.empty()) {
+			name = com_name->name + "##" + obj_idx;
+		}
+	}
+	if (ImGui::TreeNode(name.c_str()))
+	{
+		if (auto* trans = ecs::get_component<scn::transform_component>(ent))
+		{
+			bool is_update = false;
+			eng::transform3d tr{ trans->local };
+
+			glm::vec3 scale = tr.get_scale();
+			std::string scale_name = "scale##" + obj_idx;
+			ImGui::InputFloat3(scale_name.c_str(), glm::value_ptr(scale));
+			if (scale != tr.get_scale()) {
+				tr.set_scale(scale);
+				is_update = true;
+			}
+
+			glm::vec3 translate = tr.get_pos();
+			std::string translate_name = "position##" + obj_idx;
+			ImGui::InputFloat3(translate_name.c_str(), glm::value_ptr(translate));
+			if (translate != tr.get_pos()) {
+				tr.set_pos(translate);
+				is_update = true;
+			}
+
+			glm::vec3 orientation = tr.get_angles_degrees();
+			glm::vec3 original_d = tr.get_angles_degrees();
+			glm::quat original = tr.get_rotation();
+			std::string orientation_name = "rotation##" + obj_idx;
+			ImGui::InputFloat3(orientation_name.c_str(), glm::value_ptr(orientation));
+			glm::quat result_orientation = glm::quat(glm::radians(orientation));
+			if (std::abs(glm::dot(result_orientation, original)) < 0.999f) {
+				tr.set_rotation(result_orientation);
+				is_update = true;
+			}
+
+			if (is_update) {
+				trans->local = tr.to_matrix();
+			}
+		}
+
+		if (auto* colot = ecs::get_component<rnd::light_point>(ent))
+		{
+			ImGui::ColorEdit3("Color", glm::value_ptr(colot->diffuse));
+		}
+
+		if (auto* children = ecs::get_component<scn::children_component>(ent))
+		{
+			for (auto& child : children->children)
+			{
+				show_tree_items(child);
+			}
+		}
+
+		ImGui::TreePop();
+		ImGui::Spacing();
+	}
 }
 
 
@@ -133,6 +256,13 @@ bool editor::EditorSystem::show_toolbar()
 		ImGui::NewLine();
 		if (ImGui::CollapsingHeader("Scene Objects"))
 		{
+			for (ecs::entity ent : ecs::filter<scn::scene_anchor_component>())
+			{
+				show_tree_items(ent);
+			}
+
+			ImGui::Separator();
+
 			for (ecs::entity ent : ecs::filter<scn::model_comonent>())
 			{
 				std::string obj_idx = std::to_string(ent.index);
@@ -216,30 +346,6 @@ bool editor::EditorSystem::show_toolbar()
 					ImGui::TreePop();
 					ImGui::Spacing();
 				} // object
-			}
-		}
-
-		ImGui::Separator();
-		ImGui::NewLine();
-		ImGui::Text("Light");
-		ImGui::Separator();
-		{
-			for (auto& ent : ecs::filter<rnd::light_point, scn::transform_component>()) {
-				ImGui::ColorEdit3("Light color", glm::value_ptr(ecs::get_component<rnd::light_point>(ent)->diffuse));
-
-				eng::transform3d ct{ ecs::get_component<scn::transform_component>(ent)->world };
-				auto pos = ct.get_pos();
-				glm::vec3 vec4f = ct.get_pos();
-				ImGui::InputFloat3("light position", glm::value_ptr(vec4f));
-
-				if (vec4f != ct.get_pos()) {
-					ct.set_pos(vec4f);
-					ecs::get_component<scn::transform_component>(ent)->world = ct.to_matrix();
-					ecs::get_component<rnd::light_point>(ent)->position = glm::vec4(ct.get_pos(), 1.0);
-				}
-
-				ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
-				ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
 			}
 		}
 
@@ -440,7 +546,7 @@ bool editor::EditorSystem::init_ecs_test()
 	trn->set_pos(glm::vec3{ 6, 6, 6 });
 	ecs::entity second = ecs::create_entity();
 	eng::transform3d* trn2 = ecs::add_component(second, eng::transform3d{ glm::translate(glm::mat4{1.0}, glm::vec3(3)) });
-	trn2->set_yaw(45.f);
+	trn2->add_yaw(45.f);
 
 	return true;
 }
