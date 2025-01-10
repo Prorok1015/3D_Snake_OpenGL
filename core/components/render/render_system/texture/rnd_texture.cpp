@@ -1,6 +1,6 @@
 #include "rnd_texture.h"
-#include <res_resource_system.h>
-#include <res_resource_texture.h>
+#include "res_system.h"
+#include "res_picture.h"
 
 std::unique_ptr<rnd::driver::texture_interface> rnd::Texture::load(driver::driver_interface* drv, const res::Tag& tag)
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include <res_resource_tag.h>
+#include "res_tag.h"
 #include <res_resource_model.h>
 
 namespace rnd

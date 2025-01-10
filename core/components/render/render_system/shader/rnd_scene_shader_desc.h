@@ -1,6 +1,6 @@
 #pragma once
 #include "common.h"
-#include "res_resource_tag.h"
+#include "res_tag.h"
 #include "rnd_shader_interface.h"
 #include "rnd_driver_interface.h"
 

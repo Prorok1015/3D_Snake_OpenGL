@@ -1,6 +1,6 @@
 #include "rnd_shader_manager.h"
-#include <res_resource_system.h>
-#include <res_resource_shader.h>
+#include "res_system.h"
+#include "res_resource_text_file.h"
 
 
 namespace glm

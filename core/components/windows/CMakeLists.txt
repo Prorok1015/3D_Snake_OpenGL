@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 project(window)
-add_library(window)
+add_library(window STATIC)
 
 file(GLOB_RECURSE SE_WINDOW_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 target_sources(${PROJECT_NAME} PRIVATE ${SE_WINDOW_SOURCES})

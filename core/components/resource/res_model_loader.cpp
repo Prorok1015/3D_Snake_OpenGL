@@ -4,8 +4,8 @@
 #include <assimp/postprocess.h>
 #include <common.h>
 #include <engine_log.h>
-#include <res_resource_system.h>
-#include "res_resource_texture.h"
+#include "res_system.h"
+#include "res_picture.h"
 #include "image.h"
 
 const aiNodeAnim* find_node_anim(const aiAnimation* pAnimation, const std::string_view NodeName);

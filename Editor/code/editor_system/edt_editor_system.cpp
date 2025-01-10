@@ -2,8 +2,8 @@
 #include <debug_ui_api.h>
 #include <application.h>
 #include <gs_game_system.h>
-#include <res_resource_system.h>
-#include <res_resource_texture.h>
+#include "res_system.h"
+#include "res_picture.h"
 #include <rnd_render_system.h>
 #include <scn_primitives.h>
 #include <camera/rnd_camera.h>

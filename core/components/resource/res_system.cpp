@@ -1,6 +1,6 @@
-#include "res_resource_system.h"
-#include "res_resource_texture.h"
-#include "res_resource_shader.h"
+#include "res_system.h"
+#include "res_picture.h"
+#include "res_resource_text_file.h"
 #include "res_resource_model.h"
 #include <engine_log.h>
 

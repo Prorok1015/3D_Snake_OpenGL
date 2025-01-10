@@ -1,7 +1,7 @@
 #include "scn_model.h"
 #include <filesystem>
-#include <res_resource_system.h>
-#include <rnd_render_system.h>
+#include "res_system.h"
+#include "rnd_render_system.h"
 
 
 scn::Model::Model(std::string_view path)

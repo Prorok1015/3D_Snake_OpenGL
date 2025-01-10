@@ -1,6 +1,6 @@
-#include "res_resource_texture.h"
-#include "res_resource_system.h"
-#include <image_loader.h>
+#include "res_picture.h"
+#include "res_system.h"
+#include "image_loader.h"
 
 
 res::Picture::Picture(const res::Tag& tag)

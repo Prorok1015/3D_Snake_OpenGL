@@ -1,6 +1,6 @@
 #include "rnd_texture_manager.h"
-#include "res_resource_system.h"
-#include "res_resource_texture.h"
+#include "res_system.h"
+#include "res_picture.h"
 
 std::shared_ptr<rnd::Texture> rnd::TextureManager::require_texture(const res::Tag& tag)
 {

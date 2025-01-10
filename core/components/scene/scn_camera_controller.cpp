@@ -95,9 +95,14 @@ void scn::mouse_camera_controller::on_mouse_whell(glm::vec2 cur, glm::vec2)
 
 void scn::mouse_camera_controller::calculate_world_matrix()
 {
-	glm::mat4 orientation = glm::toMat4(anchor.get_rotation());
-	glm::mat4 world = glm::translate(anchor.get_pos()) * orientation * glm::translate(glm::mat4(1.0), glm::vec3(0, 0, distance));
+	glm::mat4 world = get_world_matrix();
 	ecs::add_component(ecs_connected_entity, update_camera_matrix_component{ .world = world });
+}
+
+glm::mat4 scn::mouse_camera_controller::get_world_matrix()
+{
+	glm::mat4 orientation = glm::toMat4(anchor.get_rotation());
+	return glm::translate(anchor.get_pos()) * orientation * glm::translate(glm::mat4(1.0), glm::vec3(0, 0, distance));
 }
 
 void scn::mouse_camera_controller::set_camera(rnd::camera* cam)
@@ -108,7 +113,7 @@ void scn::mouse_camera_controller::set_camera(rnd::camera* cam)
 	}
 }
 
-void scn::ecs_process_update_camera_matrix()
+void scn::ecs_process_update_camera_matrix(const float time_second)
 {
 	for (auto& ent : ecs::filter<scn::update_camera_matrix_component, rnd::camera_component>())
 	{

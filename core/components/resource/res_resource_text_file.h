@@ -1,13 +1,13 @@
 #pragma once
-#include <common.h>
+#include "common.h"
 #include "res_resource_base.h"
 
 namespace res
 {
-	class Shader : public Resource
+	class TextFile : public Resource
 	{
 	public:
-		Shader(const Tag& tag);
+		TextFile(const Tag& tag);
 
 		const char* c_str() const { return body_.c_str(); }
 

@@ -8,7 +8,7 @@
 #include <scn_model.h>
 
 #include <wnd_window_system.h>
-#include <res_resource_system.h>
+#include "res_system.h"
 
 #include <rnd_render_system.h>
 #include <ecs/ecs_common_system.h>

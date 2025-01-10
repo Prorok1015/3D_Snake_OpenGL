@@ -4,7 +4,7 @@
 
 void ecs::process_systems(float time_second)
 {
-	scn::ecs_process_update_camera_matrix();
+	scn::ecs_process_update_camera_matrix(time_second);
 	scn::update_transform_system(time_second);
 	scn::update_animation_system(time_second);
 }

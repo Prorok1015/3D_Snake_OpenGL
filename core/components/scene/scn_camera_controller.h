@@ -12,7 +12,7 @@ namespace scn
 		glm::mat4 world;
 	};
 
-	void ecs_process_update_camera_matrix();
+	void ecs_process_update_camera_matrix(const float time_second);
 
 	class mouse_camera_controller
 	{
@@ -33,7 +33,7 @@ namespace scn
 		bool get_is_rotate() const { return is_rotate; }
 
 		void calculate_world_matrix();
-
+		glm::mat4 get_world_matrix();
 
 	private:
 		ecs::entity ecs_connected_entity;

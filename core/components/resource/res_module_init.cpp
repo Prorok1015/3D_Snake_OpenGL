@@ -1,5 +1,5 @@
-#include "res_resource_init.h"
-#include "res_resource_system.h"
+#include "res_module_init.h"
+#include "res_system.h"
 
 extern res::ResourceSystem* p_res_system;
 

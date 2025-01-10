@@ -1,7 +1,7 @@
 #include "components_init.h"
 #include "application.h"
 #include <inp_input_init.h>
-#include <res_resource_init.h>
+#include "res_module_init.h"
 #include <rnd_render_init.h>
 #include <gs_game_init.h>
 #include <debug_ui_init.h>

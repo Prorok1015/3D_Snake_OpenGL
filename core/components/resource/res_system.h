@@ -1,6 +1,6 @@
 #pragma once
 #include <common.h>
-#include "res_resource_tag.h"
+#include "res_tag.h"
 #include <future>
 #include "logger/engine_log.h"
 #include "res_resource_base.h"

@@ -4,7 +4,7 @@
 #include <stack>
 
 #include "res_mesh.hpp"
-#include "res_resource_tag.h"
+#include "res_tag.h"
 
 namespace res::loader {
     class model_loader

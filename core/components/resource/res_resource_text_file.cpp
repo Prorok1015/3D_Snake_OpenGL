@@ -1,9 +1,9 @@
-#include "res_resource_shader.h"
-#include "res_resource_system.h"
+#include "res_resource_text_file.h"
+#include "res_system.h"
 #include <fstream>
 #include <sstream>
 
-res::Shader::Shader(const Tag& tag)
+res::TextFile::TextFile(const Tag& tag)
 	: Resource(tag)
 {
 	std::string path = ResourceSystem::get_absolut_path(tag);

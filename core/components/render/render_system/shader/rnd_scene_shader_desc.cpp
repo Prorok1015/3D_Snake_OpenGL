@@ -1,14 +1,14 @@
 #include "rnd_scene_shader_desc.h"
-#include "res_resource_system.h"
+#include "res_system.h"
 #include "rnd_shader_interface.h"
-#include "res_resource_shader.h"
+#include "res_resource_text_file.h"
 #include "rnd_render_system.h"
 
 std::vector<rnd::driver::shader_header> rnd::shader_scene_desc::load()
 {
-	auto vertexCode = res::get_system().require_resource<res::Shader>(res::Tag::make("scene.vert"), true);
-	auto fragmentCode = res::get_system().require_resource<res::Shader>(res::Tag::make("scene.frag"), true);
-	//auto geomCode = res::get_system().require_resource<res::Shader>(res::Tag::make(name + ".geom"), true);
+	auto vertexCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("scene.vert"), true);
+	auto fragmentCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("scene.frag"), true);
+	//auto geomCode = res::get_system().require_resource<res::TextFile>(res::Tag::make(name + ".geom"), true);
 	std::vector<driver::shader_header> headers
 	{
 		driver::shader_header{.title = "scene.vert", .body = vertexCode->c_str(), .type = driver::shader_header::TYPE::VERTEX},
@@ -20,9 +20,9 @@ std::vector<rnd::driver::shader_header> rnd::shader_scene_desc::load()
 
 std::vector<rnd::driver::shader_header> rnd::shader_sky_desc::load()
 {
-	auto vertexCode = res::get_system().require_resource<res::Shader>(res::Tag::make("sky.vert"), true);
-	auto fragmentCode = res::get_system().require_resource<res::Shader>(res::Tag::make("sky.frag"), true);
-	//auto geomCode = res::get_system().require_resource<res::Shader>(res::Tag::make(name + ".geom"), true);
+	auto vertexCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("sky.vert"), true);
+	auto fragmentCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("sky.frag"), true);
+	//auto geomCode = res::get_system().require_resource<res::TextFile>(res::Tag::make(name + ".geom"), true);
 	std::vector<driver::shader_header> headers
 	{
 		driver::shader_header{.title = "sky.vert", .body = vertexCode->c_str(), .type = driver::shader_header::TYPE::VERTEX},
@@ -34,9 +34,9 @@ std::vector<rnd::driver::shader_header> rnd::shader_sky_desc::load()
 
 std::vector<rnd::driver::shader_header> rnd::shader_scene_instance_desc::load()
 {
-	auto vertexCode = res::get_system().require_resource<res::Shader>(res::Tag::make("scene_inst.vert"), true);
-	auto fragmentCode = res::get_system().require_resource<res::Shader>(res::Tag::make("scene_inst.frag"), true);
-	//auto geomCode = res::get_system().require_resource<res::Shader>(res::Tag::make(name + ".geom"), true);
+	auto vertexCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("scene_inst.vert"), true);
+	auto fragmentCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("scene_inst.frag"), true);
+	//auto geomCode = res::get_system().require_resource<res::TextFile>(res::Tag::make(name + ".geom"), true);
 	std::vector<driver::shader_header> headers
 	{
 		driver::shader_header{.title = "scene_inst.vert", .body = vertexCode->c_str(), .type = driver::shader_header::TYPE::VERTEX},
