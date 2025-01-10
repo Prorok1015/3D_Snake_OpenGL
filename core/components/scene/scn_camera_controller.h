@@ -10,6 +10,20 @@ namespace scn
 {
 	struct update_camera_matrix_component : ecs::once_component {
 		glm::mat4 world;
+		glm::vec2 addition_rotate;
+		glm::vec2 addition_move;
+	};
+
+	struct update_scroll_camera_component : ecs::once_component {
+		float addition_distance = 0.f;
+	};
+
+	struct mouse_controller_component
+	{
+		float movement_speed = 15.f;
+		float distance = 20;
+		glm::vec3 rotation{ 0 };
+		glm::vec3 position{ 0 };
 	};
 
 	void ecs_process_update_camera_matrix(const float time_second);

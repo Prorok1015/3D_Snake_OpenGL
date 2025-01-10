@@ -4,7 +4,8 @@
 #include <gs_renderer_3d.h>
 #include <camera/rnd_camera.h>
 #include <wnd_window.h>
-#include <scn_camera_controller.h>
+#include "scn_camera_controller.h"
+#include "ecs/ecs_input_manager.h"
 
 #include <future>
 #include <res_instance.h>
@@ -35,6 +36,7 @@ namespace gs
 		void remove_cube();
 
 		void check_loaded_model();
+		void end_ecs_frame();
 
 		std::shared_ptr<renderer_3d> get_renderer() const { return renderer; }
 		std::shared_ptr<inp::input_manager> get_input_manager() const { return input; }
@@ -46,6 +48,7 @@ namespace gs
 
 		std::shared_ptr<wnd::window> window;
 		std::shared_ptr<inp::input_manager> input;
+		std::shared_ptr<ecs::flow_input_manager> ecs_input;
 
 		std::shared_ptr<std::future<std::shared_ptr<res::Model>>> future_model;
 	};

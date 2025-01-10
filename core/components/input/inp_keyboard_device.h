@@ -24,6 +24,29 @@ namespace inp
 
 		void clear_key(KEYBOARD_BUTTONS keycode) { prev_keys_[keycode] = keys_[keycode]; keys_[keycode] = {}; }
 
+		bool operator==(const KeyboardDevice& rhs) const noexcept {
+			if (keys_.size() != rhs.keys_.size())
+				return false;
+			if (prev_keys_.size() != rhs.prev_keys_.size())
+				return false;
+			
+			for (const auto& it : rhs.keys_)
+			{
+				auto itt = keys_.find(it.first);
+				if (itt == keys_.end())
+					return false;
+			}
+
+			for (const auto& it : rhs.prev_keys_)
+			{
+				auto itt = prev_keys_.find(it.first);
+				if (itt != prev_keys_.end())
+					return false;
+			}
+
+			return true;
+		}
+
 	private:
 		static Key get_some_key(KEYBOARD_BUTTONS keycode, const KeyContainer& keys);
 

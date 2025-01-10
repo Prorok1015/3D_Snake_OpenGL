@@ -1,6 +1,8 @@
 #include "scn_camera_controller.h"
 #include <wnd_window_system.h>
 #include <ecs/ecs_common_system.h>
+#include "scn_model.h"
+#include "inp_input_system.h"
 
 scn::mouse_camera_controller::mouse_camera_controller(rnd::camera* camera_)
 	: camera(camera_)
@@ -8,6 +10,7 @@ scn::mouse_camera_controller::mouse_camera_controller(rnd::camera* camera_)
 	rotation.x = -glm::radians(45.0f);
 	anchor.set_euler_angles(rotation);
 	ecs_connected_entity = camera_->ecs_entity;
+	ecs::add_component(ecs_connected_entity, scn::mouse_controller_component{ .rotation = rotation });
 	calculate_world_matrix();
 }
 
@@ -64,25 +67,29 @@ void scn::mouse_camera_controller::on_mouse_move(glm::vec2 cur, glm::vec2 prev)
 	glm::vec2 delta = cur - prev;
 	// translate to viewport coordinate
 	delta = -delta / glm::vec2(camera->viewport_size) * 2.f;
-	
+	update_camera_matrix_component new_component;
 	if (get_is_rotate()) {
+		new_component.addition_rotate = cur - prev;
+
 		float pitch = delta.y;
 		float yaw = delta.x;
 
-		this->rotation.x = std::clamp(this->rotation.x + pitch, -glm::radians(90.0f), glm::radians(90.0f));
-		this->rotation.y += yaw;
+		rotation.x = std::clamp(rotation.x + pitch, -glm::radians(90.0f), glm::radians(90.0f));
+		rotation.y += yaw;
 		
 		anchor.set_euler_angles(rotation);
 	}
 
 	if (get_is_move()) {
+		new_component.addition_move = cur - prev;
 		glm::vec3 addition = glm::vec3(delta.x, 0, delta.y);
 		glm::vec3 new_position = anchor.get_pos() + (glm::rotateY(addition, rotation.y) * get_movement_speed());
 		anchor.set_pos(new_position);
 	}
 
 	if (get_is_move() || get_is_rotate()) {
-		calculate_world_matrix();
+		//calculate_world_matrix();
+		//ecs::add_component(ecs_connected_entity, new_component);
 	}
 }
 
@@ -90,7 +97,8 @@ void scn::mouse_camera_controller::on_mouse_whell(glm::vec2 cur, glm::vec2)
 {
 	distance -= cur.y * 3;
 	distance = std::clamp(distance, 0.f, 150.f);
-	calculate_world_matrix();
+	//calculate_world_matrix();
+	//ecs::add_component(ecs_connected_entity, update_scroll_camera_component{ .addition_distance = distance });
 }
 
 void scn::mouse_camera_controller::calculate_world_matrix()
@@ -115,12 +123,44 @@ void scn::mouse_camera_controller::set_camera(rnd::camera* cam)
 
 void scn::ecs_process_update_camera_matrix(const float time_second)
 {
-	for (auto& ent : ecs::filter<scn::update_camera_matrix_component, rnd::camera_component>())
-	{
-		auto* camera = ecs::get_component<rnd::camera_component>(ent);
-		auto* matr = ecs::get_component<scn::update_camera_matrix_component>(ent);
-		camera->world = matr->world;
+	auto& input = inp::get_system();
 
-		ecs::remove_component<scn::update_camera_matrix_component>(ent);
+	for (auto ent : ecs::filter<rnd::camera_component, scn::mouse_controller_component>()) {
+		auto event_ = ecs::filter<ecs::input_changed_event_component>();
+		
+		if (event_.empty()) {
+			return;
+		}
+		auto* camera = ecs::get_component<rnd::camera_component>(ent);
+		auto* data = ecs::get_component<scn::mouse_controller_component>(ent);
+		auto& rotation = data->rotation;
+		auto& pos = data->position;
+		auto& distance = data->distance;
+		auto& speed = data->movement_speed;
+
+		glm::vec2 delta = input.mouse.get_delta_pos() / glm::vec2(camera->viewport.size) * 2;
+
+		if (input.get_key_state(inp::MOUSE_BUTTONS::LEFT).action == inp::KEY_ACTION::DOWN)
+		{
+			glm::vec3 addition = glm::vec3(delta.x, 0, delta.y);
+			pos = pos + (glm::rotateY(addition, rotation.y) * speed);
+		}
+
+		if (input.get_key_state(inp::MOUSE_BUTTONS::RIGHT).action == inp::KEY_ACTION::DOWN)
+		{
+			float pitch = delta.y;
+			float yaw = delta.x;
+
+			rotation.x = std::clamp(rotation.x + pitch, -glm::radians(90.0f), glm::radians(90.0f));
+			rotation.y += yaw;
+		}
+
+		distance -= input.mouse.get_scroll().y * speed;
+		distance = std::clamp(distance, 0.f, 150.f);
+
+		if (auto* trans = ecs::get_component<scn::transform_component>(ent)) {
+			glm::mat4 orientation = glm::toMat4(glm::quat(rotation));
+			trans->local = glm::translate(pos) * orientation * glm::translate(glm::mat4(1.0), glm::vec3(0, 0, distance));
+		}
 	}
 }

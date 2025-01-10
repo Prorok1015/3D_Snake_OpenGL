@@ -117,16 +117,25 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
     for (ecs::entity& ent : ecs::filter<rnd::camera_component, scn::is_render_component_flag>())
     {
         rnd::camera_component* camera = ecs::get_component<rnd::camera_component>(ent);
-        if (camera->viewport[2] == 0 || camera->viewport[3] == 0) {
+        if (camera->viewport.size.x == 0 || camera->viewport.size.y == 0) {
             continue;
         }
 
+        eng::transform3d pos{ glm::mat4{1.0} };
+        common_matrix.view = glm::inverse(glm::mat4{ 1.0 });
+
+        if (auto* trans = ecs::get_component<scn::transform_component>(ent))
+        {
+            common_matrix.view = glm::inverse(trans->local);
+            pos = eng::transform3d{ trans->local };
+        }
+
         common_matrix.projection = rnd::make_projection(*camera);
-        common_matrix.view = rnd::make_view(*camera);
-        common_matrix.view_position = glm::vec4(eng::transform3d(camera->world).get_pos(), 1.0);
+        common_matrix.view_position = glm::vec4(pos.get_pos(), 1.0);
 
         rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
-	    drv->set_viewport(camera->viewport);
+        glm::ivec4 vp{ camera->viewport.center, camera->viewport.size };
+	    drv->set_viewport(vp);
         drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
         drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 

@@ -1,8 +1,11 @@
 #pragma once
 #include "ecs_entity.h"
+//#include "common.h"
 
 namespace ecs
 {
+	//Event<void(float)> process_systems_event;
+
 	entity create_entity();
 
 	void remove_entity(entity ent);

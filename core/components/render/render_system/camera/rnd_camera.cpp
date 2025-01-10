@@ -1,5 +1,6 @@
 #include "rnd_camera.h"
 #include <ecs/ecs_common_system.h>
+#include "scn_model.h"
 
 rnd::camera::camera(glm::vec3 pos, glm::ivec4 viewport, float fov_)
 	:  fov(fov_), viewport_offset(viewport[0], viewport[1]), viewport_size(viewport[2], viewport[3])
@@ -7,7 +8,8 @@ rnd::camera::camera(glm::vec3 pos, glm::ivec4 viewport, float fov_)
 	world = glm::translate(world, pos);
 	ecs_entity = ecs::create_entity();
 	ecs::add_component(ecs_entity, camera_accessor_component{ this });
-	ecs::add_component(ecs_entity, camera_component{ .fov = fov_, .world = world, .viewport = viewport});
+	ecs::add_component(ecs_entity, camera_component{ .fov = fov_, .viewport = viewport});
+	ecs::add_component(ecs_entity, scn::transform_component{ .local = world });
 }
 
 glm::mat4 rnd::camera::projection() const {
@@ -29,12 +31,7 @@ glm::mat4 rnd::make_projection(camera_component& camera)
 	return glm::perspective(glm::radians(camera.fov), make_aspect(camera), MIN_VISIBLE_DISTANCE, camera.view_distance);
 }
 
-glm::mat4 rnd::make_view(camera_component& camera)
-{
-	return glm::inverse(camera.world);
-}
-
 float rnd::make_aspect(camera_component& camera)
 {
-	return (float)camera.viewport[2] / (float)camera.viewport[3];
+	return (float)camera.viewport.size.x / (float)camera.viewport.size.y;
 }

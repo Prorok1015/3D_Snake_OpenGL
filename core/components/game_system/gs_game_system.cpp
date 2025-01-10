@@ -35,7 +35,9 @@ gs::GameSystem::GameSystem()
 {
 	window = wnd::get_system().get_active_window();
 	input = std::make_shared<inp::input_manager>();
+	ecs_input = std::make_shared<ecs::flow_input_manager>();
 	inp::get_system().activate_manager(input);
+	inp::get_system().activate_manager(ecs_input);
 
 	renderer = std::make_shared<renderer_3d>();
 	rnd::get_system().activate_renderer(renderer);
@@ -107,6 +109,16 @@ void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, cons
 	if (!children.empty()) {
 		ecs::add_component(ent, scn::children_component{ .children = children });
 	}
+}
+
+void gs::GameSystem::end_ecs_frame()
+{
+	for (auto ent : ecs::filter<ecs::input_changed_event_component>())
+	{
+		ecs::remove_component<ecs::input_changed_event_component>(ent);
+	}
+
+	inp::get_system().mouse.clear_scroll();
 }
 
 void gs::GameSystem::check_loaded_model()

@@ -30,7 +30,6 @@ void inp::InputSystem::process_input(float dt)
 		}
 	}
 
-	mouse.clear_scroll();
 }
 
 void inp::InputSystem::activate_manager(std::weak_ptr<input_manager_base> inp_manager)

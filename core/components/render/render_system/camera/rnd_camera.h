@@ -7,12 +7,22 @@
 
 namespace rnd {
 
+	struct viewport
+	{
+		glm::ivec2 center{ 0 };
+		glm::ivec2 size{ 0 };
+
+		viewport() = default;
+		viewport(const glm::ivec4 vp)
+			: center(vp.x, vp.y)
+			, size(vp.z, vp.w){}
+	};
+
 	struct camera_component
 	{
 		float fov = 90.f;
 		float view_distance = 1000.f;
-		glm::mat4 world{ 1.0 };
-		glm::ivec4 viewport{ 0 };
+		rnd::viewport viewport;
 	};
 
 	constexpr float MIN_VISIBLE_DISTANCE = 0.1f;
@@ -52,7 +62,6 @@ namespace rnd {
 	};
 
 	glm::mat4 make_projection(camera_component&);
-	glm::mat4 make_view(camera_component&);
 	float make_aspect(camera_component&);
 
 	struct camera_accessor_component {

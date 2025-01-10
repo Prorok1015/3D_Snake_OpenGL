@@ -49,8 +49,7 @@ editor::EditorSystem::EditorSystem()
 		for (auto& ent : ecs::filter<rnd::camera_component>())
 		{
 			auto* camera = ecs::get_component<rnd::camera_component>(ent);
-			camera->viewport[2] = w;
-			camera->viewport[3] = h;
+			camera->viewport.size = glm::ivec2(w, h);
 		}
 	});
 
@@ -165,8 +164,24 @@ void show_tree_items(ecs::entity ent)
 			name = com_name->name + "##" + obj_idx;
 		}
 	}
+	static ecs::entity selected_node;
+
 	if (ImGui::TreeNode(name.c_str()))
 	{
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+			ImGui::OpenPopup("tree_context_menu");
+			selected_node = ent;
+		}
+
+		if (selected_node == ent) {
+			if (ImGui::BeginPopup("tree_context_menu")) {
+				if (ImGui::MenuItem("Add Camera")) {
+					ecs::add_component<rnd::camera_component>(ent, rnd::camera_component{ .viewport = glm::ivec4{100,100, 500, 500} });
+				}
+				ImGui::EndPopup();
+			}
+		}
+
 		if (auto* trans = ecs::get_component<scn::transform_component>(ent))
 		{
 			bool is_update = false;
@@ -207,6 +222,13 @@ void show_tree_items(ecs::entity ent)
 		if (auto* colot = ecs::get_component<rnd::light_point>(ent))
 		{
 			ImGui::ColorEdit3("Color", glm::value_ptr(colot->diffuse));
+		}
+
+		if (auto* camera = ecs::get_component<rnd::camera_component>(ent))
+		{
+			ImGui::Text("fov: %3.f", camera->fov);
+			ImGui::Text("distance: %3.f", camera->view_distance);
+			ImGui::Text("x: %d, y: %d, width: %d, height: %d", camera->viewport.center.x, camera->viewport.center.y, camera->viewport.size.x, camera->viewport.size.y);
 		}
 
 		if (auto* children = ecs::get_component<scn::children_component>(ent))
@@ -382,8 +404,52 @@ bool editor::EditorSystem::show_toolbar()
 				ImGui::EndCombo();
 			}
 
+			std::vector<std::string> names;
+			int cam_id = 1;
+			int cam_cur = 0;
+			int cam_cur_id = 0;
+			auto cameras = ecs::filter<rnd::camera_component>();
+			for (auto& ent : cameras)
+			{
+				if (auto* name = ecs::get_component<scn::name_component>(ent)) {
+					names.push_back(name->name);
+				}
+				else {
+					names.push_back("Camera" + std::to_string(cam_id++));
+				}
+
+				if (auto* visible = ecs::get_component<scn::is_render_component_flag>(ent)) {
+					cam_cur_id = cam_cur;
+				}
+
+				++cam_cur;
+			}
+
+			if (ImGui::BeginCombo("Current Camera", names[cam_cur_id].c_str(), 0))
+			{
+				for (int n = 0; n < names.size(); ++n)
+				{
+					const bool is_selected = (cam_cur_id == n);
+					if (ImGui::Selectable(names[n].c_str(), is_selected)) {
+						auto old = cameras[cam_cur_id];
+						auto new_one = cameras[n];
+						cam_cur_id = n;
+						ecs::add_component(new_one, scn::is_render_component_flag{});
+						ecs::remove_component<scn::is_render_component_flag>(old);
+					}
+
+					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
+			}
+
 			for (auto& ent : ecs::filter<rnd::camera_component, scn::is_render_component_flag>()) {
-				eng::transform3d ct{ ecs::get_component<rnd::camera_component>(ent)->world };
+				eng::transform3d ct{ glm::mat4{1.0} };
+				if (auto* trans = ecs::get_component<scn::transform_component>(ent)) {
+					ct = eng::transform3d{ trans->local };
+				}
 				ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
 				auto pos = ct.get_pos();
 				ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);

@@ -22,6 +22,8 @@ namespace inp
 
 		void clear_scroll() { scroll_direction = glm::zero<glm::vec2>(); }
 
+		auto operator<=>(const MouseDevice&) const noexcept = default;
+
 	private:
 		glm::vec2 scroll_direction{ 0 };
 		glm::vec2 position{ 0 };
