@@ -1,7 +1,7 @@
 #pragma once
 #include <common.h>
 #include <scn_model.h>
-#include <scn_camera_controller.h>
+#include <scn_camera_controller_system.h>
 #include <ecs/ecs_entity.h>
 #include <rnd_render_system.h>
 

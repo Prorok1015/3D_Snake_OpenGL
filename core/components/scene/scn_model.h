@@ -67,4 +67,11 @@ namespace scn {
         glm::vec4 ambient;
         glm::vec4 specular;
     };
+
+    struct playable_animation
+    {
+        std::string name;
+        float current_tick = 0.f;
+        bool is_repeat_animation = true;
+    };
 }

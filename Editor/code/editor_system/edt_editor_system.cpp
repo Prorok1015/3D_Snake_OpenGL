@@ -1,14 +1,15 @@
 #include "edt_editor_system.h"
-#include <debug_ui_api.h>
-#include <application.h>
-#include <gs_game_system.h>
+#include "debug_ui_api.h"
+#include "application.h"
+#include "gs_game_system.h"
 #include "res_system.h"
 #include "res_picture.h"
-#include <rnd_render_system.h>
-#include <scn_primitives.h>
-#include <scn_camera_component.hpp>
-#include <ecs/ecs_common_system.h>
-#include <scn_primitives.h>
+#include "rnd_render_system.h"
+#include "scn_primitives.h"
+#include "scn_camera_component.hpp"
+#include "scn_camera_controller_component.hpp"
+#include "ecs/ecs_common_system.h"
+#include "scn_primitives.h"
 #include "eng_transform_3d.hpp"
 
 #include <imgui.h>
@@ -163,6 +164,58 @@ void show_tree_items(ecs::entity ent)
 					ecs::add_component<scn::camera_component>(ent, scn::camera_component{ .viewport = glm::ivec4{100,100, 500, 500} });
 				}
 				ImGui::EndPopup();
+			}
+		}
+
+		if (auto* anims = ecs::get_component<scn::animations_component>(ent))
+		{
+			std::string_view play_anim_name;
+			if (auto* play = ecs::get_component<scn::playable_animation>(ent))
+			{
+				play_anim_name = play->name;
+				ImGui::Checkbox("Is Repeat", &(play->is_repeat_animation));
+			}
+
+			std::vector<std::string> names;
+			names.push_back("NONE");
+			int cur = 0, i = 0;
+			for (auto& anim : anims->animations)
+			{
+				if (play_anim_name == anim.name && cur == 0) {
+					cur = i + 1;
+				}
+				names.push_back(anim.name);
+				i++;
+			}
+
+			if (ImGui::BeginCombo(("Animations##" + obj_idx).c_str(), names[cur].c_str(), 0))
+			{
+				for (int n = 0; n < names.size(); ++n)
+				{
+					const bool is_selected = (cur == n);
+					if (ImGui::Selectable(names[n].c_str(), is_selected)) {
+						cur = n;
+
+						if (auto* play = ecs::get_component<scn::playable_animation>(ent))
+						{
+							if (cur == 0) {
+								ecs::remove_component<scn::playable_animation>(ent);
+							} else {
+								play->name = names[cur];
+								play->current_tick = 0.f;
+							}
+						} else if (cur != 0){
+							scn::playable_animation play_new;
+							play_new.name = names[cur];
+							ecs::add_component(ent, play_new);
+						}
+					}
+
+					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
+					if (is_selected)
+						ImGui::SetItemDefaultFocus();
+				}
+				ImGui::EndCombo();
 			}
 		}
 

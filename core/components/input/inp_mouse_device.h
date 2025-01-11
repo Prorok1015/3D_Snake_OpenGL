@@ -28,6 +28,6 @@ namespace inp
 		glm::vec2 scroll_direction{ 0 };
 		glm::vec2 position{ 0 };
 		glm::vec2 prev_position{ 0 };
-		std::array<KEY_ACTION, MOUSE_BUTTONS_COUNT> keys_;
+		std::array<KEY_ACTION, MOUSE_BUTTONS_COUNT> keys_{};
 	};
 }

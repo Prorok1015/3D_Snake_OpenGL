@@ -30,18 +30,18 @@ int application::Application::run()
 	window_system_ref.init_windows_frame_time();
 
 	long long time = GetTickCount(); // todo
-	float deltaTime = 1.0f / 60.0f;
-	auto previousTime = std::chrono::high_resolution_clock::now();
+	float delta_time = 1.0f / 60.0f;
+	auto previous_time = std::chrono::high_resolution_clock::now();
 
 	while (!window_system_ref.is_stop_running()) {
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<float> duration = currentTime - previousTime;
-		deltaTime = duration.count();
-		previousTime = currentTime;
+		auto current_time = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float> duration = current_time - previous_time;
+		delta_time = duration.count();
+		previous_time = current_time;
 
-		inp::get_system().process_input(window_system_ref.get_active_window()->get_delta());
+		inp::get_system().process_input(delta_time);
 		 
-		ecs::process_systems(float(GetTickCount() - time) / 1000.f);
+		ecs::process_systems(delta_time);
 
 		gs::get_system().end_ecs_frame();
 

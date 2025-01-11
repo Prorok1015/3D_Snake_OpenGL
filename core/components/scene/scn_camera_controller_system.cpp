@@ -1,9 +1,10 @@
-#include "scn_camera_controller.h"
-#include <ecs/ecs_common_system.h>
+#include "scn_camera_controller_system.h"
+#include "scn_camera_controller_component.hpp"
+#include "scn_camera_component.hpp"
 #include "scn_model.h"
 #include "inp_input_system.h"
 #include "ecs/ecs_component.h"
-#include "scn_camera_component.hpp"
+#include "ecs/ecs_common_system.h"
 
 // TODO: use dt
 void scn::ecs_process_update_camera_matrix(const float time_second)

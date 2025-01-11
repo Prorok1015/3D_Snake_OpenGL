@@ -124,9 +124,9 @@ namespace inp
 
 	enum class KEY_ACTION
 	{
-		DOWN,
+		NONE,
 		UP,
-		NONE
+		DOWN,
 	};
 
 	enum class MOUSE_BUTTONS

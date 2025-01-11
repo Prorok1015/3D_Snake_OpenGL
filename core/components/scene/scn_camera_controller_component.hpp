@@ -11,5 +11,4 @@ namespace scn
 		glm::vec3 position{ 0 };
 	};
 
-	void ecs_process_update_camera_matrix(const float time_second);
 }

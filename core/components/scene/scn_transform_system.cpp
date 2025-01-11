@@ -18,19 +18,32 @@ void scn::update_transform_system(float time_second)
     }
 }
 
-void scn::update_animation_system(float time_second)
+void scn::update_animation_system(float dt)
 {
-	for (ecs::entity ent : ecs::filter<scn::model_root_component, scn::animations_component>())
+	for (ecs::entity ent : ecs::filter<scn::model_root_component, scn::animations_component, scn::playable_animation>())
 	{
 		auto* root = ecs::get_component<scn::model_root_component>(ent);
-		auto* animation = ecs::get_component<scn::animations_component>(ent);
+		auto& anims = ecs::get_component<scn::animations_component>(ent)->animations;
+		auto& play = *ecs::get_component<scn::playable_animation>(ent);
 
-        if (!animation->animations.empty())
+        auto it = std::find_if(anims.begin(), anims.end(), [&name = play.name](auto& anim) {
+            return anim.name == name;
+            });
+
+        if (it != anims.end())
         {
-            auto& playable_animation = animation->animations.front();
+            auto& playable_animation = *it;
+            play.current_tick += dt;
             const float ticks_per_second = playable_animation.ticks_per_second > 0 ? playable_animation.ticks_per_second : 25.0f;
-            const float time_in_ticks = time_second * ticks_per_second;
-            const float animation_time_ticks = fmod(time_in_ticks, (float)playable_animation.duration);
+            const float time_in_ticks = play.current_tick * ticks_per_second;
+            float animation_time_ticks = fmod(time_in_ticks, (float)playable_animation.duration);
+            if (time_in_ticks > playable_animation.duration) {
+                if (play.is_repeat_animation) {
+                    play.current_tick = 0.f;
+                } else {
+                    animation_time_ticks = playable_animation.duration;
+                }
+            }
 
             std::vector<glm::mat4> result;
             result.reserve(root->data.bones.size());
