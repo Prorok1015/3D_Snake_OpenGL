@@ -10,8 +10,6 @@
 #include <ecs/ecs_common_system.h>
 #include <scn_primitives.h>
 #include "eng_transform_3d.hpp"
-#include <light/rnd_light_point.h>
-#include <sky/rnd_cubemap.h>
 
 #include <imgui.h>
 
@@ -80,23 +78,15 @@ editor::EditorSystem::EditorSystem()
 	{
 		editor_web = ecs::create_entity();
 		children.push_back(editor_web);
-		scn::Model web = generate_web({ 50, 50 });
-		web.meshes.back().material.diffuse = res::Tag(res::Tag::memory, "__black");
-		web.model = glm::scale(web.model, glm::vec3(20, 0, 20));
-		res::meshes_conteiner data;
-		data.vertices = web.meshes.back().vertices;
-		data.indices = web.meshes.back().indices;
-		data.materials.push_back(web.meshes.back().material);
-		res::mesh_view mesh;
-		mesh.vx_begin = 0;
-		mesh.vx_end = data.vertices.size();
-		mesh.ind_begin = 0;
-		mesh.ind_end = data.indices.size();
+		auto web = scn::generate_web({ 50, 50 });
+		web.data.materials.push_back(res::Material{ .diffuse = res::Tag(res::Tag::memory, "__black") });
+		res::meshes_conteiner& data = web.data;
+		res::mesh_view& mesh = web.mesh;
 		mesh.material_id = 0;
 
 		ecs::add_component(editor_web, scn::model_root_component{ .data = data });
 		ecs::add_component(editor_web, scn::mesh_component{ .mesh = mesh });
-		ecs::add_component(editor_web, scn::transform_component{ .local = web.model });
+		ecs::add_component(editor_web, scn::transform_component{ .local = glm::scale(glm::vec3(20, 0, 20)) });
 		ecs::add_component(editor_web, scn::parent_component{ .parent = world_anchor });
 		ecs::add_component(editor_web, scn::name_component{ .name = "Editor Web"});
 		ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});
@@ -105,24 +95,16 @@ editor::EditorSystem::EditorSystem()
 	{
 		light = ecs::create_entity();
 		children.push_back(light);
-		ecs::add_component(light, rnd::light_point{
+		ecs::add_component(light, scn::light_point{
 			.position = glm::vec4(50),
 			.diffuse = glm::vec4(0.5f, 0.5f, 0.5f, 1.0),
 			.ambient = glm::vec4(0.2f, 0.2f, 0.2f, 1.0),
 			.specular = glm::vec4(1)
 			});
 
-		scn::Model m = generate_sphere();
-		res::meshes_conteiner data;
-		data.vertices = m.meshes.back().vertices;
-		data.indices = m.meshes.back().indices;
-		data.materials.push_back(m.meshes.back().material);
-		res::mesh_view mesh;
-		mesh.vx_begin = 0;
-		mesh.vx_end = data.vertices.size();
-		mesh.ind_begin = 0;
-		mesh.ind_end = data.indices.size();
-		mesh.material_id = 0;
+		auto m = scn::generate_sphere();
+		res::meshes_conteiner& data = m.data;
+		res::mesh_view& mesh = m.mesh;
 
 		ecs::add_component(light, scn::model_root_component{ .data = data });
 		ecs::add_component(light, scn::mesh_component{ .mesh = mesh });
@@ -134,8 +116,8 @@ editor::EditorSystem::EditorSystem()
 	{
 		sky = ecs::create_entity();
 		children.push_back(sky);
-		scn::Model m = generate_cube();
-		ecs::add_component(sky, rnd::cubemap_component{ m.meshes.front(), std::vector<res::Tag>{
+		auto m = scn::generate_cube();
+		ecs::add_component(sky, scn::sky_component{ .data = m.data, .mesh = m.mesh, .cube_map = std::vector<res::Tag>{
 			res::Tag::make("skybox/right.jpg"),
 			res::Tag::make("skybox/left.jpg"),
 			res::Tag::make("skybox/bottom.jpg"),
@@ -221,7 +203,7 @@ void show_tree_items(ecs::entity ent)
 			}
 		}
 
-		if (auto* colot = ecs::get_component<rnd::light_point>(ent))
+		if (auto* colot = ecs::get_component<scn::light_point>(ent))
 		{
 			ImGui::ColorEdit3("Color", glm::value_ptr(colot->diffuse));
 		}

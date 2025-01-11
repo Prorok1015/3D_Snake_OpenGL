@@ -1,1 +1,0 @@
-#include "rnd_light_point.h"

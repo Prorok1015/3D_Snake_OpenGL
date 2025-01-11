@@ -16,14 +16,13 @@ namespace rnd
 		glm::vec4 view_position;
 	};
 
-	struct light_point
+	struct sun_params
 	{
 		glm::vec4 position;
 		glm::vec4 diffuse;
 		glm::vec4 ambient;
 		glm::vec4 specular;
 	};
-	
 
 	struct bones_matrices
 	{
@@ -73,7 +72,7 @@ namespace rnd
 		}
 
 		void update_global_uniform(const global_params& val) const;
-		void update_global_sun(const light_point& val) const;
+		void update_global_sun(const sun_params& val) const;
 		void update_global_bones_matrices(const bones_matrices& val, std::size_t count) const;
 	private:
 		driver::driver_interface* drv = nullptr;

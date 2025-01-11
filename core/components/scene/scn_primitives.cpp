@@ -3,7 +3,7 @@
 
 #include <numeric>
 
-scn::Model generate_web(glm::ivec2 size)
+scn::model_web scn::generate_web(glm::ivec2 size)
 {
     std::vector<res::Vertex> vex;
     std::vector<unsigned int> inc;
@@ -32,12 +32,16 @@ scn::Model generate_web(glm::ivec2 size)
         inc.push_back((unsigned)vex.size() - 1);
     }
 
-    scn::Model m;
-    m.meshes.emplace_back(vex, inc);
-    return m;
+    res::meshes_conteiner data;
+    data.indices = inc;
+    data.vertices = vex;
+    res::mesh_view mesh;
+    mesh.ind_end = inc.size();
+    mesh.vx_end = vex.size();
+    return {data, mesh};
 }
 
-scn::Model generate_cube()
+scn::model_cube scn::generate_cube()
 {
     std::vector<res::Vertex> vex
     {
@@ -159,9 +163,15 @@ scn::Model generate_cube()
         v.uv /= glm::vec2(16, -16);
     }
 
-    scn::Model m;
-    m.meshes.emplace_back(vex, inc, std::vector<res::bone>{}, res::Material{ .diffuse = res::Tag::make("block.png") });
-    return m;
+    res::meshes_conteiner data;
+    data.indices = inc;
+    data.vertices = vex;
+    data.materials.push_back(res::Material{ .diffuse = res::Tag::make("block.png") });
+    res::mesh_view mesh;
+    mesh.ind_end = inc.size();
+    mesh.vx_end = vex.size();
+    mesh.material_id = 0;
+    return { data, mesh };
 }
 
 std::vector<res::Vertex> generate_sphere_data(float radius, float sectorCount, float stackCount)
@@ -212,7 +222,7 @@ std::vector<res::Vertex> generate_sphere_data(float radius, float sectorCount, f
     return result;
 }
 
-scn::Model generate_sphere()
+scn::model_sphere scn::generate_sphere()
 {
     float radius = 1.0f;
     float sectorCount = 72.f;
@@ -268,7 +278,13 @@ scn::Model generate_sphere()
         v.uv = v.uv / glm::vec2(16, -16);
     }
 
-    scn::Model m;
-    m.meshes.emplace_back(vex, inc, std::vector<res::bone>{}, res::Material{ .diffuse = res::Tag::make("block.png") });
-    return m;
+    res::meshes_conteiner data;
+    data.indices = inc;
+    data.vertices = vex;
+    data.materials.push_back(res::Material{ .diffuse = res::Tag::make("block.png") });
+    res::mesh_view mesh;
+    mesh.ind_end = inc.size();
+    mesh.vx_end = vex.size();
+    mesh.material_id = 0;
+    return { data, mesh };
 }

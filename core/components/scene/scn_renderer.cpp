@@ -8,9 +8,6 @@
 
 #include "res_instance.h"
 
-#include "light/rnd_light_point.h"
-#include "sky/rnd_cubemap.h"
-
 #include "ecs/ecs_common_system.h"
 
 #include "timer.hpp"
@@ -120,10 +117,15 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
     rnd::global_params common_matrix{ .time = (float)Timer::now() };
 
-    for (ecs::entity& ent : ecs::filter<rnd::light_point>()) {
-        auto* light = ecs::get_component<rnd::light_point>(ent);
+    for (ecs::entity& ent : ecs::filter<scn::light_point>()) {
+        auto* light = ecs::get_component<scn::light_point>(ent);
 
-        rnd::get_system().get_shader_manager().update_global_sun(*light);
+        rnd::sun_params sun;
+        sun.ambient = light->ambient;
+        sun.diffuse = light->diffuse;
+        sun.specular = light->specular;
+        sun.position = light->position;
+        rnd::get_system().get_shader_manager().update_global_sun(sun);
     }
 
     for (ecs::entity& ent : ecs::filter<scn::camera_component, scn::is_render_component_flag>())
@@ -267,16 +269,16 @@ void scn::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL);
     drv->disable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
 
-    for (auto sky : ecs::filter<scn::is_render_component_flag, rnd::cubemap_component>()) {
-        auto* cube_map = ecs::get_component<rnd::cubemap_component>(sky);
+    for (auto sky : ecs::filter<scn::is_render_component_flag, scn::sky_component>()) {
+        auto* cube_map = ecs::get_component<scn::sky_component>(sky);
         rnd::shader_sky_desc sky;
         sky.tex0 = rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map)->get();
-        auto& vs = cube_map->mesh.vertices;
-        auto& is = cube_map->mesh.indices;
+        auto& vs = cube_map->data.vertices;
+        auto& is = cube_map->data.indices;
         vertex_buffer->set_data(vs);
         index_buffer->set_data(is);
 
-        rnd::get_system().get_shader_manager().use(sky);
+        rnd::configure_pass(sky);
         drv->draw_indeces(vertex_array, rnd::RENDER_MODE::TRIANGLE, is.size());
     }
 }

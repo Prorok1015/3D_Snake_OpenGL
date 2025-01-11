@@ -46,10 +46,10 @@ gs::GameSystem::GameSystem()
 	renderer = std::make_shared<scn::renderer_3d>();
 	rnd::get_system().activate_renderer(renderer);
 
-	cubes_inst = ecs::create_entity();
+	//cubes_inst = ecs::create_entity();
 
-	res::instance_object* inst = ecs::add_component(cubes_inst, res::instance_object{});
-	inst->tpl = generate_cube().meshes.front();
+	//res::instance_object* inst = ecs::add_component(cubes_inst, res::instance_object{});
+	//inst->tpl = generate_cube().meshes.front();
 
 	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
 

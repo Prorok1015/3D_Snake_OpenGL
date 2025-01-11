@@ -1,6 +1,5 @@
 #include "inp_input_init.h"
 #include "inp_input_system.h"
-#include <application.h>
 
 extern inp::InputSystem* p_inp_system;
 

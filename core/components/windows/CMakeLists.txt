@@ -16,4 +16,5 @@ set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 add_subdirectory(${THIRD_PARTY_PATH}/glfw glfw)
 target_compile_definitions(window PUBLIC GLFW_INCLUDE_NONE=1)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE common PUBLIC glfw PRIVATE glad PUBLIC drv_interface PRIVATE drv_opengl PRIVATE resource_system PRIVATE game PRIVATE input_system PRIVATE engine_logger)
+target_link_libraries(${PROJECT_NAME} PRIVATE common PUBLIC glfw PRIVATE glad PUBLIC drv_interface PRIVATE drv_opengl PRIVATE resource_system PRIVATE input_system PRIVATE engine_logger)
+

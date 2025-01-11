@@ -4,6 +4,7 @@
 #include <texture/rnd_texture_manager.h>
 #include <res_resource_model.h>
 #include "ecs/ecs_entity.h"
+#include "scn_primitives.h"
 
 namespace scn {
 
@@ -52,21 +53,18 @@ namespace scn {
 
     };
 
-    class Model
+    struct sky_component
     {
-    public:
-        std::vector<res::Mesh> meshes;
-        glm::mat4 model{ 1.0f };
-
-        std::shared_ptr<res::Model> res_ = nullptr;
-
-        Model() = default;
-        // constructor, expects a filepath to a 3D model.
-        Model(std::string_view path);
-        Model(std::shared_ptr<res::Model> res_model);
-
-    private:
-        void loadModel();
+        res::meshes_conteiner data;
+        res::mesh_view mesh;
+        std::vector<res::Tag> cube_map;
     };
 
+    struct light_point
+    {
+        glm::vec4 position;
+        glm::vec4 diffuse;
+        glm::vec4 ambient;
+        glm::vec4 specular;
+    };
 }
