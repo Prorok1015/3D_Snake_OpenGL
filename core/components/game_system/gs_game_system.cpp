@@ -15,6 +15,10 @@
 
 #include <timer.hpp>
 #include <glm/gtc/random.hpp>
+#include "ecs/ecs_system.h"
+#include "scn_camera_controller.h"
+#include "scn_transform_system.h"
+#include "ecs/ecs_component.h"
 
 gs::GameSystem* p_game_system = nullptr;
 extern int gMaxTexture2DSize;
@@ -39,7 +43,7 @@ gs::GameSystem::GameSystem()
 	inp::get_system().activate_manager(input);
 	inp::get_system().activate_manager(ecs_input);
 
-	renderer = std::make_shared<renderer_3d>();
+	renderer = std::make_shared<scn::renderer_3d>();
 	rnd::get_system().activate_renderer(renderer);
 
 	cubes_inst = ecs::create_entity();
@@ -48,6 +52,10 @@ gs::GameSystem::GameSystem()
 	inst->tpl = generate_cube().meshes.front();
 
 	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
+
+	ecs::systems.push_back(scn::ecs_process_update_camera_matrix);
+	ecs::systems.push_back(scn::update_transform_system);
+	ecs::systems.push_back(scn::update_animation_system);
 }
 
 gs::GameSystem::~GameSystem()
@@ -111,6 +119,7 @@ void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, cons
 	}
 }
 
+// TODO: remove
 void gs::GameSystem::end_ecs_frame()
 {
 	for (auto ent : ecs::filter<ecs::input_changed_event_component>())
@@ -128,7 +137,7 @@ void gs::GameSystem::check_loaded_model()
 		auto& pres = res->get_model_pres();
 		auto rand_pos = glm::ballRand(20.f);
 		auto model = glm::translate(glm::mat4(1.0), glm::vec3{ 0 });
-		model = glm::scale(model, glm::vec3{ 50 });
+		model = glm::scale(model, glm::vec3{ 20 });
 
 		ecs::entity obj = ecs::create_entity();
 		if (auto& bones_data = res->get_model_pres().data.bones_data.bones_indeces; !bones_data.empty()) {

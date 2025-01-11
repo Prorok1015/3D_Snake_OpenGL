@@ -9,25 +9,11 @@ int WINAPI WinMain(HINSTANCE /*hInstance*/,     // The instance
 	HINSTANCE /*hPrevInstance*/,  // Previous instance
 	LPSTR /*lpCmdLine*/,          // Command Line Parameters
 	int /*nShowCmd*/)            // Window Show State
-{
-	ds::AppDataStorage app_storage;
-	com::component_init(app_storage);
-	com::editor_init(app_storage);
-
-	app::Application& myApp = app::get_app_system();
-	int result = myApp.run();
-
-	com::editor_term(app_storage);
-	com::component_term(app_storage);
-
-	return result;
-}
 
 #else
-
 int main(int argc, char* args[])
-{
-	ds::AppDataStorage app_storage;
+#endif
+{	ds::AppDataStorage app_storage;
 	com::component_init(app_storage);
 	com::editor_init(app_storage);
 
@@ -39,5 +25,3 @@ int main(int argc, char* args[])
 
 	return result;
 }
-
-#endif

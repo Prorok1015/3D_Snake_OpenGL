@@ -69,11 +69,6 @@ namespace editor
 
 		bool is_show_web = true;
 		bool is_inited_ecs_test = false;
-
-		std::shared_ptr<rnd::camera> camera;
-		std::shared_ptr<rnd::camera> second_camera;
-		std::shared_ptr<scn::mouse_camera_controller> camera_controller;
-		std::shared_ptr<scn::mouse_camera_controller> second_camera_controller;
 	};
 
 }

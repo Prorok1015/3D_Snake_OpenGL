@@ -5,6 +5,7 @@
 #include <ecs/ecs_system.h>
 #include <gs_game_system.h>
 #include <Windows.h>
+#include <chrono>
 
 app::Application* p_app_system = nullptr;
 
@@ -27,8 +28,17 @@ int application::Application::run()
 	auto& window_system_ref = wnd::get_system();
 
 	window_system_ref.init_windows_frame_time();
+
 	long long time = GetTickCount(); // todo
+	float deltaTime = 1.0f / 60.0f;
+	auto previousTime = std::chrono::high_resolution_clock::now();
+
 	while (!window_system_ref.is_stop_running()) {
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<float> duration = currentTime - previousTime;
+		deltaTime = duration.count();
+		previousTime = currentTime;
+
 		inp::get_system().process_input(window_system_ref.get_active_window()->get_delta());
 		 
 		ecs::process_systems(float(GetTickCount() - time) / 1000.f);

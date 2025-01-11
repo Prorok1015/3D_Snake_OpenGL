@@ -3,15 +3,9 @@
 #include <texture/rnd_texture.h>
 #include <texture/rnd_texture_manager.h>
 #include <res_resource_model.h>
-#include "scn_mesh.h"
 #include "ecs/ecs_entity.h"
 
 namespace scn {
-
-    struct model_comonent {
-        std::vector<res::Mesh> meshes;
-        std::shared_ptr<res::Model> model;
-    };
 
     struct keyframes_component {
         std::unordered_map<std::string, res::animation_node> keyframes;

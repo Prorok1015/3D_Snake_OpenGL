@@ -38,7 +38,7 @@ namespace rnd::driver::gl
 		virtual std::unique_ptr<buffer_interface> create_buffer() override;
 		virtual std::unique_ptr<uniform_buffer_interface> create_uniform_buffer(std::size_t size, std::size_t binding) override;
 	private:
-		glm::ivec4 viewport;
+		glm::ivec4 viewport{ 0 };
 		std::stack<GLuint> framebuffers;
 	};
 }

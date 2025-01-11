@@ -6,10 +6,10 @@
 #include "res_picture.h"
 #include <rnd_render_system.h>
 #include <scn_primitives.h>
-#include <camera/rnd_camera.h>
+#include <scn_camera_component.hpp>
 #include <ecs/ecs_common_system.h>
 #include <scn_primitives.h>
-
+#include "eng_transform_3d.hpp"
 #include <light/rnd_light_point.h>
 #include <sky/rnd_cubemap.h>
 
@@ -34,21 +34,12 @@ editor::EditorSystem::EditorSystem()
 	gs::get_system().get_window()->set_title("Snake Editor");
 	dbg_ui::get_system().set_show_title_bar(true);
 
-	glm::ivec4 viewport{ glm::zero<glm::ivec2>(), gs::get_system().get_window()->get_size() };
-
-	camera = std::make_shared<rnd::camera>(glm::vec3(0), viewport);
-	ecs::add_component(camera->ecs_entity, scn::is_render_component_flag{});
-	camera_controller = std::make_shared<scn::mouse_camera_controller>(camera.get());
-	camera_controller->enable_input_actions(gs::get_system().get_input_manager());
-
-	second_camera = std::make_shared<rnd::camera>(glm::vec3(10, 10, 10), viewport);
-	second_camera_controller = std::make_shared<scn::mouse_camera_controller>(second_camera.get());
 
 	gs::get_system().get_window()->eventResizeWindow.subscribe([](wnd::window&, int w, int h)
 	{
-		for (auto& ent : ecs::filter<rnd::camera_component>())
+		for (auto& ent : ecs::filter<scn::camera_component>())
 		{
-			auto* camera = ecs::get_component<rnd::camera_component>(ent);
+			auto* camera = ecs::get_component<scn::camera_component>(ent);
 			camera->viewport.size = glm::ivec2(w, h);
 		}
 	});
@@ -71,8 +62,21 @@ editor::EditorSystem::EditorSystem()
 		children = kids->children;
 		ecs::remove_component<scn::children_component>(world_anchor);
 	}
-
-
+	//  camera
+	{
+		glm::ivec4 viewport{ glm::zero<glm::ivec2>(), gs::get_system().get_window()->get_size() };
+		glm::vec3 rotation(0);
+		rotation.x = -glm::radians(45.0f);
+		auto ecs_entity = ecs::create_entity();
+		children.push_back(ecs_entity);
+		ecs::add_component(ecs_entity, scn::camera_component{ .viewport = viewport });
+		ecs::add_component(ecs_entity, scn::transform_component{});
+		ecs::add_component(ecs_entity, scn::is_render_component_flag{});
+		ecs::add_component(ecs_entity, scn::mouse_controller_component{ .rotation = rotation });
+		ecs::add_component(ecs_entity, scn::parent_component{ .parent = world_anchor });
+		ecs::add_component(ecs_entity, scn::name_component{ .name = "Editor fullscreen camera"});
+	}
+	// web
 	{
 		editor_web = ecs::create_entity();
 		children.push_back(editor_web);
@@ -97,7 +101,7 @@ editor::EditorSystem::EditorSystem()
 		ecs::add_component(editor_web, scn::name_component{ .name = "Editor Web"});
 		ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});
 	}
-
+	// light
 	{
 		light = ecs::create_entity();
 		children.push_back(light);
@@ -126,7 +130,7 @@ editor::EditorSystem::EditorSystem()
 		ecs::add_component(light, scn::parent_component{ .parent = world_anchor });
 		ecs::add_component(light, scn::name_component{ .name = "Light" });
 	}
-
+	// sky
 	{
 		sky = ecs::create_entity();
 		children.push_back(sky);
@@ -151,8 +155,6 @@ editor::EditorSystem::EditorSystem()
 
 editor::EditorSystem::~EditorSystem()
 {
-	camera_controller->disable_input_actions(gs::get_system().get_input_manager());
-	second_camera_controller->disable_input_actions(gs::get_system().get_input_manager());
 }
 
 void show_tree_items(ecs::entity ent)
@@ -176,7 +178,7 @@ void show_tree_items(ecs::entity ent)
 		if (selected_node == ent) {
 			if (ImGui::BeginPopup("tree_context_menu")) {
 				if (ImGui::MenuItem("Add Camera")) {
-					ecs::add_component<rnd::camera_component>(ent, rnd::camera_component{ .viewport = glm::ivec4{100,100, 500, 500} });
+					ecs::add_component<scn::camera_component>(ent, scn::camera_component{ .viewport = glm::ivec4{100,100, 500, 500} });
 				}
 				ImGui::EndPopup();
 			}
@@ -224,10 +226,11 @@ void show_tree_items(ecs::entity ent)
 			ImGui::ColorEdit3("Color", glm::value_ptr(colot->diffuse));
 		}
 
-		if (auto* camera = ecs::get_component<rnd::camera_component>(ent))
+		if (auto* camera = ecs::get_component<scn::camera_component>(ent))
 		{
 			ImGui::Text("fov: %3.f", camera->fov);
-			ImGui::Text("distance: %3.f", camera->view_distance);
+			ImGui::Text("near: %3.f", camera->near_distance);
+			ImGui::Text("far: %3.f", camera->far_distance);
 			ImGui::Text("x: %d, y: %d, width: %d, height: %d", camera->viewport.center.x, camera->viewport.center.y, camera->viewport.size.x, camera->viewport.size.y);
 		}
 
@@ -282,93 +285,6 @@ bool editor::EditorSystem::show_toolbar()
 			{
 				show_tree_items(ent);
 			}
-
-			ImGui::Separator();
-
-			for (ecs::entity ent : ecs::filter<scn::model_comonent>())
-			{
-				std::string obj_idx = std::to_string(ent.index);
-				std::string obj_name = "Object##" + obj_idx;
-				if (ImGui::TreeNode(obj_name.c_str()))
-				{
-					scn::transform_component* trans = ecs::get_component<scn::transform_component>(ent);
-					if (trans) {
-						eng::transform3d tr{ trans->world };
-						glm::vec3 scale = tr.get_scale();
-						std::string scale_name = "scale##" + obj_idx;
-						ImGui::InputFloat(scale_name.c_str(), glm::value_ptr(scale));
-						if (scale != tr.get_scale()) {
-							tr.set_scale(glm::vec3{ scale.x });
-							trans->world = tr.to_matrix();
-						}
-					}
-
-					if (scn::model_comonent* model = ecs::get_component<scn::model_comonent>(ent))
-					{
-						std::string mesh_capter = "Meshes"s + " (" + std::to_string(model->meshes.size()) + ")" + "##" + obj_idx ;
-						if (ImGui::TreeNode(mesh_capter.c_str()))
-						{
-							int idx = 0;
-							for (res::Mesh& mesh : model->meshes)
-							{
-								std::string mesh_idx = std::to_string(++idx);
-								std::string mesh_name = "Mesh#" + obj_idx + "." + mesh_idx;
-								if (ImGui::TreeNode(mesh_name.c_str()))
-								{
-									res::Material& mat = mesh.material;
-									static char diffuce_buf[64];
-									if (mat.diffuse.is_valid()) {
-										ImGui::Text(mat.diffuse.get_full().data());
-									}
-									ImGui::InputText("diffuse", diffuce_buf, 64);
-									if (ImGui::Button("Submit diffuse")) {
-										res::Tag new_diffuse = res::Tag::make(diffuce_buf);
-										mat.diffuse = new_diffuse;
-									}
-
-									static char ambient_buf[64];
-									if (mat.ambient.is_valid()) {
-										ImGui::Text(mat.ambient.get_full().data());
-									}
-									ImGui::InputText("ambient", ambient_buf, 64);
-									if (ImGui::Button("Submit ambient")) {
-										res::Tag new_diffuse = res::Tag::make(ambient_buf);
-										mat.ambient = new_diffuse;
-									}
-
-									static char normal_buf[64];
-									if (mat.normal.is_valid()) {
-										ImGui::Text(mat.normal.get_full().data());
-									}
-									ImGui::InputText("normal", normal_buf, 64);
-									if (ImGui::Button("Submit normal")) {
-										res::Tag new_diffuse = res::Tag::make(normal_buf);
-										mat.normal = new_diffuse;
-									}
-
-									static char specular_buf[64];
-									if (mat.specular.is_valid()) {
-										ImGui::Text(mat.specular.get_full().data());
-									}
-									ImGui::InputText("specular", specular_buf, 64);
-									if (ImGui::Button("Submit specular")) {
-										res::Tag new_diffuse = res::Tag::make(specular_buf);
-										mat.specular = new_diffuse;
-									}
-
-									ImGui::TreePop();
-									ImGui::Spacing();
-								}
-							} // mesh
-
-							ImGui::TreePop();
-							ImGui::Spacing();
-						}
-					}
-					ImGui::TreePop();
-					ImGui::Spacing();
-				} // object
-			}
 		}
 
 		ImGui::Separator();
@@ -376,45 +292,16 @@ bool editor::EditorSystem::show_toolbar()
 		{
 			ImGui::Text("Camera");
 			ImGui::Separator();
-			if (ImGui::BeginCombo("Cameras", cameras_list[current_camera].c_str(), 0))
-			{
-				for (int n = 0; n < cameras_list.size(); n++)
-				{
-					const bool is_selected = (current_camera == n);
-					if (ImGui::Selectable(cameras_list[n].c_str(), is_selected)) {
-						current_camera = n;
-						if (current_camera == 0) {
-							ecs::add_component(camera->ecs_entity, scn::is_render_component_flag{});
-							ecs::remove_component<scn::is_render_component_flag>(second_camera->ecs_entity);
-							second_camera_controller->disable_input_actions(gs::get_system().get_input_manager());
-							camera_controller->enable_input_actions(gs::get_system().get_input_manager());
-						}
-						else {
-							ecs::remove_component<scn::is_render_component_flag>(camera->ecs_entity);
-							ecs::add_component(second_camera->ecs_entity, scn::is_render_component_flag{});
-							camera_controller->disable_input_actions(gs::get_system().get_input_manager());
-							second_camera_controller->enable_input_actions(gs::get_system().get_input_manager());
-						}
-					}
-
-					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
-					if (is_selected)
-						ImGui::SetItemDefaultFocus();
-				}
-				ImGui::EndCombo();
-			}
-
 			std::vector<std::string> names;
 			int cam_id = 1;
 			int cam_cur = 0;
 			int cam_cur_id = 0;
-			auto cameras = ecs::filter<rnd::camera_component>();
+			auto cameras = ecs::filter<scn::camera_component>();
 			for (auto& ent : cameras)
 			{
 				if (auto* name = ecs::get_component<scn::name_component>(ent)) {
 					names.push_back(name->name);
-				}
-				else {
+				} else {
 					names.push_back("Camera" + std::to_string(cam_id++));
 				}
 
@@ -445,7 +332,7 @@ bool editor::EditorSystem::show_toolbar()
 				ImGui::EndCombo();
 			}
 
-			for (auto& ent : ecs::filter<rnd::camera_component, scn::is_render_component_flag>()) {
+			for (auto& ent : ecs::filter<scn::camera_component, scn::is_render_component_flag>()) {
 				eng::transform3d ct{ glm::mat4{1.0} };
 				if (auto* trans = ecs::get_component<scn::transform_component>(ent)) {
 					ct = eng::transform3d{ trans->local };

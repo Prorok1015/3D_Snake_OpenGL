@@ -1,27 +1,39 @@
-#include "gs_renderer_3d.h"
-#include <rnd_driver_interface.h>
-#include <rnd_vertex_array_interface.h>
-#include <rnd_buffer_interface.h>
-#include <rnd_render_system.h>
+#include "scn_renderer.h"
+#include "rnd_driver_interface.h"
+#include "rnd_vertex_array_interface.h"
+#include "rnd_buffer_interface.h"
+#include "rnd_render_system.h"
 
-#include <scn_primitives.h>
+#include "scn_primitives.h"
 
-#include <res_instance.h>
+#include "res_instance.h"
 
-#include <light/rnd_light_point.h>
-#include <sky/rnd_cubemap.h>
+#include "light/rnd_light_point.h"
+#include "sky/rnd_cubemap.h"
 
-#include <ecs/ecs_common_system.h>
+#include "ecs/ecs_common_system.h"
 
-#include <timer.hpp>
+#include "timer.hpp"
+#include "eng_transform_3d.hpp"
 
-#include <debug_ui_api.h>
+#include "debug_ui_api.h"
 #include <Windows.h>
 
-gs::renderer_3d::renderer_3d()
-	: rnd::renderer_base(1) 
+namespace scn {
+    float make_aspect(camera_component& camera)
+    {
+        return (float)camera.viewport.size.x / (float)camera.viewport.size.y;
+    }
+
+    glm::mat4 make_projection(camera_component& camera)
+    {
+        return glm::perspective(glm::radians(camera.fov), make_aspect(camera), camera.near_distance, camera.far_distance);
+    }
+}
+
+scn::renderer_3d::renderer_3d()
+    : rnd::renderer_base(1)
 {
-    start_time = GetTickCount();
     rnd::driver::driver_interface* drv = rnd::get_system().get_driver();
 
     vertex_array = drv->create_vertex_array();
@@ -38,7 +50,7 @@ gs::renderer_3d::renderer_3d()
             {rnd::driver::SHADER_DATA_TYPE::VEC4_F, "bones_weight"},
             {rnd::driver::SHADER_DATA_TYPE::VEC4_F, "color"},
         }
-    );
+        );
 
     vertex_array->add_vertex_buffer(vertex_buffer);
 
@@ -74,12 +86,12 @@ gs::renderer_3d::renderer_3d()
     DBG_UI_SET_ITEM_CHECKED("RENDER/SHOW_ANIM", true);
 }
 
-gs::renderer_3d::~renderer_3d()
+scn::renderer_3d::~renderer_3d()
 {
 
 }
 
-void gs::renderer_3d::setup_instance_buffer()
+void scn::renderer_3d::setup_instance_buffer()
 {
     rnd::driver::driver_interface* drv = rnd::get_system().get_driver();
     vertex_array_inst = drv->create_vertex_array();
@@ -104,7 +116,7 @@ void gs::renderer_3d::setup_instance_buffer()
     vertex_array_inst->set_index_buffer(index_buffer);
 }
 
-void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
+void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
     rnd::global_params common_matrix{ .time = (float)Timer::now() };
 
@@ -114,9 +126,9 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         rnd::get_system().get_shader_manager().update_global_sun(*light);
     }
 
-    for (ecs::entity& ent : ecs::filter<rnd::camera_component, scn::is_render_component_flag>())
+    for (ecs::entity& ent : ecs::filter<scn::camera_component, scn::is_render_component_flag>())
     {
-        rnd::camera_component* camera = ecs::get_component<rnd::camera_component>(ent);
+        scn::camera_component* camera = ecs::get_component<scn::camera_component>(ent);
         if (camera->viewport.size.x == 0 || camera->viewport.size.y == 0) {
             continue;
         }
@@ -130,19 +142,17 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
             pos = eng::transform3d{ trans->local };
         }
 
-        common_matrix.projection = rnd::make_projection(*camera);
+        common_matrix.projection = scn::make_projection(*camera);
         common_matrix.view_position = glm::vec4(pos.get_pos(), 1.0);
 
         rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
         glm::ivec4 vp{ camera->viewport.center, camera->viewport.size };
-	    drv->set_viewport(vp);
+        drv->set_viewport(vp);
         drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
         drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
 
         draw_instances(drv);
-
-        draw_model(drv);
 
         draw_ecs_model(drv);
 
@@ -150,36 +160,7 @@ void gs::renderer_3d::on_render(rnd::driver::driver_interface* drv)
     }
 }
 
-void gs::renderer_3d::draw_line(rnd::driver::driver_interface* drv)
-{
-    //auto shader = rnd::get_system().get_shader_manager().use("scene");
-    //glm::mat4 lineModel = camera->transform.to_matrix();
-    //shader.uniform("model", /*lineModel * */glm::scale(glm::translate(glm::mat4{ 1 }, glm::vec3{ 0 }), glm::vec3{ 1 }));
-
-    //res::Vertex line[2];
-    //line[0].position_ = { 0.f, 0.f, 0.f };
-    //line[1].position_ = { 0.f, 50.f, 0.f };
-
-    //line[1].position_ = camera->transform.get_pos();
-    ////line[1].position_ = /*camera->transform.get_pos() + */(camera->transform.back() * 50.f);
-
-    //vertex_array->bind();
-    //vertex_buffer->set_data(line, 2 * sizeof(res::Vertex), rnd::driver::BUFFER_BINDING::DYNAMIC);
-    //vertex_array->set_index_buffer(index_buffer);
-
-    //drv->set_activate_texture(0);
-    //rnd::get_system().get_texture_manager().require_texture(res::Tag::make("__black"))->bind();
-
-    //// draw mesh
-    //drv->draw_indeces(rnd::RENDER_MODE::LINE, 2);
-
-    //// always good practice to set everything back to defaults once configured.
-    //drv->set_activate_texture(0);
-
-    //vertex_array->unbind();
-}
-
-void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
+void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 {
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
     drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
@@ -195,7 +176,7 @@ void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
         if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
             tmp = rnd_mode->mode;
         }
-        
+
         vertex_buffer->set_data(inst->tpl.vertices);
         index_buffer->set_data(inst->tpl.indices);
 
@@ -218,13 +199,14 @@ void gs::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 
         if (inst->worlds.size() == 1) {
             drv->draw_indeces(vertex_array_inst, tmp, inst->tpl.indices.size());
-        } else {
+        }
+        else {
             drv->draw_instanced_indeces(vertex_array_inst, tmp, inst->tpl.indices.size(), inst->worlds.size());
         }
     }
 }
 
-void gs::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv)
+void scn::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv)
 {
     if (auto* meshes = ecs::get_component<scn::mesh_component>(ent))
     {
@@ -245,7 +227,7 @@ void gs::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_contein
     }
 }
 
-void gs::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
+void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
 {
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
     //drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
@@ -269,7 +251,8 @@ void gs::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
         if (bones.size() < rnd::bones_matrices::MAX_BONE_MATRICES_COUNT) {
             std::copy(bones.begin(), bones.end(), bones_matreces.bones);
             rnd::get_system().get_shader_manager().update_global_bones_matrices(bones_matreces, bones.size());
-        } else {
+        }
+        else {
             ASSERT_FAIL("Bones matrices count too big.");
         }
 
@@ -279,79 +262,7 @@ void gs::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
     }
 }
 
-void gs::renderer_3d::draw_model(rnd::driver::driver_interface* drv)
-{
-    drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
-    //drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
-
-
-    for (auto ent : ecs::filter<scn::is_render_component_flag, scn::model_comonent, scn::transform_component>()) {
-        auto* model = ecs::get_component<scn::transform_component>(ent);
-        auto* meshes = ecs::get_component<scn::model_comonent>(ent);
-        
-        rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
-
-        if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
-            rnd::get_system().set_render_mode(rnd_mode->mode);
-        }
-
-        if (meshes->model && is_flag_test_render) {
-            rnd::shader_scene_desc scene;
-
-            if (meshes->model->get_model_pres().animations.size() > 0 && is_flag_show_anim) {
-
-                long long test123 = GetTickCount();
-                std::vector<glm::mat4> bones = meshes->model->get_bone_transforms((float(test123 - start_time) / 1000.f), meshes->model->get_model_pres().animations[0].name);
-                scene.use_animation = 1;
-                rnd::bones_matrices bones_matreces;
-                bones_matreces.row_height = meshes->model->get_model_pres().data.bones_data.original_size.x;
-                bones_matreces.bone_count = meshes->model->get_model_pres().data.bones_data.original_size.y;
-                if (bones.size() < rnd::bones_matrices::MAX_BONE_MATRICES_COUNT) {
-                    std::copy(bones.begin(), bones.end(), bones_matreces.bones);
-                    rnd::get_system().get_shader_manager().update_global_bones_matrices(bones_matreces, bones.size());
-                } else {
-                    ASSERT_FAIL("Bones matrices count too big.");
-                }
-            }
-            else {
-                scene.use_animation = 0;
-            }
-
-            scene.uWorldModel = model->world;
-            res::node_hierarchy_view& hir = meshes->model->get_model_pres().head;
-            auto& data = meshes->model->get_model_pres().data;
-            vertex_buffer->set_data(data.vertices);
-            draw_hierarchy(data, scene, model->world, hir, glm::mat4{ 1.0 }, drv);
-
-        } else {
-            rnd::shader_scene_desc scene;
-            scene.uWorldModel = model->world;
-            scene.uWorldMeshMatr = glm::mat4(1.0);
-            scene.use_animation = 0;
-            for (auto& mesh : meshes->meshes) {
-                draw(scene, mesh, drv);
-            }
-        }
-
-        rnd::get_system().set_render_mode(tmp);
-    }
-}
-
-void gs::renderer_3d::draw_hierarchy(res::meshes_conteiner& data, rnd::shader_scene_desc& desc, glm::mat4& model_world, res::node_hierarchy_view& hir, glm::mat4 parent, rnd::driver::driver_interface* drv)
-{
-    for (auto& node : hir.children)
-    {
-        glm::mat4 node_mt = parent * node.mt;
-        desc.uWorldMeshMatr = model_world * node_mt;
-        for (auto& v_mesh : node.meshes) {
-            draw(desc, v_mesh, data, drv);
-        }
-
-        draw_hierarchy(data, desc, model_world, node, node_mt, drv);
-    }
-}
-
-void gs::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
+void scn::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
 {
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL);
     drv->disable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
@@ -370,42 +281,7 @@ void gs::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
     }
 }
 
-void gs::renderer_3d::draw(scn::Model& val, rnd::driver::driver_interface* drv)
-{
-    rnd::shader_scene_desc scene;
-    scene.uWorldModel = val.model;
-	for (auto& mesh : val.meshes) {
-		draw(scene, mesh, drv);
-	}
-}
-
-void gs::renderer_3d::draw(rnd::shader_scene_desc& desc, res::Mesh& mesh, rnd::driver::driver_interface* drv)
-{
-    // A great thing about structs is that their memory layout is sequential for all its items.
-    // The effect is that we can simply pass a pointer to the struct and it translates perfectly to a glm::vec3/2 array which
-    // again translates to 3/2 floats which translates to a byte array.
-    vertex_buffer->set_data(mesh.vertices);
-    index_buffer->set_data(mesh.indices);
-
-    if (mesh.material.diffuse.is_valid()) {
-        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(mesh.material.diffuse)->get();
-    }
-
-    if (mesh.material.specular.is_valid()) {
-        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(mesh.material.specular)->get();
-    }
-
-    if (mesh.material.ambient.is_valid()) {
-        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(mesh.material.ambient)->get();
-    }
-
-    rnd::get_system().get_shader_manager().use(desc);
-    // draw mesh
-    drv->draw_indeces(vertex_array, rnd::get_system().get_render_mode(), (unsigned)mesh.indices.size());
-}
-
-
-void gs::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, const res::meshes_conteiner& data, rnd::driver::driver_interface* drv)
+void scn::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, const res::meshes_conteiner& data, rnd::driver::driver_interface* drv)
 {
     index_buffer->set_data_ptr(&data.indices[mesh.ind_begin], mesh.get_indices_count());
 
