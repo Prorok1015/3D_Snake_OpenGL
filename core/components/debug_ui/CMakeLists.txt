@@ -6,15 +6,4 @@ target_sources(${PROJECT_NAME} PRIVATE ${SE_DEBUG_UI_SOURCES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-target_sources(${PROJECT_NAME} PRIVATE 
-"${THIRD_PARTY_PATH}/imgui/backends/imgui_impl_glfw.cpp"
-"${THIRD_PARTY_PATH}/imgui/backends/imgui_impl_opengl3.cpp"
-"${THIRD_PARTY_PATH}/imgui/imgui.cpp" 
-"${THIRD_PARTY_PATH}/imgui/imgui_draw.cpp"
-"${THIRD_PARTY_PATH}/imgui/imgui_widgets.cpp" 
-"${THIRD_PARTY_PATH}/imgui/imgui_tables.cpp"
-"${THIRD_PARTY_PATH}/imgui/imgui_demo.cpp"
-)
-target_include_directories(${PROJECT_NAME} PUBLIC ${THIRD_PARTY_PATH}/imgui)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE common PRIVATE window PRIVATE game PRIVATE input_system PRIVATE application)
+target_link_libraries(${PROJECT_NAME} PRIVATE common PRIVATE window PRIVATE game PRIVATE input_system PRIVATE application PRIVATE gui_backend_interface)

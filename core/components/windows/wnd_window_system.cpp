@@ -1,7 +1,8 @@
 #include "wnd_window_system.h"
 #include "wnd_window.h"
-#include <inp_input_system.h>
-#include <rnd_gl_render_context.h>
+#include "inp_input_system.h"
+#include "rnd_gl_render_context.h"
+#include "gui_gl_backend.h"
 
 wnd::WindowSystem* p_wnd_system = nullptr;
 
@@ -73,11 +74,14 @@ wnd::WindowSystem::WindowSystem()
 
     active_window = make_window()->get_id();   
     context = std::make_unique<rnd::driver::gl::render_context>((GLADloadproc)glfwGetProcAddress);
+    imgui_backend = std::make_unique<gui::gl::gl_imgui_backend>();
+    imgui_backend->init(active_window.internal_id);
 }
 
 wnd::WindowSystem::~WindowSystem()
 {
     glfwTerminate();
+    imgui_backend->shutdown();
 }
 
 std::shared_ptr<wnd::window> wnd::WindowSystem::make_window()

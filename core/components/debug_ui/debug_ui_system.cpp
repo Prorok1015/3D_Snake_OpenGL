@@ -3,9 +3,7 @@
 #include <inp_input_system.h>
 #include <rnd_render_system.h>
 #include <gs_game_system.h>
-
-#include "backends/imgui_impl_glfw.h"
-#include "backends/imgui_impl_opengl3.h"
+#include "imgui.h"
 
 dbg_ui::DebugUiSystem* p_dbgui_system = nullptr;
 
@@ -22,25 +20,14 @@ dbg_ui::DebugUiSystem::DebugUiSystem()
 	inpSystem.sub_keyboard_by_tag<DebugUiSystem>([this](auto code, auto action) { switch_input(code, action); });
 
 	window = wnd::get_system().get_active_window();
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(window->get_id(), is_input_enabled);
-	ImGui_ImplOpenGL3_Init("#version 130");
 
 	registrate_menu("DEMO/SHOW DEMO WINDOW", [this] { return show_demo(); });
 	registrate_menu("MENU/STATISTIC WINDOW", [this] {  return show_stats(); });
 	set_menu_checked("MENU/STATISTIC WINDOW", true);
 
-	renderer = std::make_shared<dbg_ui::renderer>();
+	renderer = std::make_shared<dbg_ui::renderer>(wnd::get_system().get_gui_backend());
 	renderer->render_event += [this] { render_menues(); };
 	rnd::get_system().activate_renderer(renderer);
 }
@@ -48,9 +35,6 @@ dbg_ui::DebugUiSystem::DebugUiSystem()
 dbg_ui::DebugUiSystem::~DebugUiSystem()
 {
 	rnd::get_system().deactivate_renderer(renderer);
-	ImGui_ImplOpenGL3_Shutdown();
-	ImGui_ImplGlfw_Shutdown();
-	ImGui::DestroyContext();
 }
 
 void dbg_ui::DebugUiSystem::render_menues()
@@ -85,13 +69,6 @@ void dbg_ui::DebugUiSystem::set_is_input_enabled(bool enable)
 	}
 
 	is_input_enabled = enable;
-
-	if (is_input_enabled) {
-		ImGui_ImplGlfw_InstallCallbacks(window->get_id());
-		window->set_cursor_mode(CursorMode::Normal);
-	} else {
-		ImGui_ImplGlfw_RestoreCallbacks(window->get_id());
-	}
 }
 
 void dbg_ui::DebugUiSystem::registrate_menu(std::string_view path, dbg_ui::DebugUiMainMenu::UI_CALLBACK callback)
