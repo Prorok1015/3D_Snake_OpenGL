@@ -4,6 +4,7 @@
 [submodule "lib3dparty/imgui"]
 	path = lib3dparty/imgui
 	url = git@github.com:ocornut/imgui.git
+	branch = docking
 [submodule "lib3dparty/glm"]
 	path = lib3dparty/glm
 	url = git@github.com:g-truc/glm.git
