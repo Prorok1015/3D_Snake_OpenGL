@@ -30,7 +30,7 @@ namespace res
 		std::shared_ptr<RESOURCE> require_resource(const Tag& tag, bool hard_reload = false)
 		{
 			if (auto res = find_cache(tag)) {
-				if (!hard_reload || tag.protocol() == "memory") {
+				if (!hard_reload || tag.protocol() == Tag::memory) {
 					return std::static_pointer_cast<RESOURCE>(res);
 				}
 

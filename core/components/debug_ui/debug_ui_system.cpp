@@ -109,14 +109,14 @@ void dbg_ui::DebugUiSystem::set_check_callback(const std::string_view path, dbg_
 bool dbg_ui::DebugUiSystem::show_stats()
 {
 	bool is_open = true;
-	ImGui::SetNextWindowSize(ImVec2{ 400, 60 });
-	ImGui::SetNextWindowPos(ImVec2{ 0, 20 });
-	if (ImGui::Begin("Common stats", &is_open, ImGuiWindowFlags_NoInputs | ImGuiWindowFlags_NoDecoration))
+	ImGui::SetNextWindowSize(ImVec2{ 400, 60 }, ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowPos(ImVec2{ 0, 20 }, ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("Common stats", &is_open))
 	{
 		ImGuiIO& io = ImGui::GetIO();
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-		ImGui::End();
 	}
+	ImGui::End();
 	return is_open;
 }
 

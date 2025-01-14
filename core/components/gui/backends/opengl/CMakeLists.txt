@@ -16,4 +16,4 @@ target_sources(${PROJECT_NAME} PRIVATE
 "${THIRD_PARTY_PATH}/imgui/imgui_demo.cpp"
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE common PRIVATE gui_backend_interface PRIVATE glfw)
+target_link_libraries(${PROJECT_NAME} PRIVATE common PRIVATE gui_backend_interface PRIVATE glfw PRIVATE drv_interface PRIVATE drv_opengl)

@@ -58,7 +58,7 @@ namespace editor
 			"objects/helicopter/source/helicopter Space ship.glb",
 			"objects/Cheeseburger.glb",
 		};
-		int current_model = 2;
+		int current_model = 1;
 
 		char buf[64] = "objects/";
 

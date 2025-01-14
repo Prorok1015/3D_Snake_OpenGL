@@ -1,4 +1,6 @@
 #pragma once
+#include <imgui.h>
+#include "rnd_texture_interface.h"
 
 namespace gui
 {
@@ -12,5 +14,6 @@ namespace gui
         virtual void shutdown() = 0;
         virtual void set_display_size(int width, int height) = 0;
         virtual void set_input(float mouseX, float mouseY, bool mouseButtons[3], float mouseWheel) = 0;
+        virtual ImTextureID get_imgui_texture_from_texture(rnd::driver::texture_interface* txm) = 0;
     };
 }

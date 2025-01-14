@@ -11,6 +11,7 @@
 #include "ecs/ecs_common_system.h"
 #include "scn_primitives.h"
 #include "eng_transform_3d.hpp"
+#include "wnd_window_system.h"
 
 #include <imgui.h>
 
@@ -44,6 +45,7 @@ editor::EditorSystem::EditorSystem()
 	});
 
 	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag(res::Tag::memory, "__black"), {1,1}, rnd::driver::texture_header::TYPE::RGB8, {0, 0, 0});
+	auto txt2 = rnd::get_system().get_texture_manager().generate_texture(res::Tag(res::Tag::memory, "__red"), {1,1}, rnd::driver::texture_header::TYPE::RGB8, {255, 0, 0});
 
 	auto anchors = ecs::filter<scn::scene_anchor_component>();
 	ecs::entity world_anchor;
@@ -290,9 +292,9 @@ bool editor::EditorSystem::show_toolbar()
 
 	bool is_open = true;
 	float height = gs::get_system().get_window()->get_size().y - 80;
-	ImGui::SetNextWindowSize(ImVec2{ 400, height});
-	ImGui::SetNextWindowPos(ImVec2{ 0, 80 });
-	if (ImGui::Begin("Observer", &is_open, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize))
+	ImGui::SetNextWindowSize(ImVec2{ 400, height}, ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowPos(ImVec2{ 0, 80 }, ImGuiCond_FirstUseEver);
+	if (ImGui::Begin("Observer", &is_open))
 	{
 		auto& app = app::get_app_system();
 		ImGui::Text("Common");
@@ -458,9 +460,31 @@ bool editor::EditorSystem::show_toolbar()
 		auto pos = ct.get_pos();
 		ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
 
-		ImGui::End();
 	}
+	ImGui::End();
 
+	if (ImGui::Begin("MainTabBar"))
+	{
+		if (ImGui::BeginTabBar("MyTabBar")) {
+			if (ImGui::BeginTabItem("Scene")) {
+				ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+				ImVec2 pos = ImGui::GetCursorScreenPos();
+
+				auto texture = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("test.jpg"));
+				auto* backend = wnd::get_system().get_gui_backend();
+				ImGui::Image(backend->get_imgui_texture_from_texture(texture->get()), contentRegionAvailable, ImVec2(0, 1), ImVec2(1, 0));
+				
+				ImGui::SetCursorScreenPos(ImVec2(pos.x + 10, pos.y + 10));
+				ImGui::Button("Button 1");
+				ImGui::SetCursorScreenPos(ImVec2(pos.x + 10, pos.y + 40));
+				ImGui::Button("Button 2");
+
+				ImGui::EndTabItem();
+			}
+			ImGui::EndTabBar();
+		}
+	}
+	ImGui::End();
 	return is_open;
 }
 
