@@ -94,3 +94,10 @@ void wnd::window::set_logo(res::ImageRef logo, res::ImageRef logo_small)
 
     glfwSetWindowIcon(ctx.get_id(), 1, images);
 }
+
+glm::ivec2 wnd::window::get_backbuffer_size() const
+{
+    glm::ivec2 size{ 0 };
+    glfwGetFramebufferSize(ctx.get_id(), &size.x, &size.y);
+    return size;
+}

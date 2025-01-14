@@ -99,9 +99,10 @@ namespace rnd::driver
 	public:
 		virtual ~driver_interface() {}
 
+		//TODO:
 		virtual void PushFrameBuffer() = 0;
 		virtual void PopFrameBuffer() = 0;
-		virtual void SetRenderTargets(std::shared_ptr<texture_interface> color, std::shared_ptr<texture_interface> depth_stencil = nullptr) = 0;
+		virtual void SetRenderTargets(texture_interface* color, texture_interface* depth_stencil = nullptr) = 0;
 
 		virtual void set_viewport(glm::ivec4 rect) = 0;
 		virtual void set_clear_color(glm::vec4 color) = 0;
@@ -110,14 +111,16 @@ namespace rnd::driver
 		virtual void set_activate_texture(int idx) = 0;
 		virtual void set_line_size(float size) = 0;
 		virtual void set_point_size(float size) = 0;
-		//TODO: remove
+		//TODO: modify
 		virtual void draw_elements(RENDER_MODE render_mode, unsigned int vao, unsigned int count) = 0;
 		virtual void draw_indeces(const std::unique_ptr<vertex_array_interface>& verteces, RENDER_MODE render_mode, unsigned int count, unsigned int offset = 0) = 0;
 		virtual void draw_instanced_indeces(const std::unique_ptr<vertex_array_interface>& verteces, RENDER_MODE render_mode, unsigned int count, unsigned int instance_count, unsigned int offset = 0) = 0;
 
+		//TODO: change to barrier abstraction
 		virtual void enable(ENABLE_FLAGS flags) = 0;
 		virtual void disable(ENABLE_FLAGS flags) = 0;
 
+		//TODO: remove
 		virtual void unuse() = 0;
 
 		virtual std::unique_ptr<shader_interface> create_shader(const std::vector<shader_header>& headers) = 0;

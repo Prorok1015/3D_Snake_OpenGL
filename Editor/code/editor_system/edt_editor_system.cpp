@@ -470,7 +470,7 @@ bool editor::EditorSystem::show_toolbar()
 				ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 				ImVec2 pos = ImGui::GetCursorScreenPos();
 
-				auto texture = rnd::get_system().get_texture_manager().require_texture(res::Tag::make("test.jpg"));
+				auto texture = rnd::get_system().get_texture_manager().require_texture(res::Tag(res::Tag::memory, "__color_scene_rt"));
 				auto* backend = wnd::get_system().get_gui_backend();
 				ImGui::Image(backend->get_imgui_texture_from_texture(texture->get()), contentRegionAvailable, ImVec2(0, 1), ImVec2(1, 0));
 				

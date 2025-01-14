@@ -68,7 +68,7 @@ const GLint gDepthFuncFlagsToGlDepthFuncFlags[] =
 
 rnd::driver::gl::driver::driver()
 {
-	framebuffers.push(0);
+	framebuffers.push({ 0, 0 });
 }
 
 rnd::driver::gl::driver::~driver()
@@ -78,11 +78,9 @@ rnd::driver::gl::driver::~driver()
 void rnd::driver::gl::driver::PushFrameBuffer()
 {
 	GLuint framebuffer = 0;
-	glGenFramebuffers(1, &framebuffer);
+	glCreateFramebuffers(1, &framebuffer);
 	CHECK_GL_ERROR();
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	CHECK_GL_ERROR();
-	framebuffers.push(framebuffer);
+	framebuffers.push({ framebuffer, 0 });
 }
 
 void rnd::driver::gl::driver::PopFrameBuffer()
@@ -92,31 +90,69 @@ void rnd::driver::gl::driver::PopFrameBuffer()
 		return;
 	}
 
-	GLuint framebuffer = framebuffers.top();
+	auto key = framebuffers.top();
+	auto& [framebuffer, depth_stencil] = key;
 	framebuffers.pop();
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.top());
+	glDeleteRenderbuffers(1, &depth_stencil);
 	CHECK_GL_ERROR();
 	glDeleteFramebuffers(1, &framebuffer);
 	CHECK_GL_ERROR();
+
 }
 
-void rnd::driver::gl::driver::SetRenderTargets(std::shared_ptr<texture_interface> color, std::shared_ptr<texture_interface> depth_stencil /* = nullptr*/)
+void rnd::driver::gl::driver::SetRenderTargets(texture_interface* color, texture_interface* depth_stencil /* = nullptr*/)
 {
+	auto& [fb, ds_b] = framebuffers.top();
 	if (color) {
-		auto gl_color = std::static_pointer_cast<texture>(color);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gl_color->get_id(), 0);
+		//auto gl_color = std::static_pointer_cast<texture>(color);
+		auto gl_color = static_cast<texture*>(color);
+		glNamedFramebufferTexture(fb, GL_COLOR_ATTACHMENT0, gl_color->get_id(), 0);
+		if (!depth_stencil) {
+			glCreateRenderbuffers(1, &ds_b);
+			glNamedRenderbufferStorage(ds_b, GL_DEPTH_COMPONENT32, gl_color->width(), gl_color->height());
+			glNamedFramebufferRenderbuffer(fb, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, ds_b);
+		}
 	}
 
 	if (depth_stencil) {
-		auto gl_depth_stencil = std::static_pointer_cast<texture>(depth_stencil);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, gl_depth_stencil->get_id(), 0);
+		//auto gl_depth_stencil = std::static_pointer_cast<texture>(depth_stencil);
+		auto gl_depth_stencil = static_cast<texture*>(depth_stencil);
+		glNamedFramebufferTexture(fb, GL_DEPTH_STENCIL_ATTACHMENT, gl_depth_stencil->get_id(), 0);
 		//TODO: make different textures
 		//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, gl_depth_stencil->get_id());
 	}
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.top().first);
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (status != GL_FRAMEBUFFER_COMPLETE) {
+		std::string errorString;
+		switch (status) {
+		case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			errorString = "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+			errorString = "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
+			errorString = "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
+			errorString = "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
+			break;
+		case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
+			errorString = "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
+			break;
+		case GL_FRAMEBUFFER_UNSUPPORTED:
+			errorString = "GL_FRAMEBUFFER_UNSUPPORTED";
+			break;
 
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
-		egLOG("driver/set_rt", "Framebuffer didn't complite!");
+		default:
+			errorString = "Unknown Framebuffer Error";
+			break;
+		}
+
+		egLOG("Framebuffer is not complete: {0}", errorString);
 	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void rnd::driver::gl::driver::set_viewport(glm::ivec4 rect)
@@ -137,8 +173,10 @@ void rnd::driver::gl::driver::set_clear_color(glm::vec4 color)
 
 void rnd::driver::gl::driver::clear(CLEAR_FLAGS flags)
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.top().first);
 	glClear(gClearFlagsToGlClearFlags[(int)flags]);
 	CHECK_GL_ERROR();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void rnd::driver::gl::driver::clear(CLEAR_FLAGS flags, glm::vec4 color)
@@ -180,7 +218,7 @@ void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned in
 void rnd::driver::gl::driver::draw_indeces(const std::unique_ptr<vertex_array_interface>& verteces, RENDER_MODE render_mode, unsigned int count, unsigned int base_vertex)
 {
 	GLenum rm = GL_TRIANGLES;
-
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.top().first);
 	if (render_mode == RENDER_MODE::LINE_STRIP_ADJ) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
@@ -198,12 +236,14 @@ void rnd::driver::gl::driver::draw_indeces(const std::unique_ptr<vertex_array_in
 		CHECK_GL_ERROR();
 	}
 	verteces->unbind();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void rnd::driver::gl::driver::draw_instanced_indeces(const std::unique_ptr<vertex_array_interface>& verteces, RENDER_MODE render_mode, unsigned int count, unsigned int instance_count, unsigned int offset)
 {
 	GLenum rm = GL_TRIANGLES;
-
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.top().first);
 	if (render_mode == RENDER_MODE::LINE_STRIP_ADJ) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}
@@ -215,6 +255,7 @@ void rnd::driver::gl::driver::draw_instanced_indeces(const std::unique_ptr<verte
 	glDrawElementsInstanced(rm, count, GL_UNSIGNED_INT, 0, instance_count);
 	CHECK_GL_ERROR();
 	verteces->unbind();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void rnd::driver::gl::driver::enable(ENABLE_FLAGS flags)
@@ -310,23 +351,23 @@ std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_
 {
 	GLsizei t_width = header.picture.width;
 	GLsizei t_height = header.picture.height;
-	GLenum format = 0;
+	GLenum format_internal = 0;
 	GLenum format_2 = 0;
 	GLenum data_type = GL_UNSIGNED_BYTE;
 	if (header.picture.channels == rnd::driver::texture_header::TYPE::R8) {
-		format = GL_R8;
+		format_internal = GL_R8;
 		format_2 = GL_RED;
 	}
 	else if (header.picture.channels == rnd::driver::texture_header::TYPE::RGB8) {
-		format = GL_RGB8;
+		format_internal = GL_RGB8;
 		format_2 = GL_RGB;
 	}
 	else if (header.picture.channels == rnd::driver::texture_header::TYPE::RGBA8) {
-		format = GL_RGBA8;
+		format_internal = GL_RGBA8;
 		format_2 = GL_RGBA;
 	}
 	else if (header.picture.channels == rnd::driver::texture_header::TYPE::R32I) {
-		format = GL_R32I;
+		format_internal = GL_R32I;
 		format_2 = GL_RED_INTEGER;
 		data_type = GL_INT;
 	}
@@ -349,15 +390,20 @@ std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_
 	glTextureParameteri(texture, GL_TEXTURE_WRAP_T, gTextureWrappingToGlWrapping[(int)header.wrap]);
 	CHECK_GL_ERROR();
 
-	glTextureStorage2D(texture, 1, format, t_width, t_height);
+	glTextureStorage2D(texture, 1, format_internal, t_width, t_height);
 	CHECK_GL_ERROR();
+
 	GLint result = 0;
 	glGetTextureParameteriv(texture, GL_TEXTURE_IMMUTABLE_FORMAT, &result);
 	if (result != GL_TRUE) {
-		egLOG("texture/create", "broken store tex");
+		egLOG("texture/create", "Broken tex immutable format");
 	}
-	glTextureSubImage2D(texture, 0, 0, 0, t_width, t_height, format_2, data_type, image_data);
-	CHECK_GL_ERROR();
+
+	if (image_data) {
+		glTextureSubImage2D(texture, 0, 0, 0, t_width, t_height, format_2, data_type, image_data);
+		CHECK_GL_ERROR();
+	}
+
 	//glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, 4);
 	//CHECK_GL_ERROR();
 	//glGenerateTextureMipmap(texture);

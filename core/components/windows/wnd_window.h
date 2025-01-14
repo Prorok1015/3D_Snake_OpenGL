@@ -38,6 +38,8 @@ namespace wnd
 
 		void on_resize_window(int width, int height);
 
+		glm::ivec2 get_backbuffer_size() const;
+
 		void set_logo(res::ImageRef logo, res::ImageRef logo_small = nullptr);
 		void set_title(std::string_view title);
 		void set_vsync(bool v);

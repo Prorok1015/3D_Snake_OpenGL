@@ -127,13 +127,31 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         sun.position = light->position;
         rnd::get_system().get_shader_manager().update_global_sun(sun);
     }
-
+    static bool first_init = true;
     for (ecs::entity& ent : ecs::filter<scn::camera_component, scn::is_render_component_flag>())
     {
         scn::camera_component* camera = ecs::get_component<scn::camera_component>(ent);
         if (camera->viewport.size.x == 0 || camera->viewport.size.y == 0) {
             continue;
         }
+        if (first_init) {
+            first_init = false;
+            rnd::driver::texture_header header;
+            header.picture.data = nullptr;
+            header.picture.height = camera->viewport.size.y;
+            header.picture.width = camera->viewport.size.x;
+            header.picture.channels = rnd::driver::texture_header::TYPE::RGBA8;
+            header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_BORDER;
+            header.mag = rnd::driver::texture_header::FILTERING::LINEAR;
+            header.min = rnd::driver::texture_header::FILTERING::LINEAR;
+            auto color_rt = rnd::get_system().get_texture_manager().generate_texture(res::Tag(res::Tag::memory, "__color_scene_rt"), header);
+        }
+
+        drv->PushFrameBuffer();
+        auto color_rt = rnd::get_system().get_texture_manager().require_texture(res::Tag(res::Tag::memory, "__color_scene_rt"));
+        drv->SetRenderTargets(color_rt->get());
+        drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
+        drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
         eng::transform3d pos{ glm::mat4{1.0} };
         common_matrix.view = glm::inverse(glm::mat4{ 1.0 });
@@ -150,8 +168,6 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
         glm::ivec4 vp{ camera->viewport.center, camera->viewport.size };
         drv->set_viewport(vp);
-        drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
-        drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
 
         draw_instances(drv);
@@ -159,6 +175,8 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         draw_ecs_model(drv);
 
         draw_sky(drv);
+
+        drv->PopFrameBuffer();
     }
 }
 

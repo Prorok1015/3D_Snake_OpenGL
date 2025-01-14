@@ -13,7 +13,7 @@ namespace rnd::driver::gl
 
 		virtual void PushFrameBuffer() override;
 		virtual void PopFrameBuffer() override;
-		virtual void SetRenderTargets(std::shared_ptr<texture_interface> color, std::shared_ptr<texture_interface> depth_stencil = nullptr) override;
+		virtual void SetRenderTargets(texture_interface* color, texture_interface* depth_stencil = nullptr) override;
 
 		virtual void set_viewport(glm::ivec4 rect) override;
 		virtual void set_clear_color(glm::vec4 color) override;
@@ -39,6 +39,6 @@ namespace rnd::driver::gl
 		virtual std::unique_ptr<uniform_buffer_interface> create_uniform_buffer(std::size_t size, std::size_t binding) override;
 	private:
 		glm::ivec4 viewport{ 0 };
-		std::stack<GLuint> framebuffers;
+		std::stack<std::pair<GLuint, GLuint>> framebuffers;
 	};
 }
