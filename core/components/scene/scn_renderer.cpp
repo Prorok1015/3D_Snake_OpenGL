@@ -3,7 +3,7 @@
 #include "rnd_vertex_array_interface.h"
 #include "rnd_buffer_interface.h"
 #include "rnd_render_system.h"
-
+#include "logger/engine_log.h"
 #include "scn_primitives.h"
 
 #include "res_instance.h"
@@ -14,7 +14,6 @@
 #include "eng_transform_3d.hpp"
 
 #include "debug_ui_api.h"
-#include <Windows.h>
 
 namespace scn {
     float make_aspect(camera_component& camera)
@@ -117,6 +116,8 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
     rnd::global_params common_matrix{ .time = (float)Timer::now() };
 
+    static res::Tag color_rt_tag = res::Tag(res::Tag::memory, "__color_scene_rt");
+    auto& txm_manager = rnd::get_system().get_texture_manager();
     for (ecs::entity& ent : ecs::filter<scn::light_point>()) {
         auto* light = ecs::get_component<scn::light_point>(ent);
 
@@ -134,22 +135,35 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         if (camera->viewport.size.x == 0 || camera->viewport.size.y == 0) {
             continue;
         }
-        if (first_init) {
-            first_init = false;
+        auto color_rt = txm_manager.find(color_rt_tag);
+        if (!color_rt) {
             rnd::driver::texture_header header;
-            header.picture.data = nullptr;
             header.picture.height = camera->viewport.size.y;
             header.picture.width = camera->viewport.size.x;
             header.picture.channels = rnd::driver::texture_header::TYPE::RGBA8;
-            header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_BORDER;
-            header.mag = rnd::driver::texture_header::FILTERING::LINEAR;
-            header.min = rnd::driver::texture_header::FILTERING::LINEAR;
-            auto color_rt = rnd::get_system().get_texture_manager().generate_texture(res::Tag(res::Tag::memory, "__color_scene_rt"), header);
+            header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_EDGE;
+            header.mag = rnd::driver::texture_header::FILTERING::NEAREST;
+            header.min = rnd::driver::texture_header::FILTERING::NEAREST;
+            color_rt = txm_manager.generate_texture(color_rt_tag, header);
+            egLOG("scn/renderer", "'{2}' render target Created size: {0}, {1}", color_rt->width(), color_rt->height(), color_rt_tag.name());
+        }
+        else if (color_rt->width() != camera->viewport.size.x || color_rt->height() != camera->viewport.size.y)
+        {
+            txm_manager.remove(color_rt_tag);
+
+            rnd::driver::texture_header header;
+            header.picture.height = camera->viewport.size.y;
+            header.picture.width = camera->viewport.size.x;
+            header.picture.channels = rnd::driver::texture_header::TYPE::RGBA8;
+            header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_EDGE;
+            header.mag = rnd::driver::texture_header::FILTERING::NEAREST;
+            header.min = rnd::driver::texture_header::FILTERING::NEAREST;
+            color_rt = txm_manager.generate_texture(color_rt_tag, header);
+            egLOG("scn/renderer", "'{2}' render target Recreated size: {0}, {1}", color_rt->width(), color_rt->height(), color_rt_tag.name());
         }
 
-        drv->PushFrameBuffer();
-        auto color_rt = rnd::get_system().get_texture_manager().require_texture(res::Tag(res::Tag::memory, "__color_scene_rt"));
-        drv->SetRenderTargets(color_rt->get());
+        drv->push_frame_buffer();
+        drv->set_render_rarget(color_rt);
         drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
         drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
@@ -176,7 +190,7 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
         draw_sky(drv);
 
-        drv->PopFrameBuffer();
+        drv->pop_frame_buffer();
     }
 }
 
@@ -204,15 +218,15 @@ void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 
         rnd::shader_scene_instance_desc desc;
         if (inst->tpl.material.diffuse.is_valid()) {
-            desc.tex0 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.diffuse)->get();
+            desc.tex0 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.diffuse);
         }
 
         if (inst->tpl.material.specular.is_valid()) {
-            desc.tex1 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.specular)->get();
+            desc.tex1 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.specular);
         }
 
         if (inst->tpl.material.ambient.is_valid()) {
-            desc.tex2 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.ambient)->get();
+            desc.tex2 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.ambient);
         }
 
         rnd::get_system().get_shader_manager().use(desc);
@@ -290,7 +304,7 @@ void scn::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
     for (auto sky : ecs::filter<scn::is_render_component_flag, scn::sky_component>()) {
         auto* cube_map = ecs::get_component<scn::sky_component>(sky);
         rnd::shader_sky_desc sky;
-        sky.tex0 = rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map)->get();
+        sky.tex0 = rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map);
         auto& vs = cube_map->data.vertices;
         auto& is = cube_map->data.indices;
         vertex_buffer->set_data(vs);
@@ -307,19 +321,19 @@ void scn::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, 
 
     auto& material = data.materials[mesh.material_id];
     if (material.diffuse.is_valid()) {
-        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(material.diffuse)->get();
+        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(material.diffuse);
     }
 
     if (material.specular.is_valid()) {
-        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(material.specular)->get();
+        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(material.specular);
     }
 
     if (material.ambient.is_valid()) {
-        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(material.ambient)->get();
+        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(material.ambient);
     }
 
     if (data.bones_data.bones_indeces_txm.is_valid()) {
-        desc.tex3 = rnd::get_system().get_texture_manager().require_texture(data.bones_data.bones_indeces_txm)->get();
+        desc.tex3 = rnd::get_system().get_texture_manager().require_texture(data.bones_data.bones_indeces_txm);
     }
 
     rnd::configure_pass(desc);

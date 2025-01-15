@@ -11,9 +11,9 @@ namespace rnd::driver::gl
 		driver();
 		virtual ~driver() override;
 
-		virtual void PushFrameBuffer() override;
-		virtual void PopFrameBuffer() override;
-		virtual void SetRenderTargets(texture_interface* color, texture_interface* depth_stencil = nullptr) override;
+		virtual void push_frame_buffer() override;
+		virtual void pop_frame_buffer() override;
+		virtual void set_render_rarget(texture_interface* color, texture_interface* depth_stencil = nullptr) override;
 
 		virtual void set_viewport(glm::ivec4 rect) override;
 		virtual void set_clear_color(glm::vec4 color) override;

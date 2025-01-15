@@ -37,11 +37,11 @@ editor::EditorSystem::EditorSystem()
 
 	gs::get_system().get_window()->eventResizeWindow.subscribe([](wnd::window&, int w, int h)
 	{
-		for (auto& ent : ecs::filter<scn::camera_component>())
-		{
-			auto* camera = ecs::get_component<scn::camera_component>(ent);
-			camera->viewport.size = glm::ivec2(w, h);
-		}
+		//for (auto& ent : ecs::filter<scn::camera_component>())
+		//{
+		//	auto* camera = ecs::get_component<scn::camera_component>(ent);
+		//	camera->viewport.size = glm::ivec2(w, h);
+		//}
 	});
 
 	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag(res::Tag::memory, "__black"), {1,1}, rnd::driver::texture_header::TYPE::RGB8, {0, 0, 0});
@@ -469,10 +469,14 @@ bool editor::EditorSystem::show_toolbar()
 			if (ImGui::BeginTabItem("Scene")) {
 				ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 				ImVec2 pos = ImGui::GetCursorScreenPos();
-
-				auto texture = rnd::get_system().get_texture_manager().require_texture(res::Tag(res::Tag::memory, "__color_scene_rt"));
+				for (auto& ent : ecs::filter<scn::camera_component>())
+				{
+					auto* camera = ecs::get_component<scn::camera_component>(ent);
+					camera->viewport.size = glm::ivec2(contentRegionAvailable.x, contentRegionAvailable.y);
+				}
+				auto texture = rnd::get_system().get_texture_manager().find(res::Tag(res::Tag::memory, "__color_scene_rt"));
 				auto* backend = wnd::get_system().get_gui_backend();
-				ImGui::Image(backend->get_imgui_texture_from_texture(texture->get()), contentRegionAvailable, ImVec2(0, 1), ImVec2(1, 0));
+				ImGui::Image(backend->get_imgui_texture_from_texture(texture), contentRegionAvailable, ImVec2(0, 1), ImVec2(1, 0));
 				
 				ImGui::SetCursorScreenPos(ImVec2(pos.x + 10, pos.y + 10));
 				ImGui::Button("Button 1");

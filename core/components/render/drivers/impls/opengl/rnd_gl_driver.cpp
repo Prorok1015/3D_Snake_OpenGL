@@ -75,7 +75,7 @@ rnd::driver::gl::driver::~driver()
 {
 }
 
-void rnd::driver::gl::driver::PushFrameBuffer()
+void rnd::driver::gl::driver::push_frame_buffer()
 {
 	GLuint framebuffer = 0;
 	glCreateFramebuffers(1, &framebuffer);
@@ -83,7 +83,7 @@ void rnd::driver::gl::driver::PushFrameBuffer()
 	framebuffers.push({ framebuffer, 0 });
 }
 
-void rnd::driver::gl::driver::PopFrameBuffer()
+void rnd::driver::gl::driver::pop_frame_buffer()
 {
 	if (framebuffers.size() == 1) {
 		ASSERT_FAIL("Trying to pop backbuffer");
@@ -100,7 +100,7 @@ void rnd::driver::gl::driver::PopFrameBuffer()
 
 }
 
-void rnd::driver::gl::driver::SetRenderTargets(texture_interface* color, texture_interface* depth_stencil /* = nullptr*/)
+void rnd::driver::gl::driver::set_render_rarget(texture_interface* color, texture_interface* depth_stencil /* = nullptr*/)
 {
 	auto& [fb, ds_b] = framebuffers.top();
 	if (color) {

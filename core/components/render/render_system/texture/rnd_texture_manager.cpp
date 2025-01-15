@@ -2,24 +2,24 @@
 #include "res_system.h"
 #include "res_picture.h"
 
-std::shared_ptr<rnd::Texture> rnd::TextureManager::require_texture(const res::Tag& tag)
+rnd::driver::texture_interface* rnd::TextureManager::require_texture(const res::Tag& tag)
 {
 	auto it = cache.find(tag);
 	if (it != cache.end()) {
 		auto& texture = it->second;
-		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
+		return texture.get();
 	}
 
 	auto& texture = cache[tag] = rnd::Texture::load(drv, tag);
-	return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
+	return texture.get();
 }
 
-std::shared_ptr<rnd::Texture> rnd::TextureManager::require_cubemap_texture(const std::vector<res::Tag>& tags)
+rnd::driver::texture_interface* rnd::TextureManager::require_cubemap_texture(const std::vector<res::Tag>& tags)
 {
 	auto it = cache.find(tags.front());
 	if (it != cache.end()) {
 		auto& texture = it->second;
-		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
+		return texture.get();
 	}
 
 	rnd::driver::cubmap_texture_header cb_header;
@@ -52,15 +52,15 @@ std::shared_ptr<rnd::Texture> rnd::TextureManager::require_cubemap_texture(const
 	cb_header.mag = rnd::driver::texture_header::FILTERING::LINEAR;
 
 	auto& texture = cache[tags.front()] = drv->create_texture(cb_header);
-	return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
+	return texture.get();
 }
 
-std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::Tag& tag, glm::ivec2 size, rnd::driver::texture_header::TYPE channels, std::vector<unsigned char> data)
+rnd::driver::texture_interface* rnd::TextureManager::generate_texture(const res::Tag& tag, glm::ivec2 size, rnd::driver::texture_header::TYPE channels, std::vector<unsigned char> data)
 {
 	auto it = cache.find(tag);
 	if (it != cache.end()) {
 		auto& texture = it->second;
-		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
+		return texture.get();
 	}
 
     driver::texture_header header;
@@ -72,28 +72,43 @@ std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::T
     header.min = driver::texture_header::FILTERING::LINEAR_MIPMAP;
     header.mag = driver::texture_header::FILTERING::LINEAR;
 	auto& texture = cache[tag] = drv->create_texture(header);
-    return std::make_shared<Texture>(texture.get(), header.picture.width, header.picture.height);
+    return texture.get();
 }
 
-std::shared_ptr<rnd::Texture> rnd::TextureManager::generate_texture(const res::Tag& tag, rnd::driver::texture_header header)
+rnd::driver::texture_interface* rnd::TextureManager::generate_texture(const res::Tag& tag, rnd::driver::texture_header header)
 {
 	auto it = cache.find(tag);
 	if (it != cache.end()) {
 		auto& texture = it->second;
-		return std::make_shared<Texture>(texture.get(), texture->width(), texture->height());
+		return texture.get();
 	}
 
 	auto& texture = cache[tag] = drv->create_texture(header);
-    return std::make_shared<Texture>(texture.get(), header.picture.width, header.picture.height);
+    return texture.get();
 }
  
+rnd::driver::texture_interface* rnd::TextureManager::find(const res::Tag& tag) const
+{
+	auto it = cache.find(tag);
+	if (it != cache.end()) {
+		auto& texture = it->second;
+		return texture.get();
+	}
+
+	return nullptr;
+}
+
+void rnd::TextureManager::remove(const res::Tag& tag)
+{
+	cache.erase(tag);
+}
 
 void rnd::TextureManager::clear_cache()
 { 
 	std::vector<res::Tag> list_to_delete;
 	for (auto& [key, _] : cache)
 	{
-		if (key.protocol() != "memory") {
+		if (key.protocol() != res::Tag::memory) {
 			list_to_delete.push_back(key);
 		}
 	}

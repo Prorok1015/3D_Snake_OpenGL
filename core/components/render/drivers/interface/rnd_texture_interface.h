@@ -2,13 +2,6 @@
 
 namespace rnd::driver
 {
-	enum class texture_type
-	{
-		RED8,
-		RGB8,
-		RGBA8
-	};
-
 	class texture_interface
 	{
 	public:

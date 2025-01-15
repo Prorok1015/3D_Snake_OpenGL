@@ -52,17 +52,17 @@ namespace rnd::driver
 
 		struct data
 		{
-			int width;
-			int height;
-			TYPE channels;
+			int width = 0;
+			int height = 0;
+			TYPE channels = TYPE::R8;
 			unsigned char* data;
 		};
 
-		std::string name = "unknown";
-		data picture;
-		FILTERING min;
-		FILTERING mag;
-		WRAPPING wrap;
+		std::string name = "unknown";//TODO: maybe delete?
+		data picture{};
+		FILTERING min = FILTERING::LINEAR;
+		FILTERING mag = FILTERING::LINEAR;
+		WRAPPING wrap = WRAPPING::CLAMP_TO_EDGE;
 	};
 
 	struct cubmap_texture_header
@@ -99,10 +99,9 @@ namespace rnd::driver
 	public:
 		virtual ~driver_interface() {}
 
-		//TODO:
-		virtual void PushFrameBuffer() = 0;
-		virtual void PopFrameBuffer() = 0;
-		virtual void SetRenderTargets(texture_interface* color, texture_interface* depth_stencil = nullptr) = 0;
+		virtual void push_frame_buffer() = 0;
+		virtual void pop_frame_buffer() = 0;
+		virtual void set_render_rarget(texture_interface* color, texture_interface* depth_stencil = nullptr) = 0;
 
 		virtual void set_viewport(glm::ivec4 rect) = 0;
 		virtual void set_clear_color(glm::vec4 color) = 0;
