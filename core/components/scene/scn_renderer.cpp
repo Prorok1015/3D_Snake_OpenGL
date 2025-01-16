@@ -132,7 +132,7 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
     for (ecs::entity& ent : ecs::filter<scn::camera_component, scn::is_render_component_flag>())
     {
         scn::camera_component* camera = ecs::get_component<scn::camera_component>(ent);
-        if (camera->viewport.size.x == 0 || camera->viewport.size.y == 0) {
+        if (camera->viewport.size.x < 1 || camera->viewport.size.y < 1) {
             continue;
         }
         auto color_rt = txm_manager.find(color_rt_tag);
@@ -277,17 +277,21 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
 
         vertex_buffer->set_data(root->data.vertices);
         rnd::shader_scene_desc scene;
-        scene.use_animation = 1;
-        rnd::bones_matrices bones_matreces;
-        bones_matreces.row_height = root->data.bones_data.original_size.x;
-        bones_matreces.bone_count = root->data.bones_data.original_size.y;
-        auto& bones = root->data.bones_matrices;
-        if (bones.size() < rnd::bones_matrices::MAX_BONE_MATRICES_COUNT) {
-            std::copy(bones.begin(), bones.end(), bones_matreces.bones);
-            rnd::get_system().get_shader_manager().update_global_bones_matrices(bones_matreces, bones.size());
-        }
-        else {
-            ASSERT_FAIL("Bones matrices count too big.");
+        if (auto* anim = ecs::get_component<scn::playable_animation>(ent)) {
+            scene.use_animation = 1;
+            rnd::bones_matrices bones_matreces;
+            bones_matreces.row_height = root->data.bones_data.original_size.x;
+            bones_matreces.bone_count = root->data.bones_data.original_size.y;
+            auto& bones = root->data.bones_matrices;
+            if (bones.size() < rnd::bones_matrices::MAX_BONE_MATRICES_COUNT) {
+                std::copy(bones.begin(), bones.end(), bones_matreces.bones);
+                rnd::get_system().get_shader_manager().update_global_bones_matrices(bones_matreces, bones.size());
+            }
+            else {
+                ASSERT_FAIL("Bones matrices count too big.");
+            }        
+        } else {
+            scene.use_animation = 0;
         }
 
         draw_ecs_meshes(ent, root->data, scene, drv);

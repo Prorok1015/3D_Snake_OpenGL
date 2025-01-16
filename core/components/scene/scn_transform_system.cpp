@@ -57,9 +57,8 @@ void scn::update_animation_system(float dt)
 
 void calc_world_transforms(ecs::entity ent)
 {
-    if (auto* animation = ecs::get_component<scn::animations_component>(ent)) {
-        if (!animation->animations.empty())
-            return;
+    if (auto* animation = ecs::get_component<scn::playable_animation>(ent)) {
+        return;
     }
 
     glm::mat4 local = glm::mat4{ 1.0 };

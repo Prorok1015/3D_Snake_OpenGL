@@ -292,8 +292,9 @@ bool editor::EditorSystem::show_toolbar()
 
 	bool is_open = true;
 	float height = gs::get_system().get_window()->get_size().y - 80;
-	ImGui::SetNextWindowSize(ImVec2{ 400, height}, ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowPos(ImVec2{ 0, 80 }, ImGuiCond_FirstUseEver);
+	//ImGui::SetNextWindowSize(ImVec2{ 400, height}, ImGuiCond_FirstUseEver);
+	//ImGui::SetNextWindowPos(ImVec2{ 0, 80 }, ImGuiCond_FirstUseEver);
+
 	if (ImGui::Begin("Observer", &is_open))
 	{
 		auto& app = app::get_app_system();

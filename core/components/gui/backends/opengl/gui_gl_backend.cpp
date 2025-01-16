@@ -4,6 +4,7 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "rnd_gl_texture.h"
+#include <imgui_internal.h>
 
 void gui::gl::gl_imgui_backend::init(void* context)
 {
@@ -24,13 +25,30 @@ void gui::gl::gl_imgui_backend::new_frame()
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
-    //ImGuiStyle& style = ImGui::GetStyle();
-    //style.Colors[ImGuiCol_DockingEmptyBg] = ImVec4(1.0f, 0.1f, 0.1f, 0.0f);
-    ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
+    ImGuiID dockspace_id = ImGui::GetID("MainDockView");
+    ImGui::DockSpaceOverViewport(dockspace_id, ImGui::GetMainViewport());
+    static bool first_init = true;
+    if (first_init)
+    {
+        first_init = false;
+        ImGui::DockBuilderRemoveNode(dockspace_id);
+        ImGui::DockBuilderAddNode(dockspace_id);
+        ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
+        ImGuiID right = 0;
+        auto left = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Left, 0.2f, nullptr, &right);
+        ImGuiID down = 0;
+        auto up = ImGui::DockBuilderSplitNode(left, ImGuiDir_Up, 0.05f, nullptr, &down);
+
+        ImGui::DockBuilderDockWindow("Common stats", up);
+        ImGui::DockBuilderDockWindow("Observer", down);
+        ImGui::DockBuilderDockWindow("MainTabBar", right);
+        ImGui::DockBuilderFinish(dockspace_id);
+    }
 }
 
 void gui::gl::gl_imgui_backend::render()
 {
+
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
