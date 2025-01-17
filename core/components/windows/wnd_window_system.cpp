@@ -3,6 +3,7 @@
 #include "inp_input_system.h"
 #include "rnd_gl_render_context.h"
 #include "gui_gl_backend.h"
+#include <filesystem>
 
 wnd::WindowSystem* p_wnd_system = nullptr;
 
@@ -76,6 +77,8 @@ wnd::WindowSystem::WindowSystem()
     context = std::make_unique<rnd::driver::gl::render_context>((GLADloadproc)glfwGetProcAddress);
     imgui_backend = std::make_unique<gui::gl::gl_imgui_backend>();
     imgui_backend->init(active_window.internal_id);
+    auto is_exist = std::filesystem::exists(imgui_backend->get_settings_filename());
+    imgui_backend->set_initial_layout_by_default(!is_exist);
 }
 
 wnd::WindowSystem::~WindowSystem()

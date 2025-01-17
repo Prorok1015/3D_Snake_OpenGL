@@ -15,9 +15,12 @@ void gui::gl::gl_imgui_backend::init(void* context)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.IniFilename = nullptr;
 
     ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(context), true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
+    // TODO: change to load from memory
+    ImGui::LoadIniSettingsFromDisk(get_settings_filename().c_str());
 }
 
 void gui::gl::gl_imgui_backend::new_frame()
@@ -27,10 +30,9 @@ void gui::gl::gl_imgui_backend::new_frame()
     ImGui::NewFrame();
     ImGuiID dockspace_id = ImGui::GetID("MainDockView");
     ImGui::DockSpaceOverViewport(dockspace_id, ImGui::GetMainViewport());
-    static bool first_init = true;
-    if (first_init)
+    if (is_first_init)
     {
-        first_init = false;
+        is_first_init = false;
         ImGui::DockBuilderRemoveNode(dockspace_id);
         ImGui::DockBuilderAddNode(dockspace_id);
         ImGui::DockBuilderSetNodeSize(dockspace_id, ImGui::GetMainViewport()->Size);
@@ -48,13 +50,14 @@ void gui::gl::gl_imgui_backend::new_frame()
 
 void gui::gl::gl_imgui_backend::render()
 {
-
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void gui::gl::gl_imgui_backend::shutdown()
 {
+    // TODO: change to save to memory
+    ImGui::SaveIniSettingsToDisk(get_settings_filename().c_str());
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
