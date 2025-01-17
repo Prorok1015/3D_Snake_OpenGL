@@ -1,10 +1,10 @@
 #include "gui_gl_backend.h"
-#include "imgui.h"
+#include <imgui.h>
+#include <imgui_internal.h>
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 #include "rnd_gl_texture.h"
-#include <imgui_internal.h>
 
 void gui::gl::gl_imgui_backend::init(void* context)
 {
@@ -16,6 +16,8 @@ void gui::gl::gl_imgui_backend::init(void* context)
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.IniFilename = nullptr;
+
+    ImGui::StyleColorsDark();
 
     ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(context), true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
@@ -43,7 +45,7 @@ void gui::gl::gl_imgui_backend::new_frame()
 
         ImGui::DockBuilderDockWindow("Common stats", up);
         ImGui::DockBuilderDockWindow("Observer", down);
-        ImGui::DockBuilderDockWindow("MainTabBar", right);
+        ImGui::DockBuilderDockWindow("Scene", right);
         ImGui::DockBuilderFinish(dockspace_id);
     }
 }

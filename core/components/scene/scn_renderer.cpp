@@ -13,7 +13,7 @@
 #include "timer.hpp"
 #include "eng_transform_3d.hpp"
 
-#include "debug_ui_api.h"
+#include "gui_api.hpp"
 
 namespace scn {
     float make_aspect(camera_component& camera)
@@ -266,7 +266,7 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
     //drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
 
-    for (auto ent : ecs::filter<scn::model_root_component>()) {
+    for (auto ent : ecs::filter<scn::model_root_component, scn::is_render_component_flag>()) {
         auto* transform = ecs::get_component<scn::transform_component>(ent);
         auto* root = ecs::get_component<scn::model_root_component>(ent);
         rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();

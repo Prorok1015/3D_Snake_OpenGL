@@ -1,5 +1,5 @@
 #include "edt_editor_system.h"
-#include "debug_ui_api.h"
+#include "gui_api.hpp"
 #include "application.h"
 #include "gs_game_system.h"
 #include "res_system.h"
@@ -17,22 +17,25 @@
 
 editor::EditorSystem::EditorSystem()
 {
-	DBG_UI_REG_LAMBDA("EDITOR/GUI/TOOLBAR", [this] { return show_toolbar(); });
-	DBG_UI_SET_ITEM_CHECKED("EDITOR/GUI/TOOLBAR", true);
+	GUI_REG_LAMBDA("Window/Toolbar", [this] { return show_toolbar(); });
+	GUI_SET_ITEM_CHECKED("Window/Toolbar", true);
 
-	DBG_UI_REG_LAMBDA("EDITOR/TEST/ECS", [this] { return show_ecs_test(); });
-	DBG_UI_SET_ITEM_CHECKED("EDITOR/TEST/ECS", false);
+	GUI_REG_LAMBDA("Window/Scene", [this] { return show_scene(); });
+	GUI_SET_ITEM_CHECKED("Window/Scene", true);
 
-	DBG_UI_REG_LAMBDA("EDITOR/IMPL/SHOW_WEP", [this] { return show_web(); });
-	DBG_UI_SET_ITEM_CHECKED("EDITOR/IMPL/SHOW_WEP", true);
+	GUI_REG_LAMBDA("EDITOR/TEST/ECS", [this] { return show_ecs_test(); });
+	GUI_SET_ITEM_CHECKED("EDITOR/TEST/ECS", false);
 
-	DBG_UI_REG_LAMBDA("EDITOR/SHOW_WEP", [this] { return true; });
-	DBG_UI_SET_ITEM_CHECKED("EDITOR/SHOW_WEP", is_show_web);
+	//TODO: move to app callbacks
+	GUI_REG_LAMBDA_IMPLICIT("EDITOR/IMPL/SHOW_WEP", [this] { return show_web(); });
+
+	GUI_REG_LAMBDA("EDITOR/SHOW_WEP", [this] { return true; });
+	GUI_SET_ITEM_CHECKED("EDITOR/SHOW_WEP", is_show_web);
 
 	auto logo = res::get_system().require_resource<res::Picture>(res::Tag::make("icons/editor_engine_logo.png"));
 	gs::get_system().get_window()->set_logo(logo);
 	gs::get_system().get_window()->set_title("Snake Editor");
-	dbg_ui::get_system().set_show_title_bar(true);
+	gui::get_system().set_show_title_bar(true);
 
 
 	gs::get_system().get_window()->eventResizeWindow.subscribe([](wnd::window&, int w, int h)
@@ -93,6 +96,7 @@ editor::EditorSystem::EditorSystem()
 		ecs::add_component(editor_web, scn::parent_component{ .parent = world_anchor });
 		ecs::add_component(editor_web, scn::name_component{ .name = "Editor Web"});
 		ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});
+		ecs::add_component(editor_web, scn::is_render_component_flag{});
 	}
 	// light
 	{
@@ -284,7 +288,6 @@ void show_tree_items(ecs::entity ent)
 	}
 }
 
-
 bool editor::EditorSystem::show_toolbar()
 {
 	ImGuiIO& io = ImGui::GetIO();
@@ -317,6 +320,7 @@ bool editor::EditorSystem::show_toolbar()
 		}
 		ImGui::Separator();
 		ImGui::NewLine();
+
 		if (ImGui::CollapsingHeader("Scene Objects"))
 		{
 			for (ecs::entity ent : ecs::filter<scn::scene_anchor_component>())
@@ -463,39 +467,12 @@ bool editor::EditorSystem::show_toolbar()
 
 	}
 	ImGui::End();
-
-	if (ImGui::Begin("MainTabBar"))
-	{
-		if (ImGui::BeginTabBar("MyTabBar")) {
-			if (ImGui::BeginTabItem("Scene")) {
-				ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
-				ImVec2 pos = ImGui::GetCursorScreenPos();
-				for (auto& ent : ecs::filter<scn::camera_component>())
-				{
-					auto* camera = ecs::get_component<scn::camera_component>(ent);
-					camera->viewport.size = glm::ivec2(contentRegionAvailable.x, contentRegionAvailable.y);
-				}
-				auto texture = rnd::get_system().get_texture_manager().find(res::Tag(res::Tag::memory, "__color_scene_rt"));
-				auto* backend = wnd::get_system().get_gui_backend();
-				ImGui::Image(backend->get_imgui_texture_from_texture(texture), contentRegionAvailable, ImVec2(0, 1), ImVec2(1, 0));
-				
-				ImGui::SetCursorScreenPos(ImVec2(pos.x + 10, pos.y + 10));
-				ImGui::Button("Button 1");
-				ImGui::SetCursorScreenPos(ImVec2(pos.x + 10, pos.y + 40));
-				ImGui::Button("Button 2");
-
-				ImGui::EndTabItem();
-			}
-			ImGui::EndTabBar();
-		}
-	}
-	ImGui::End();
 	return is_open;
 }
 
 bool editor::EditorSystem::show_web()
 {
-	const bool cur_is_show = DBG_UI_IS_ITEM_CHECKED("EDITOR/SHOW_WEP");
+	const bool cur_is_show = GUI_IS_ITEM_CHECKED("EDITOR/SHOW_WEP");
 	if (!cur_is_show && cur_is_show != is_show_web) {
 		ecs::remove_component<scn::is_render_component_flag>(editor_web);
 		//ecs::remove_component<scn::is_render_component_flag>(sky);
@@ -507,6 +484,32 @@ bool editor::EditorSystem::show_web()
 
 	is_show_web = cur_is_show;
 	return true;
+}
+
+bool editor::EditorSystem::show_scene()
+{
+	bool is_open = true;
+	if (ImGui::Begin("Scene", &is_open))
+	{
+		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+		for (auto& ent : ecs::filter<scn::camera_component>())
+		{
+			auto* camera = ecs::get_component<scn::camera_component>(ent);
+			camera->viewport.size = glm::ivec2(contentRegionAvailable.x, contentRegionAvailable.y);
+		}
+		auto texture = rnd::get_system().get_texture_manager().find(res::Tag(res::Tag::memory, "__color_scene_rt"));
+		auto* backend = wnd::get_system().get_gui_backend();
+		ImGui::Image(backend->get_imgui_texture_from_texture(texture), contentRegionAvailable, ImVec2(0, 1), ImVec2(1, 0));
+
+		ImGui::SetCursorScreenPos(ImVec2(pos.x + 10, pos.y + 10));
+		ImGui::Button("Button 1");
+		ImGui::SetCursorScreenPos(ImVec2(pos.x + 10, pos.y + 40));
+		ImGui::Button("Button 2");
+	}
+	ImGui::End();
+
+	return is_open;
 }
 
 bool editor::EditorSystem::show_ecs_test()

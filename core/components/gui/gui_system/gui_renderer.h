@@ -4,7 +4,7 @@
 #include <rnd_driver_interface.h>
 #include "gui_backend_interface.h"
 
-namespace dbg_ui
+namespace gui
 {
 	class renderer : public rnd::renderer_base
 	{

@@ -16,7 +16,7 @@ namespace editor
 
 		//TODO change to renderer
 		bool show_web();
-
+		bool show_scene();
 		bool show_ecs_test();
 
 		bool init_ecs_test();
