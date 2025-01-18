@@ -22,6 +22,7 @@ namespace wnd
 		gui::imgui_backend_interface* get_gui_backend() const { return imgui_backend.get(); }
 		bool is_stop_running();
 
+		void pool_events() const;
 		void init_windows_frame_time() const;
 		void process_windows() const;
 

@@ -21,7 +21,18 @@ inp::InputSystem::~InputSystem()
 
 void inp::InputSystem::process_input(float dt)
 {
-	glfwPollEvents();
+	while (!event_queque.empty()) {
+		auto& evt = event_queque.front();
+
+		for (auto weak_inp_mng : input_managers_list)
+		{
+			if (auto inp_mng = weak_inp_mng.lock()) {
+				inp_mng->on_handle_event(evt);
+			}
+		}
+
+		event_queque.pop();
+	}
 
 	for (auto weak_inp_mng : input_managers_list)
 	{
@@ -71,4 +82,25 @@ inp::Key inp::InputSystem::get_key_state(KEYBOARD_BUTTONS key) const
 inp::Key inp::InputSystem::get_key_state(MOUSE_BUTTONS key) const
 {
 	return mouse.get_key(key);
+}
+
+
+void inp::InputSystem::on_keyboard_event(const keyboard_event& evt)
+{
+	event_queque.push(evt);
+}
+
+void inp::InputSystem::on_mouse_buttons_event(const mouse_click_event& evt)
+{
+	event_queque.push(evt);
+}
+
+void inp::InputSystem::on_cursor_move_event(const cursor_move_event& evt)
+{
+	event_queque.push(evt);
+}
+
+void inp::InputSystem::on_scroll_move_event(const scroll_move_event& evt)
+{
+	event_queque.push(evt);
 }

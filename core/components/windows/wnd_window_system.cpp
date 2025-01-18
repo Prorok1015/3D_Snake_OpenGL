@@ -3,6 +3,7 @@
 #include "inp_input_system.h"
 #include "rnd_gl_render_context.h"
 #include "gui_gl_backend.h"
+#include "wnd_input_keycode_convert.hpp"
 #include <filesystem>
 
 wnd::WindowSystem* p_wnd_system = nullptr;
@@ -14,6 +15,8 @@ wnd::WindowSystem& wnd::get_system()
 }
 
 namespace {
+    
+
     void window_size_callback(GLFWwindow* window, int width, int height) {
         auto& wndCreator = wnd::get_system();
         if (auto wnd = wndCreator.find_window({ window })) {
@@ -24,6 +27,8 @@ namespace {
     void device_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
         inp::InputSystem& inpSys = inp::get_system();
         inpSys.mouse.on_mouse_scroll(xoffset, yoffset);
+        inp::scroll_move_event evt{ .direction = { xoffset, yoffset } };
+        inpSys.on_scroll_move_event(evt);
     }
 
     void cursor_position_callback(GLFWwindow* window, double xpos, double ypos) {
@@ -31,21 +36,48 @@ namespace {
 
         inp::InputSystem& inpSys = inp::get_system();
         inpSys.mouse.on_mouse_move(xpos, ypos);
+        inp::cursor_move_event evt{ .pos = {xpos, ypos}, .prev = inpSys.mouse.get_old_pos() };
+        inpSys.on_cursor_move_event(evt);
     }
 
     void mouse_button_callback(GLFWwindow* window, int button, int action, int mode) {
-        auto& wndCreator = wnd::get_system();
+        if (button == -1 || action == GLFW_REPEAT) {
+            return;
+        }
 
+        auto key_optional = wnd::convert::to_mouse_keycode(button);
+        if (!key_optional.has_value()) {
+            return;
+        }
         inp::InputSystem& inpSys = inp::get_system();
-        inpSys.mouse.on_mouse_button_action(button, action, mode);
+
+        inp::mouse_click_event evt;
+        evt.key = key_optional.value();
+        evt.action = wnd::convert::to_action(action);
+        evt.pos = inpSys.mouse.get_pos();
+        inpSys.on_mouse_buttons_event(evt);
+        inpSys.mouse.on_mouse_button_action(evt.key, evt.action, mode);
+
     }
 
     void key_callback(GLFWwindow* window, int keycode, int scancode, int action, int mode) {
-        auto& wndCreator = wnd::get_system();
+        if (keycode == -1 || action == GLFW_REPEAT) {
+            return;
+        }
+
+        auto key_optional = wnd::convert::to_keyboard_keycode(keycode);
+        if (!key_optional.has_value()) {
+            return;
+        }
 
         inp::InputSystem& inpSys = inp::get_system();
-        inpSys.keyboard.on_key_action(keycode, scancode, action, mode);
-    }
+
+        inp::keyboard_event evt;
+        evt.key = key_optional.value();
+        evt.action = wnd::convert::to_action(action);
+        inpSys.on_keyboard_event(evt);
+        inpSys.keyboard.on_key_action(evt.key, scancode, evt.action, mode);
+   }
 
     void window_refresh_callback(GLFWwindow* window) {
         auto& wndCreator = wnd::get_system();
@@ -83,8 +115,8 @@ wnd::WindowSystem::WindowSystem()
 
 wnd::WindowSystem::~WindowSystem()
 {
-    glfwTerminate();
     imgui_backend->shutdown();
+    glfwTerminate();
 }
 
 std::shared_ptr<wnd::window> wnd::WindowSystem::make_window()
@@ -95,12 +127,13 @@ std::shared_ptr<wnd::window> wnd::WindowSystem::make_window()
     windows_list[wid] = shared_window;
 
     glfwSetKeyCallback(wid, key_callback);
-    glfwSetWindowSizeCallback(wid, window_size_callback);
     glfwSetMouseButtonCallback(wid, mouse_button_callback);
     glfwSetScrollCallback(wid, device_scroll_callback);
     glfwSetCursorPosCallback(wid, cursor_position_callback);
+
     glfwSetWindowRefreshCallback(wid, window_refresh_callback);
     glfwSetWindowPosCallback(wid, window_move_callback);
+    glfwSetWindowSizeCallback(wid, window_size_callback);
     return shared_window;
 }
 
@@ -113,6 +146,12 @@ std::shared_ptr<wnd::window> wnd::WindowSystem::find_window(window::short_id win
 {
     return windows_list[win];
 }
+
+void wnd::WindowSystem::pool_events() const
+{
+    glfwPollEvents();
+}
+
 
 void wnd::WindowSystem::init_windows_frame_time() const
 {

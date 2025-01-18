@@ -8,7 +8,7 @@
 #include "scn_primitives.h"
 #include "scn_camera_component.hpp"
 #include "scn_camera_controller_component.hpp"
-#include "ecs/ecs_common_system.h"
+#include "ecs_common_system.h"
 #include "scn_primitives.h"
 #include "eng_transform_3d.hpp"
 #include "wnd_window_system.h"
@@ -23,19 +23,21 @@ editor::EditorSystem::EditorSystem()
 	GUI_REG_LAMBDA("Window/Scene", [this] { return show_scene(); });
 	GUI_SET_ITEM_CHECKED("Window/Scene", true);
 
-	GUI_REG_LAMBDA("EDITOR/TEST/ECS", [this] { return show_ecs_test(); });
-	GUI_SET_ITEM_CHECKED("EDITOR/TEST/ECS", false);
+	GUI_REG_LAMBDA("Editor/Test ECS window", [this] { return show_ecs_test(); });
+	GUI_SET_ITEM_CHECKED("Editor/Test ECS window", false);
 
 	//TODO: move to app callbacks
 	GUI_REG_LAMBDA_IMPLICIT("EDITOR/IMPL/SHOW_WEP", [this] { return show_web(); });
 
-	GUI_REG_LAMBDA("EDITOR/SHOW_WEP", [this] { return true; });
-	GUI_SET_ITEM_CHECKED("EDITOR/SHOW_WEP", is_show_web);
+	GUI_REG_LAMBDA("Editor/Clear", [this] { return show_clear_cache(); });
+	GUI_REG_LAMBDA("Editor/Draw web", [this] { return true; });
+	GUI_SET_ITEM_CHECKED("Editor/Draw web", is_show_web);
 
 	auto logo = res::get_system().require_resource<res::Picture>(res::Tag::make("icons/editor_engine_logo.png"));
 	gs::get_system().get_window()->set_logo(logo);
 	gs::get_system().get_window()->set_title("Snake Editor");
 	gui::get_system().set_show_title_bar(true);
+	gui::get_system().set_show_title_bar_dbg(true);
 
 
 	gs::get_system().get_window()->eventResizeWindow.subscribe([](wnd::window&, int w, int h)
@@ -472,7 +474,7 @@ bool editor::EditorSystem::show_toolbar()
 
 bool editor::EditorSystem::show_web()
 {
-	const bool cur_is_show = GUI_IS_ITEM_CHECKED("EDITOR/SHOW_WEP");
+	const bool cur_is_show = GUI_IS_ITEM_CHECKED("Editor/Draw web");
 	if (!cur_is_show && cur_is_show != is_show_web) {
 		ecs::remove_component<scn::is_render_component_flag>(editor_web);
 		//ecs::remove_component<scn::is_render_component_flag>(sky);
@@ -497,15 +499,44 @@ bool editor::EditorSystem::show_scene()
 		{
 			auto* camera = ecs::get_component<scn::camera_component>(ent);
 			camera->viewport.size = glm::ivec2(contentRegionAvailable.x, contentRegionAvailable.y);
+			if (auto* input_area = ecs::get_component<scn::input_area>(ent)) {
+				input_area->win_space_rect = { pos.x, pos.y, contentRegionAvailable.x, contentRegionAvailable.y };
+			} else {
+				ecs::add_component(ent, scn::input_area{ .win_space_rect = { pos.x, pos.y, contentRegionAvailable.x, contentRegionAvailable.y } });
+			}
 		}
+
+		if (ImGui::BeginChild("Buttons", ImVec2(0, 60), false, ImGuiWindowFlags_NoScrollbar)) { 
+			if (ImGui::Button("Button 1")) {
+				egLOG("", "Click btn1");
+			}
+			if (ImGui::Button("Button 2")) {
+				egLOG("", "Click btn2");
+			}
+			ImGui::EndChild(); 
+		}
+
 		auto texture = rnd::get_system().get_texture_manager().find(res::Tag(res::Tag::memory, "__color_scene_rt"));
 		auto* backend = wnd::get_system().get_gui_backend();
-		ImGui::Image(backend->get_imgui_texture_from_texture(texture), contentRegionAvailable, ImVec2(0, 1), ImVec2(1, 0));
 
-		ImGui::SetCursorScreenPos(ImVec2(pos.x + 10, pos.y + 10));
-		ImGui::Button("Button 1");
-		ImGui::SetCursorScreenPos(ImVec2(pos.x + 10, pos.y + 40));
-		ImGui::Button("Button 2");
+		ImGuiStyle& style = ImGui::GetStyle();
+		ImVec4 original_button_color = style.Colors[ImGuiCol_Button];
+		ImVec4 original_button_hovered_color = style.Colors[ImGuiCol_ButtonHovered];
+		ImVec4 original_button_active_color = style.Colors[ImGuiCol_ButtonActive];
+		ImVec2 original_padding = style.FramePadding;
+		style.Colors[ImGuiCol_Button] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+		style.FramePadding = { 0, 0 };
+
+		ImGui::SetCursorScreenPos(pos);
+		ImGui::ImageButton("##ViewScene", backend->get_imgui_texture_from_texture(texture), contentRegionAvailable, ImVec2(0, 1), ImVec2(1, 0));
+		
+		style.Colors[ImGuiCol_Button] = original_button_color;
+		style.Colors[ImGuiCol_ButtonHovered] = original_button_hovered_color;
+		style.Colors[ImGuiCol_ButtonActive] = original_button_active_color;
+		style.FramePadding = original_padding;
+
 	}
 	ImGui::End();
 
@@ -550,6 +581,23 @@ bool editor::EditorSystem::show_ecs_test()
 		ImGui::End();
 	}
 
+	return is_open;
+}
+
+bool editor::EditorSystem::show_clear_cache()
+{
+	bool is_open = true;
+	if (ImGui::Begin("Caches", &is_open))
+	{
+		if (ImGui::Button("Reload Shaders")) {
+			gs::get_system().reload_shaders();
+		}
+
+		if (ImGui::Button("Reload Texture")) {
+			rnd::get_system().get_texture_manager().clear_cache();
+		}
+	}
+	ImGui::End();
 	return is_open;
 }
 

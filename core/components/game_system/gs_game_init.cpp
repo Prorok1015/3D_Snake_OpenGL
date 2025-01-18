@@ -1,6 +1,5 @@
 #include "gs_game_init.h"
 #include "gs_game_system.h"
-#include <application.h>
 
 extern gs::GameSystem* p_game_system;
 

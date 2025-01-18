@@ -46,7 +46,7 @@ void rnd::RenderSystem::deactivate_renderer(std::weak_ptr<renderer_base> rendere
 	renderers_list.erase(it);
 }
 
-void rnd::RenderSystem::process_renderers() const
+void rnd::RenderSystem::render() const
 {
 	for (auto& weak_renderer : renderers_list) {
 		if (auto renderer = weak_renderer.lock()) {

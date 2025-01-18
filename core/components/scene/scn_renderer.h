@@ -2,7 +2,7 @@
 #include "rnd_renderer_base.h"
 #include "scn_model.h"
 #include "scn_camera_component.hpp"
-#include "ecs/ecs_entity.h"
+#include "ecs_entity.h"
 #include "res_resource_model.h"
 #include "shader/rnd_scene_shader_desc.h"
 

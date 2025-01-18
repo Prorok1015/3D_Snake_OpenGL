@@ -41,12 +41,18 @@ namespace inp
 			//onKeyAction.Unsubscribe(ds::Type::value<T>());
 		}
 
+		void on_keyboard_event(const keyboard_event&);
+		void on_mouse_buttons_event(const mouse_click_event&);
+		void on_cursor_move_event(const cursor_move_event&);
+		void on_scroll_move_event(const scroll_move_event&);
+
 		MouseDevice mouse;
 		KeyboardDevice keyboard;
 	private:
 		Event<void(KEYBOARD_BUTTONS keycode, KEY_ACTION action)> onKeyAction;
 
 		std::vector<std::weak_ptr<input_manager_base>> input_managers_list;
+		std::queue<inp::input_event> event_queque;
 	};
 
 	InputSystem& get_system();

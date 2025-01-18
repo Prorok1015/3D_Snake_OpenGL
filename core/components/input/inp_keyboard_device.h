@@ -13,7 +13,7 @@ namespace inp
 		using KeyContainer = std::unordered_map<KEYBOARD_BUTTONS, Key, Hasher>;
 
 	public:
-		void on_key_action(int keycode, int scancode, int action, int mode);
+		void on_key_action(KEYBOARD_BUTTONS keycode, int scancode, KEY_ACTION action, int mode);
 		void on_key_keyboard_action(KEYBOARD_BUTTONS keycode, KEY_ACTION action, float time);
 
 		Key get_key(KEYBOARD_BUTTONS keycode) const { return get_some_key(keycode, keys_); };

@@ -29,7 +29,7 @@ namespace rnd
 		void activate_renderer(std::weak_ptr<renderer_base> renderer);
 		void deactivate_renderer(std::weak_ptr<renderer_base> renderer);
 
-		void process_renderers() const;
+		void render() const;
 
 		RENDER_MODE get_render_mode() const { return render_mode; }
 		void set_render_mode(RENDER_MODE val) { render_mode = val; }

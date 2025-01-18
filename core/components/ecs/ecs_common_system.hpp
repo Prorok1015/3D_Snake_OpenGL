@@ -1,3 +1,4 @@
+#pragma once
 #include <common.h>
 #include <unordered_map>
 #include <ds_type_id.hpp>

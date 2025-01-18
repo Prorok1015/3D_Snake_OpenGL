@@ -1,7 +1,7 @@
 #include "scn_transform_system.h"
 #include "common.h"
 #include "scn_model.h"
-#include "ecs/ecs_common_system.h"
+#include "ecs_common_system.h"
 #include "wnd_window_system.h"
 
 void calc_interpolated_scaling(glm::vec3& Out, float AnimationTimeTicks, const res::animation_node& anim);

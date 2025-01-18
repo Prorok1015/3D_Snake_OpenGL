@@ -17,7 +17,10 @@ namespace inp
 			notify_listeners(dt);
 		}
 
+		virtual void on_handle_event(const input_event&) override {}
+
 		void notify_listeners(float dt);
+		
 
 		void registrate(std::shared_ptr<inp::InputActionBase> command) { get_active_commands().push_back(command); };
 		void unregistrate(std::shared_ptr<inp::InputActionBase> command);

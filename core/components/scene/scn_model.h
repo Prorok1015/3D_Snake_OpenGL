@@ -3,7 +3,7 @@
 #include <texture/rnd_texture.h>
 #include <texture/rnd_texture_manager.h>
 #include <res_resource_model.h>
-#include "ecs/ecs_entity.h"
+#include "ecs_entity.h"
 #include "scn_primitives.h"
 
 namespace scn {

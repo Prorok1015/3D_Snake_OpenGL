@@ -2,7 +2,7 @@
 #include <common.h>
 #include <scn_model.h>
 #include <scn_camera_controller_system.h>
-#include <ecs/ecs_entity.h>
+#include <ecs_entity.h>
 #include <rnd_render_system.h>
 
 namespace editor
@@ -18,6 +18,8 @@ namespace editor
 		bool show_web();
 		bool show_scene();
 		bool show_ecs_test();
+
+		bool show_clear_cache();
 
 		bool init_ecs_test();
 	private:

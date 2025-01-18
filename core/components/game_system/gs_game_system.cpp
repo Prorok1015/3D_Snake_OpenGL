@@ -11,14 +11,14 @@
 #include "res_system.h"
 
 #include <rnd_render_system.h>
-#include <ecs/ecs_common_system.h>
+#include <ecs_common_system.h>
 
 #include <timer.hpp>
 #include <glm/gtc/random.hpp>
-#include "ecs/ecs_system.h"
+#include "ecs_system.h"
 #include "scn_camera_component.hpp"
 #include "scn_transform_system.h"
-#include "ecs/ecs_component.h"
+#include "ecs_component.h"
 
 gs::GameSystem* p_game_system = nullptr;
 extern int gMaxTexture2DSize;
@@ -119,7 +119,7 @@ void gs::GameSystem::end_ecs_frame()
 {
 	for (auto ent : ecs::filter<ecs::input_changed_event_component>())
 	{
-		ecs::remove_component<ecs::input_changed_event_component>(ent);
+		ecs::remove_entity(ent);
 	}
 
 	inp::get_system().mouse.clear_scroll();

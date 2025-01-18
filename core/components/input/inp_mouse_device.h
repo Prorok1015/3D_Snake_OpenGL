@@ -15,7 +15,7 @@ namespace inp
 		const glm::vec2& get_scroll() const { return scroll_direction; }
 
 		void on_mouse_move(double xpos, double ypos);
-		void on_mouse_button_action(int button, int action, int mode);
+		void on_mouse_button_action(MOUSE_BUTTONS button, KEY_ACTION action, int mode /* temporary unused */);
 		void on_mouse_scroll(double xpos, double ypos);
 
 		Key get_key(MOUSE_BUTTONS key) const;

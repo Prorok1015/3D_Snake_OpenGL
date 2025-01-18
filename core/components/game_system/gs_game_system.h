@@ -1,12 +1,12 @@
 #pragma once
 #include "common.h"
+#include <future>
 
 #include "scn_renderer.h"
 #include "wnd_window.h"
 #include "scn_camera_controller_system.h"
-#include "ecs/ecs_input_manager.h"
+#include "ecs_input_manager.h"
 #include "inp_input_manager.h"
-#include <future>
 #include "res_instance.h"
 
 

@@ -8,7 +8,7 @@
 
 #include "res_instance.h"
 
-#include "ecs/ecs_common_system.h"
+#include "ecs_common_system.h"
 
 #include "timer.hpp"
 #include "eng_transform_3d.hpp"

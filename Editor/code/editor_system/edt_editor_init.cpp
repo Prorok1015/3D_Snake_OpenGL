@@ -1,6 +1,5 @@
 #include "edt_editor_init.h"
 #include "edt_editor_system.h"
-#include <application.h>
 
 namespace components {
 
