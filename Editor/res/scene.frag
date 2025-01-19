@@ -29,8 +29,6 @@ layout(binding = 1) uniform sampler2D specular;
 layout(binding = 2) uniform sampler2D ambient;
 uniform float shininess;
 
-in vec4 bones_wieght;
-uniform int use_animation;
 out vec4 fragColor;
 
 void main()

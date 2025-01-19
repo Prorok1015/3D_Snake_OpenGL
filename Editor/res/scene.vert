@@ -23,70 +23,15 @@ out struct PiplineStruct
     vec4 Color;
 } PS;
 
-#define MAX_BONE_MATRICES_COUNT 128
-#define MAX_BONE_COUNT (boneCount < 5 ? boneCount : 4) // temporary while max bone weight == 4
-
-layout (std140, binding = 2) uniform BoneMatrices // TODO: perhaps change to SSBO 
-{
-    int rowHeight;
-    int boneCount;
-    mat4 bones[MAX_BONE_MATRICES_COUNT];
-};
-
-uniform mat4 uWorldModel;
-uniform mat4 uWorldMeshMatr;
-layout(binding = 3) uniform isampler2D boneIndicesTexture;
-const int MIPMAPLVL0 = 0;
-
-
-// DEBUG REGION
-uniform int use_animation;
-uniform int draw_id;
-out vec4 bones_wieght;
-// DEBUG REGION END
-
-int getBoneIndex(int x, int y)
-{
-    ivec2 texSize = textureSize(boneIndicesTexture, MIPMAPLVL0);
-    int power = x / texSize.x;
-    int tmpX = x - (texSize.x * power);
-    int tmpY = y * rowHeight + power;
-    ivec2 boneCoord = ivec2(tmpX, tmpY);
-    return texelFetch(boneIndicesTexture, boneCoord, MIPMAPLVL0).r;
-}
-
-mat4 culcSkinMatrix()
-{
-    bool is_at_least_one_bone = false;
-    mat4 skinMatrix = mat4(0.0);
-
-    int boneIndex = -1;
-
-    for(int i = 0; i < MAX_BONE_COUNT; ++i)
-    {
-        boneIndex = getBoneIndex(gl_VertexID, i);
-
-        if(boneIndex > -1) {
-            skinMatrix += bones[boneIndex] * aBonesWeight[i];
-            is_at_least_one_bone = true;
-        } else {
-            break;
-        }
-    }
-
-    if (is_at_least_one_bone)
-        return skinMatrix;
-
-    return uWorldMeshMatr;
-}
+#include "first_include.vert"
+#include "second_include.vert"
 
 void main()
 {
     mat4 mesh = uWorldMeshMatr;
-    if (use_animation == 1) {
+    #ifdef USE_ANIMATION 
         mesh = culcSkinMatrix();
-    }
-    bones_wieght = aBonesWeight;
+    #endif
     PS.Color = aColor;
     PS.UV = aTexCoords;
     PS.FragPos = vec3(uWorldModel * vec4(aPos, 1.0));

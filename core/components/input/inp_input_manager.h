@@ -9,8 +9,8 @@ namespace inp
 	{
 		using Commands = std::vector<std::shared_ptr<inp::InputActionBase>>;
 	public:
-		input_manager()
-			: input_manager_base("editor", 0) {}
+		input_manager(const std::string_view name_, int priority_)
+			: input_manager_base(name_, priority_) {}
 
 		virtual ~input_manager() override {};
 		virtual void on_notify_listeners(float dt) override
@@ -21,19 +21,12 @@ namespace inp
 		virtual bool on_handle_event(const input_event&) override;
 
 		void notify_listeners(float dt);
-		
-		// there is unblock input to next levels for one frame.
-		// by default input manager is blocking 
-		// keyboard_event, mouse_click_event with KEY_ACTION::DOWN and scroll_move_event
-		void unblock_layer_once();
-		void block_layer();
-		void unblock_layer();
 
 		void registrate(std::shared_ptr<inp::InputActionBase> command) { get_active_commands().push_back(command); };
 		void unregistrate(std::shared_ptr<inp::InputActionBase> command);
 
-		void set_active_layer(std::string layer) { active_layer_name = layer; }
-		const std::string& get_active_layer() const { return active_layer_name; }
+		void set_active_layer(const std::string_view layer) { active_layer_name = layer; }
+		const std::string_view get_active_layer() const { return active_layer_name; }
 
 		void set_enabled(bool enable) { is_enabled = enable; }
 		bool get_is_enabled() const { return is_enabled; }
@@ -79,15 +72,13 @@ namespace inp
 		}
 
 	private:
-		Commands& get_commands(std::string layer_name) { return layers[layer_name]; }
+		Commands& get_commands(const std::string_view layer_name) { return layers[std::string(layer_name)]; }
 		Commands& get_active_commands() { return get_commands(get_active_layer()); }
 
 	private:
 		std::unordered_map<std::string, Commands> layers;
 		std::string active_layer_name = "game";
 		bool is_enabled = true;
-		bool is_block_keyaction_down = true;
-		bool is_block_keyaction_down_once = true;
 	};
 
 	using InputManagerRef = std::shared_ptr<input_manager>;

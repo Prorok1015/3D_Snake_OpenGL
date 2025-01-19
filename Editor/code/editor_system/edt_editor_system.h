@@ -1,9 +1,10 @@
 #pragma once
-#include <common.h>
-#include <scn_model.h>
-#include <scn_camera_controller_system.h>
-#include <ecs_entity.h>
-#include <rnd_render_system.h>
+#include "common.h"
+#include "scn_model.h"
+#include "scn_camera_controller_system.h"
+#include "ecs_entity.h"
+#include "rnd_render_system.h"
+#include "edt_input_manager.h"
 
 namespace editor
 {
@@ -71,6 +72,7 @@ namespace editor
 
 		bool is_show_web = true;
 		bool is_inited_ecs_test = false;
+		std::shared_ptr<edt::input_manager> input;
 	};
 
 }

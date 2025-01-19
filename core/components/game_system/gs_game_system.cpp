@@ -38,15 +38,15 @@ bool is_ready(std::future<R> const& f)
 gs::GameSystem::GameSystem()
 {
 	window = wnd::get_system().get_active_window();
-	input = std::make_shared<inp::input_manager>();
+	//input = std::make_shared<inp::input_manager>();
 	ecs_input = std::make_shared<ecs::flow_input_manager>();
-	inp::get_system().activate_manager(input);
+	//inp::get_system().activate_manager(input);
 	inp::get_system().activate_manager(ecs_input);
 
 	renderer = std::make_shared<scn::renderer_3d>();
 	rnd::get_system().activate_renderer(renderer);
 
-	input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
+	//input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
 
 	ecs::systems.push_back(scn::ecs_process_update_camera_matrix);
 	ecs::systems.push_back(scn::update_transform_system);
@@ -56,12 +56,12 @@ gs::GameSystem::GameSystem()
 gs::GameSystem::~GameSystem()
 {
 	rnd::get_system().deactivate_renderer(renderer);
-	inp::get_system().deactivate_manager(input);
+	//inp::get_system().deactivate_manager(input);
 }
 
 void gs::GameSystem::set_enable_input(bool enable)
 {
-	input->set_enabled(enable);
+	//input->set_enabled(enable);
 }
 
 void gs::GameSystem::load_model(std::string_view path)

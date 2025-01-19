@@ -278,7 +278,9 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
         vertex_buffer->set_data(root->data.vertices);
         rnd::shader_scene_desc scene;
         if (auto* anim = ecs::get_component<scn::playable_animation>(ent)) {
-            scene.use_animation = 1;
+            scene.defines[rnd::shader_scene_desc::USE_ANIMATION] = true;
+            scene.defines[rnd::shader_scene_desc::MAX_BONE_MATRICES_COUNT] = true;
+            scene.defines_values[rnd::shader_scene_desc::MAX_BONE_MATRICES_COUNT] = "128";
             rnd::bones_matrices bones_matreces;
             bones_matreces.row_height = root->data.bones_data.original_size.x;
             bones_matreces.bone_count = root->data.bones_data.original_size.y;
@@ -289,9 +291,7 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
             }
             else {
                 ASSERT_FAIL("Bones matrices count too big.");
-            }        
-        } else {
-            scene.use_animation = 0;
+            }
         }
 
         draw_ecs_meshes(ent, root->data, scene, drv);

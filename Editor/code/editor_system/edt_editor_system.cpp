@@ -13,6 +13,8 @@
 #include "eng_transform_3d.hpp"
 #include "wnd_window_system.h"
 
+#include "edt_input_manager.h"
+
 #include <imgui.h>
 
 editor::EditorSystem::EditorSystem()
@@ -26,7 +28,6 @@ editor::EditorSystem::EditorSystem()
 	GUI_REG_LAMBDA("Editor/Test ECS window", [this] { return show_ecs_test(); });
 	GUI_SET_ITEM_CHECKED("Editor/Test ECS window", false);
 
-	//TODO: move to app callbacks
 	GUI_REG_LAMBDA_IMPLICIT("EDITOR/IMPL/SHOW_WEP", [this] { return show_web(); });
 
 	GUI_REG_LAMBDA("Editor/Clear", [this] { return show_clear_cache(); });
@@ -39,6 +40,8 @@ editor::EditorSystem::EditorSystem()
 	gui::get_system().set_show_title_bar(true);
 	gui::get_system().set_show_title_bar_dbg(true);
 
+	input = std::make_shared<edt::input_manager>();
+	inp::get_system().activate_manager(input);
 
 	gs::get_system().get_window()->eventResizeWindow.subscribe([](wnd::window&, int w, int h)
 	{
@@ -146,6 +149,7 @@ editor::EditorSystem::EditorSystem()
 
 editor::EditorSystem::~EditorSystem()
 {
+	inp::get_system().deactivate_manager(input);
 }
 
 void show_tree_items(ecs::entity ent)
@@ -293,7 +297,6 @@ void show_tree_items(ecs::entity ent)
 bool editor::EditorSystem::show_toolbar()
 {
 	ImGuiIO& io = ImGui::GetIO();
-	gs::get_system().get_input_manager()->set_enabled(!io.WantCaptureMouse);
 
 	bool is_open = true;
 	if (ImGui::Begin("Observer", &is_open))
@@ -529,7 +532,7 @@ bool editor::EditorSystem::show_scene()
 		style.FramePadding = original_padding;
 
 		if (ImGui::IsItemHovered()) {
-			gs::get_system().get_input_manager()->unblock_layer_once();
+			input->unblock_layer_once();
 		}
 
 	}

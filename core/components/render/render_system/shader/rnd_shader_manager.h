@@ -56,7 +56,7 @@ namespace rnd
 			auto it = _cache.find(shader_desc::get_hash(desc));
 			rnd::driver::shader_interface* shader = nullptr;
 			if (it == _cache.end()) {
-				auto new_shader = drv->create_shader(T::load());
+				auto new_shader = drv->create_shader(desc.load());
 				if (new_shader) {
 					shader = new_shader.get();
 					_cache[shader_desc::get_hash(desc)] = std::move(new_shader);

@@ -35,7 +35,7 @@ namespace gs
 		void end_ecs_frame();
 
 		std::shared_ptr<scn::renderer_3d> get_renderer() const { return renderer; }
-		std::shared_ptr<inp::input_manager> get_input_manager() const { return input; }
+		//std::shared_ptr<inp::input_manager> get_input_manager() const { return input; }
 
 		ecs::entity cubes_inst;
 
