@@ -7,10 +7,11 @@ namespace ecs
 	class flow_input_manager : public inp::input_manager_base
 	{
 	public:
-		flow_input_manager() = default;
+		flow_input_manager()
+			: inp::input_manager_base("ecs", 10) {}
 
 		virtual void on_notify_listeners(float dt) override;
-		virtual void on_handle_event(const inp::input_event&) override;
+		virtual bool on_handle_event(const inp::input_event&) override;
 
 		template<class T>
 		ecs::entity get_empty_entity() {

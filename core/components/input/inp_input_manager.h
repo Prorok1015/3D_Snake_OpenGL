@@ -9,7 +9,8 @@ namespace inp
 	{
 		using Commands = std::vector<std::shared_ptr<inp::InputActionBase>>;
 	public:
-		input_manager() = default;
+		input_manager()
+			: input_manager_base("editor", 0) {}
 
 		virtual ~input_manager() override {};
 		virtual void on_notify_listeners(float dt) override
@@ -17,10 +18,16 @@ namespace inp
 			notify_listeners(dt);
 		}
 
-		virtual void on_handle_event(const input_event&) override {}
+		virtual bool on_handle_event(const input_event&) override;
 
 		void notify_listeners(float dt);
 		
+		// there is unblock input to next levels for one frame.
+		// by default input manager is blocking 
+		// keyboard_event, mouse_click_event with KEY_ACTION::DOWN and scroll_move_event
+		void unblock_layer_once();
+		void block_layer();
+		void unblock_layer();
 
 		void registrate(std::shared_ptr<inp::InputActionBase> command) { get_active_commands().push_back(command); };
 		void unregistrate(std::shared_ptr<inp::InputActionBase> command);
@@ -79,6 +86,8 @@ namespace inp
 		std::unordered_map<std::string, Commands> layers;
 		std::string active_layer_name = "game";
 		bool is_enabled = true;
+		bool is_block_keyaction_down = true;
+		bool is_block_keyaction_down_once = true;
 	};
 
 	using InputManagerRef = std::shared_ptr<input_manager>;

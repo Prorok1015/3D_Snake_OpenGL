@@ -22,7 +22,7 @@ bool is_point_in_rect_tr(glm::ivec2 point, glm::ivec4 rect) {
 }
 
 // TODO: use dt
-void scn::ecs_process_update_camera_matrix(const float time_second)
+void scn::ecs_process_update_camera_matrix(const float dt)
 {
 	auto events = ecs::filter<ecs::input_changed_event_component>();
 		
@@ -30,7 +30,7 @@ void scn::ecs_process_update_camera_matrix(const float time_second)
 		return;
 	}	
 	const auto& evt = events.front();
-	auto& input = inp::get_system();
+
 	for (const auto& ent : ecs::filter<scn::camera_component, scn::mouse_controller_component>()) {
 
 		auto* camera = ecs::get_component<scn::camera_component>(ent);
@@ -39,33 +39,32 @@ void scn::ecs_process_update_camera_matrix(const float time_second)
 		auto& pos = data->position;
 		auto& distance = data->distance;
 		auto& speed = data->movement_speed;
+		auto& rotate_speed = data->rotating_speed;
 		auto& is_moving = data->is_moving;
 		auto& is_rotating = data->is_rotating;
-
+		auto& last_mouse_pos = data->last_mouse_pos;
 
 		if (auto* mouse_btn = ecs::get_component<inp::mouse_click_event>(evt)) {
-			auto* able_area = ecs::get_component<scn::input_area>(ent);
 			if (mouse_btn->key == inp::MOUSE_BUTTONS::LEFT)
-				is_moving = (mouse_btn->action == inp::KEY_ACTION::DOWN) 
-				&& (able_area ? is_point_in_rect_wh(mouse_btn->pos, able_area->win_space_rect) : true);
+				is_moving = (mouse_btn->action == inp::KEY_ACTION::DOWN);
 			if (mouse_btn->key == inp::MOUSE_BUTTONS::RIGHT)
-				is_rotating = (mouse_btn->action == inp::KEY_ACTION::DOWN)
-				&& (able_area ? is_point_in_rect_wh(mouse_btn->pos, able_area->win_space_rect) : true);
+				is_rotating = (mouse_btn->action == inp::KEY_ACTION::DOWN);
 		}
 
 		if (auto* cursor = ecs::get_component<inp::cursor_move_event>(evt))	{
-			glm::vec2 delta = (cursor->prev - cursor->pos) / glm::vec2(camera->viewport.size) * 2;
+			glm::vec2 delta = (cursor->prev - cursor->pos) / (glm::vec2(camera->viewport.size) / 2);
+			last_mouse_pos = cursor->pos;
 
 			if (is_moving)
 			{
 				glm::vec3 addition = glm::vec3(delta.x, 0, delta.y);
-				pos = pos + (glm::rotateY(addition, rotation.y) * speed);
+				pos += (glm::rotateY(addition * speed * 3, rotation.y));
 			}
 
 			if (is_rotating)
 			{
-				float pitch = delta.y;
-				float yaw = delta.x;
+				float pitch = delta.y * rotate_speed;
+				float yaw = delta.x * rotate_speed;
 
 				rotation.x = std::clamp(rotation.x + pitch, -glm::radians(90.0f), glm::radians(90.0f));
 				rotation.y += yaw;

@@ -27,7 +27,9 @@ void inp::InputSystem::process_input(float dt)
 		for (auto weak_inp_mng : input_managers_list)
 		{
 			if (auto inp_mng = weak_inp_mng.lock()) {
-				inp_mng->on_handle_event(evt);
+				if (inp_mng->on_handle_event(evt)) {
+					break;
+				}
 			}
 		}
 
@@ -52,7 +54,7 @@ void inp::InputSystem::activate_manager(std::weak_ptr<input_manager_base> inp_ma
 			return false;
 		}
 
-		return true;//lhs_r->get_render_priority() > rhs_r->get_render_priority();
+		return lhs_r->get_priority() < rhs_r->get_priority();
 		};
 
 	input_managers_list.insert(std::lower_bound(input_managers_list.begin(), input_managers_list.end(), inp_manager, pred), inp_manager);

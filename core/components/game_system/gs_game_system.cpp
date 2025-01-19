@@ -132,7 +132,7 @@ void gs::GameSystem::check_loaded_model()
 		auto& pres = res->get_model_pres();
 		auto rand_pos = glm::ballRand(20.f);
 		auto model = glm::translate(glm::mat4(1.0), glm::vec3{ 0 });
-		model = glm::scale(model, glm::vec3{ 20 });
+		model = glm::scale(model, glm::vec3{ 1 });
 
 		ecs::entity obj = ecs::create_entity();
 		if (auto& bones_data = res->get_model_pres().data.bones_data.bones_indeces; !bones_data.empty()) {

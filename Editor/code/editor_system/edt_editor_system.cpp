@@ -80,7 +80,7 @@ editor::EditorSystem::EditorSystem()
 		ecs::add_component(ecs_entity, scn::is_render_component_flag{});
 		ecs::add_component(ecs_entity, scn::mouse_controller_component{ .rotation = rotation });
 		ecs::add_component(ecs_entity, scn::parent_component{ .parent = world_anchor });
-		ecs::add_component(ecs_entity, scn::name_component{ .name = "Editor fullscreen camera"});
+		ecs::add_component(ecs_entity, scn::name_component{ .name = "Editor camera"});
 	}
 	// web
 	{
@@ -94,7 +94,7 @@ editor::EditorSystem::EditorSystem()
 
 		ecs::add_component(editor_web, scn::model_root_component{ .data = data });
 		ecs::add_component(editor_web, scn::mesh_component{ .mesh = mesh });
-		ecs::add_component(editor_web, scn::transform_component{ .local = glm::scale(glm::vec3(20, 0, 20)) });
+		ecs::add_component(editor_web, scn::transform_component{ .local = glm::scale(glm::vec3(1, 0, 1)) });
 		ecs::add_component(editor_web, scn::parent_component{ .parent = world_anchor });
 		ecs::add_component(editor_web, scn::name_component{ .name = "Editor Web"});
 		ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});
@@ -296,10 +296,6 @@ bool editor::EditorSystem::show_toolbar()
 	gs::get_system().get_input_manager()->set_enabled(!io.WantCaptureMouse);
 
 	bool is_open = true;
-	float height = gs::get_system().get_window()->get_size().y - 80;
-	//ImGui::SetNextWindowSize(ImVec2{ 400, height}, ImGuiCond_FirstUseEver);
-	//ImGui::SetNextWindowPos(ImVec2{ 0, 80 }, ImGuiCond_FirstUseEver);
-
 	if (ImGui::Begin("Observer", &is_open))
 	{
 		auto& app = app::get_app_system();
@@ -424,7 +420,7 @@ bool editor::EditorSystem::show_toolbar()
 
 		if (ImGui::Button("add cube")) {
 			for (int i = 0; i < cube_count_add; ++i) {
-				gs::get_system().add_cube_to_scene(20.f);
+				//gs::get_system().add_cube_to_scene(20.f);
 				cube_count++;
 			}
 		}		
@@ -434,7 +430,7 @@ bool editor::EditorSystem::show_toolbar()
 
 		if (ImGui::Button("remove cube")) {
 			for (int i = 0; i < cube_count_remove; ++i) {
-				gs::get_system().remove_cube();
+				//gs::get_system().remove_cube();
 				if (cube_count > 0)
 					cube_count--;
 			}
@@ -499,11 +495,6 @@ bool editor::EditorSystem::show_scene()
 		{
 			auto* camera = ecs::get_component<scn::camera_component>(ent);
 			camera->viewport.size = glm::ivec2(contentRegionAvailable.x, contentRegionAvailable.y);
-			if (auto* input_area = ecs::get_component<scn::input_area>(ent)) {
-				input_area->win_space_rect = { pos.x, pos.y, contentRegionAvailable.x, contentRegionAvailable.y };
-			} else {
-				ecs::add_component(ent, scn::input_area{ .win_space_rect = { pos.x, pos.y, contentRegionAvailable.x, contentRegionAvailable.y } });
-			}
 		}
 
 		if (ImGui::BeginChild("Buttons", ImVec2(0, 60), false, ImGuiWindowFlags_NoScrollbar)) { 
@@ -536,6 +527,10 @@ bool editor::EditorSystem::show_scene()
 		style.Colors[ImGuiCol_ButtonHovered] = original_button_hovered_color;
 		style.Colors[ImGuiCol_ButtonActive] = original_button_active_color;
 		style.FramePadding = original_padding;
+
+		if (ImGui::IsItemHovered()) {
+			gs::get_system().get_input_manager()->unblock_layer_once();
+		}
 
 	}
 	ImGui::End();
