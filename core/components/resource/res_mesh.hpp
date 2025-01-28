@@ -67,11 +67,7 @@ namespace res
 
 		std::string name;
 		std::array<res::Tag, TRANSMISSION_TXM + 1> txm_list{};
-		//Tag diffuse;
-		//Tag specular;
-		//Tag ambient;
-		//Tag normal;
-
+		
 		//COLOR_DIFFUSE
 		glm::vec4 diffuse_color { 0 };
 		//COLOR_SPECULAR

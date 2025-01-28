@@ -14,6 +14,7 @@
 #include "eng_transform_3d.hpp"
 
 #include "gui_api.hpp"
+#include "scn_material_component.hpp"
 
 namespace scn {
     float make_aspect(camera_component& camera)
@@ -261,27 +262,6 @@ void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
     }
 }
 
-void scn::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv)
-{
-    if (auto* meshes = ecs::get_component<scn::mesh_component>(ent))
-    {
-        scene.uWorldMeshMatr = glm::mat4{ 1.0 };
-        if (auto* transform = ecs::get_component<scn::transform_component>(ent))
-        {
-            scene.uWorldMeshMatr = transform->world;
-        }
-        draw(scene, meshes->mesh, data, drv);
-    }
-
-    if (auto* children = ecs::get_component<scn::children_component>(ent))
-    {
-        for (auto& child : children->children)
-        {
-            draw_ecs_meshes(child, data, scene, drv);
-        }
-    }
-}
-
 void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
 {
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
@@ -321,6 +301,61 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
     }
 }
 
+void scn::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv)
+{
+    if (auto* meshes = ecs::get_component<scn::mesh_component>(ent))
+    {
+        scene.uWorldMeshMatr = glm::mat4{ 1.0 };
+        if (auto* transform = ecs::get_component<scn::transform_component>(ent))
+        {
+            scene.uWorldMeshMatr = transform->world;
+        }
+
+        if (auto* material = ecs::get_component<scn::material_link_component>(ent)) {
+            apply_material(material->material, scene);
+        }
+
+        draw(scene, meshes->mesh, data, drv);
+    }
+
+    if (auto* children = ecs::get_component<scn::children_component>(ent))
+    {
+        for (auto& child : children->children)
+        {
+            draw_ecs_meshes(child, data, scene, drv);
+        }
+    }
+}
+
+void scn::renderer_3d::apply_material(ecs::entity material, rnd::shader_scene_desc& desc)
+{
+    if (auto* base_mlt = ecs::get_component<scn::base_material_component>(material))
+    {
+        desc.diffuseColor = base_mlt->albedo;
+        desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = false;
+        desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = false;
+        desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = false;
+    }
+
+    if (auto* albedo_txm = ecs::get_component<scn::albedo_map_component>(material))
+    {
+        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(albedo_txm->txm);
+        desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = true;
+    }
+
+    if (auto* specular_txm = ecs::get_component<scn::specular_map_component>(material))
+    {
+        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(specular_txm->txm);
+        desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = true;
+    }
+
+    if (auto* normal_txm = ecs::get_component<scn::normal_map_component>(material))
+    {
+        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(normal_txm->txm);
+        desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = true;
+    }
+}
+
 void scn::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
 {
     drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL);
@@ -343,33 +378,6 @@ void scn::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
 void scn::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, const res::meshes_conteiner& data, rnd::driver::driver_interface* drv)
 {
     index_buffer->set_data_ptr(&data.indices[mesh.ind_begin], mesh.get_indices_count());
-
-    auto& material = data.materials[mesh.material_id];
-    if (material.is_state(res::Material::ALBEDO_TXM)) {
-        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::ALBEDO_TXM));
-        desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = true;
-    } else if (material.is_state(res::Material::ALBEDO_COLOR)){
-        desc.diffuseColor = material.diffuse_color;
-        desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = false;
-    }
-
-    if (material.is_state(res::Material::SPECULAR_TXM)) {
-        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::SPECULAR_TXM));
-        desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = true;
-    } else {
-        desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = false;
-    }
-
-    if (material.is_state(res::Material::AMBIENT_TXM)) {
-        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::AMBIENT_TXM));
-    }
-
-    if (material.is_state(res::Material::NORMALS_TXM)) {
-        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::NORMALS_TXM));
-        desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = true;
-    } else {
-        desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = false;
-    }
 
     if (data.bones_data.bones_indeces_txm.is_valid()) {
         desc.tex3 = rnd::get_system().get_texture_manager().require_texture(data.bones_data.bones_indeces_txm);

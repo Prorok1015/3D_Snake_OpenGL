@@ -18,6 +18,7 @@
 #include "ecs_system.h"
 #include "scn_camera_component.hpp"
 #include "scn_transform_system.h"
+#include "scn_material_component.hpp"
 #include "ecs_component.h"
 
 gs::GameSystem* p_game_system = nullptr;
@@ -69,7 +70,59 @@ void gs::GameSystem::load_model(std::string_view path)
 	future_model = std::make_shared<std::future<std::shared_ptr<res::Model>>>(res::get_system().require_resource_async<res::Model>(res::Tag::make(path)));
 }
 
-void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, const res::meshes_conteiner& data)
+void ensure_ecs_material(ecs::entity material, const res::Material& mlt)
+{
+	ecs::add_component(material, scn::name_component{ .name = mlt.name });
+	scn::base_material_component base_mlt;
+	if (mlt.is_state(res::Material::ALBEDO_COLOR)) {
+		base_mlt.albedo = mlt.diffuse_color;
+	}
+	if (mlt.is_state(res::Material::SPECULAR_COLOR)) {
+		base_mlt.specular = mlt.specular_color;
+	}
+	if (mlt.is_state(res::Material::AMBIENT_COLOR)) {
+		base_mlt.ambient = mlt.ambient_color;
+	}
+	if (mlt.is_state(res::Material::EMISSIVE_COLOR)) {
+		base_mlt.emissive = mlt.emissive_color;
+	}
+	if (mlt.is_state(res::Material::TRANSPARENT_COLOR)) {
+		base_mlt.transparent = mlt.transparent_color;
+	}
+	if (mlt.is_state(res::Material::REFLECTIVE_COLOR)) {
+		base_mlt.reflective = mlt.reflective_color;
+	}
+	if (mlt.is_state(res::Material::OPACITY)) {
+		base_mlt.opacity = mlt.opacity;
+	}
+	if (mlt.is_state(res::Material::REFLECTIVITY)) {
+		base_mlt.reflectivity = mlt.reflectivity;
+	}
+	if (mlt.is_state(res::Material::REFRACTI)) {
+		base_mlt.refracti = mlt.refracti;
+	}
+	if (mlt.is_state(res::Material::SHININESS)) {
+		base_mlt.shininess = mlt.shininess;
+	}
+	if (mlt.is_state(res::Material::SHININESS_STRENGTH)) {
+		base_mlt.shininess_strength = mlt.shininess_strength;
+	}
+	ecs::add_component(material, base_mlt);
+	if (mlt.is_state(res::Material::ALBEDO_TXM)) {
+		ecs::add_component(material, scn::albedo_map_component{ .txm = mlt.get_txm(res::Material::ALBEDO_TXM) });
+	}
+	if (mlt.is_state(res::Material::NORMALS_TXM)) {
+		ecs::add_component(material, scn::normal_map_component{ .txm = mlt.get_txm(res::Material::NORMALS_TXM) });
+	}
+	if (mlt.is_state(res::Material::SPECULAR_TXM)) {
+		ecs::add_component(material, scn::specular_map_component{ .txm = mlt.get_txm(res::Material::SPECULAR_TXM) });
+	}
+	if (mlt.is_state(res::Material::AMBIENT_OCCLUSION_TXM)) {
+		ecs::add_component(material, scn::ao_map_component{ .txm = mlt.get_txm(res::Material::AMBIENT_OCCLUSION_TXM) });
+	}
+}
+
+void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, const res::meshes_conteiner& data, std::unordered_map<int, ecs::entity> material_mapping)
 {
 	ecs::add_component(ent, scn::is_render_component_flag{});
 	ecs::add_component(ent, scn::name_component{ .name = node.name });
@@ -99,6 +152,7 @@ void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, cons
 		ecs::add_component(mesh_ent, scn::mesh_component{ .mesh = mesh });
 		ecs::add_component(mesh_ent, scn::transform_component{});
 		ecs::add_component(mesh_ent, scn::is_render_component_flag{});
+		ecs::add_component(mesh_ent, scn::material_link_component{ .material = material_mapping[mesh.material_id]});
 	}
 
 	for (auto& child : node.children)
@@ -106,7 +160,7 @@ void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, cons
 		ecs::entity child_ent = ecs::create_entity();
 		children.push_back(child_ent);
 		ecs::add_component(child_ent, scn::parent_component{ .parent = ent });
-		ensure_ecs_node(child_ent, child, data);
+		ensure_ecs_node(child_ent, child, data, material_mapping);
 	}
 
 	if (!children.empty()) {
@@ -193,7 +247,7 @@ void gs::GameSystem::check_loaded_model()
 		}
 
 		pres.head.mt = model * pres.head.mt;
-
+		std::unordered_map<int, ecs::entity> material_mapping;
 		auto anchors = ecs::filter<scn::scene_anchor_component>();
 		ecs::entity world_anchor;
 		if (anchors.empty()) {
@@ -210,6 +264,12 @@ void gs::GameSystem::check_loaded_model()
 			ecs::remove_component<scn::children_component>(world_anchor);
 		}
 
+		for (int i = 0; i < pres.data.materials.size(); ++i) {
+			auto material = ecs::create_entity();
+			ensure_ecs_material(material, pres.data.materials[i]);
+			material_mapping[i] = material;
+		}
+
 		children.push_back(obj);
 		ecs::add_component(anchors.front(), scn::children_component{ .children = children });
 
@@ -219,7 +279,7 @@ void gs::GameSystem::check_loaded_model()
 			ecs::add_component(obj, scn::animations_component{ .animations = pres.animations });
 		}		
 
-		ensure_ecs_node(obj, pres.head, pres.data);
+		ensure_ecs_node(obj, pres.head, pres.data, material_mapping);
 
 		renderer->scene_objects.push_back(obj);
 		future_model = nullptr;

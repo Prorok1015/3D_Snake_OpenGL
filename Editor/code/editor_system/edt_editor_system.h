@@ -19,11 +19,12 @@ namespace editor
 		bool show_web();
 		bool show_scene();
 		bool show_ecs_test();
+		bool show_materials();
 
 		bool show_clear_cache();
 
 		void draw_gizmo(const glm::vec2& pos, const glm::vec2& size, const glm::mat4& view, const glm::mat4& proj);
-
+		void draw_scene_image(const glm::vec2& pos, const glm::vec2& contentRegionAvailable);
 		bool init_ecs_test();
 	private:
 		std::vector<std::string> cameras_list

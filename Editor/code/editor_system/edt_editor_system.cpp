@@ -12,7 +12,7 @@
 #include "scn_primitives.h"
 #include "eng_transform_3d.hpp"
 #include "wnd_window_system.h"
-
+#include "scn_material_component.hpp"
 #include "edt_input_manager.h"
 #include "edt_guizmo.hpp"
 #include <imgui.h>
@@ -31,6 +31,8 @@ editor::EditorSystem::EditorSystem()
 	GUI_REG_LAMBDA_IMPLICIT("EDITOR/IMPL/SHOW_WEP", [this] { return show_web(); });
 
 	GUI_REG_LAMBDA("Editor/Clear", [this] { return show_clear_cache(); });
+	GUI_REG_LAMBDA("Window/Materials", [this] { return show_materials(); });
+	GUI_SET_ITEM_CHECKED("Window/Materials", true);
 	GUI_REG_LAMBDA("Editor/Draw web", [this] { return true; });
 	GUI_SET_ITEM_CHECKED("Editor/Draw web", is_show_web);
 
@@ -66,11 +68,23 @@ editor::EditorSystem::EditorSystem()
 	else {
 		world_anchor = anchors.front();
 	}
+	//TODO: make separate render pipline for editor things
 	decltype(scn::children_component::children) children;
 	if (auto* kids = ecs::get_component<scn::children_component>(world_anchor)) {
 		children = kids->children;
 		ecs::remove_component<scn::children_component>(world_anchor);
 	}
+
+	// black base material
+	ecs::entity black_mlt = ecs::create_entity();
+	ecs::add_component(black_mlt, scn::base_material_component{ .albedo = ds::color(0) });
+	ecs::add_component(black_mlt, scn::name_component{.name = "Editor web "});
+	// chess base material
+	ecs::entity chess_mlt = ecs::create_entity();
+	ecs::add_component(chess_mlt, scn::base_material_component{});
+	ecs::add_component(chess_mlt, scn::albedo_map_component{.txm = res::Tag::make("block.png") });
+	ecs::add_component(chess_mlt, scn::name_component{.name = "BASE CHESS"}); 
+
 	//  camera
 	{
 		glm::ivec4 viewport{ glm::zero<glm::ivec2>(), gs::get_system().get_window()->get_size() };
@@ -90,21 +104,22 @@ editor::EditorSystem::EditorSystem()
 		editor_web = ecs::create_entity();
 		children.push_back(editor_web);
 		auto web = scn::generate_web({ 50, 50 }); 
-		res::Material mlt;
+		/*res::Material mlt;
 		mlt.diffuse_color = glm::vec4(0);
 		mlt.set_state(res::Material::ALBEDO_COLOR);
-		web.data.materials.push_back(mlt);
+		web.data.materials.push_back(mlt);*/
 		res::meshes_conteiner& data = web.data;
 		res::mesh_view& mesh = web.mesh;
-		mesh.material_id = 0;
+		//mesh.material_id = 0;
 
 		ecs::add_component(editor_web, scn::model_root_component{ .data = data });
 		ecs::add_component(editor_web, scn::mesh_component{ .mesh = mesh });
 		ecs::add_component(editor_web, scn::transform_component{ .local = glm::scale(glm::vec3(1, 0, 1)) });
 		ecs::add_component(editor_web, scn::parent_component{ .parent = world_anchor });
 		ecs::add_component(editor_web, scn::name_component{ .name = "Editor Web"});
-		ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});
+		ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});// TODO: move to material
 		ecs::add_component(editor_web, scn::is_render_component_flag{});
+		ecs::add_component(editor_web, scn::material_link_component{ .material = black_mlt });
 	}
 	// light
 	{
@@ -127,6 +142,7 @@ editor::EditorSystem::EditorSystem()
 		ecs::add_component(light, scn::parent_component{ .parent = world_anchor });
 		ecs::add_component(light, scn::name_component{ .name = "Light" });
 		ecs::add_component(light, scn::is_render_component_flag{});
+		ecs::add_component(light, scn::material_link_component{ .material = chess_mlt });
 
 	}
 	// sky
@@ -491,31 +507,7 @@ bool editor::EditorSystem::show_scene()
 		glm::vec2 start{ pos.x, pos.y };
 		glm::vec2 size{ contentRegionAvailable.x, contentRegionAvailable.y };
 		draw_gizmo(start, size, viewMatrix, projMat);
-
-		auto texture = rnd::get_system().get_texture_manager().find(res::Tag(res::Tag::memory, "__color_scene_rt"));
-		auto* backend = wnd::get_system().get_gui_backend();
-
-		ImGuiStyle& style = ImGui::GetStyle();
-		ImVec4 original_button_color = style.Colors[ImGuiCol_Button];
-		ImVec4 original_button_hovered_color = style.Colors[ImGuiCol_ButtonHovered];
-		ImVec4 original_button_active_color = style.Colors[ImGuiCol_ButtonActive];
-		ImVec2 original_padding = style.FramePadding;
-		style.Colors[ImGuiCol_Button] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
-		style.FramePadding = { 0, 0 };
-
-		ImGui::SetCursorScreenPos(pos);
-		ImGui::ImageButton("##ViewScene", backend->get_imgui_texture_from_texture(texture), contentRegionAvailable, ImVec2(0, 1), ImVec2(1, 0));
-		
-		style.Colors[ImGuiCol_Button] = original_button_color;
-		style.Colors[ImGuiCol_ButtonHovered] = original_button_hovered_color;
-		style.Colors[ImGuiCol_ButtonActive] = original_button_active_color;
-		style.FramePadding = original_padding;
-
-		if (ImGui::IsItemHovered()) {
-			input->unblock_layer_once();
-		}
+		draw_scene_image(start, size);
 	}
 	ImGui::End();
 
@@ -563,6 +555,39 @@ bool editor::EditorSystem::show_ecs_test()
 	return is_open;
 }
 
+bool editor::EditorSystem::show_materials()
+{
+	bool is_open = true;
+	if (ImGui::Begin("Materials", &is_open, ImGuiWindowFlags_NoScrollbar))
+	{
+		auto mlts = ecs::filter<scn::base_material_component>();
+
+		auto items_getter = [](void* data, int idx) -> const char*
+		{
+			std::vector<ecs::entity>* items = (std::vector<ecs::entity>*)data;
+			if (idx < 0 || idx >= items->size())
+				return nullptr;
+			if (auto* name = ecs::get_component<scn::name_component>((*items)[idx])) {
+				return name->name.c_str();
+			}
+
+			return "Unnamed material";
+		};
+		ImVec2 windowSize = ImGui::GetContentRegionAvail();
+		float itemHeight = ImGui::GetTextLineHeight() + ImGui::GetStyle().ItemSpacing.y;
+
+		int visibleItems = static_cast<int>((windowSize.y - ImGui::GetStyle().ItemSpacing.y) / itemHeight);
+
+		static int item_current = 1;
+		ImGui::PushItemWidth(windowSize.x);
+		ImGui::ListBox("##materials_listbox", &item_current, items_getter, (void*)&mlts, mlts.size(), std::min(visibleItems, (int)mlts.size()));
+		ImGui::PopItemWidth();
+	}
+	ImGui::End();
+
+	return is_open;
+}
+
 bool editor::EditorSystem::show_clear_cache()
 {
 	bool is_open = true;
@@ -592,6 +617,34 @@ void editor::EditorSystem::draw_gizmo(const glm::vec2& start, const glm::vec2& s
 		edt::imgui::draw_gizmo(view, proj);
 	}
 	ImGui::EndChild();
+}
+
+void editor::EditorSystem::draw_scene_image(const glm::vec2& pos, const glm::vec2& contentRegionAvailable)
+{
+	auto texture = rnd::get_system().get_texture_manager().find(res::Tag(res::Tag::memory, "__color_scene_rt"));
+	auto* backend = wnd::get_system().get_gui_backend();
+
+	ImGuiStyle& style = ImGui::GetStyle();
+	ImVec4 original_button_color = style.Colors[ImGuiCol_Button];
+	ImVec4 original_button_hovered_color = style.Colors[ImGuiCol_ButtonHovered];
+	ImVec4 original_button_active_color = style.Colors[ImGuiCol_ButtonActive];
+	ImVec2 original_padding = style.FramePadding;
+	style.Colors[ImGuiCol_Button] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+	style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+	style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+	style.FramePadding = { 0, 0 };
+
+	ImGui::SetCursorScreenPos(ImVec2{ pos.x, pos.y });
+	ImGui::ImageButton("##ViewScene", backend->get_imgui_texture_from_texture(texture), ImVec2{ contentRegionAvailable.x, contentRegionAvailable.y }, ImVec2(0, 1), ImVec2(1, 0));
+
+	style.Colors[ImGuiCol_Button] = original_button_color;
+	style.Colors[ImGuiCol_ButtonHovered] = original_button_hovered_color;
+	style.Colors[ImGuiCol_ButtonActive] = original_button_active_color;
+	style.FramePadding = original_padding;
+	// let input to go to game
+	if (ImGui::IsItemHovered()) {
+		input->unblock_layer_once();
+	}
 }
 
 bool editor::EditorSystem::init_ecs_test()

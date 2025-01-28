@@ -27,3 +27,8 @@ using EventManaged = ds::Event<SIGNATURE, ds::EventPolicyManagedContainer<ds::Ev
 
 template <typename SIGNATURE = void()>
 using Event = ds::Event<SIGNATURE, ds::EventPolicySimpleContainer<ds::EventStoragePopicyVector>>;
+
+namespace data_struct
+{
+	using color = glm::vec4;
+}

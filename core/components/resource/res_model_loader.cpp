@@ -95,6 +95,12 @@ std::vector<res::Mesh> res::loader::model_loader::load()
         return {};
     }
 
+    // process materials
+    for (int i = 0; i < scene->mNumMaterials; i++) {
+        aiMaterial* material = scene->mMaterials[i];
+        res::Material mesh_material = copy_material(scene, material);
+    }
+
     aiNode* Root = scene->mRootNode;
     // process ASSIMP's root node recursively
     process_node(Root, scene, model.head);
@@ -214,17 +220,12 @@ res::Mesh res::loader::model_loader::copy_mesh(aiMesh* mesh, const aiScene* scen
     std::size_t ind_offset = model.data.indices.size();
     std::size_t verx_offset = model.data.vertices.size();
     std::size_t bone_offset = model.data.bones.size();
-    std::size_t mat_offset = model.data.materials.size();
 
     std::vector<res::Vertex> vertices = copy_vertices(mesh);
 
     std::vector<res::bone> bones = copy_bones(vertices, mesh, verx_offset);
 
     std::vector<unsigned int> indices = copy_indeces(mesh);
-
-    // process materials
-    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-    res::Material mesh_material = copy_material(scene, material);
 
     res::mesh_view v_mesh;
     v_mesh.ind_begin = ind_offset;
@@ -233,13 +234,13 @@ res::Mesh res::loader::model_loader::copy_mesh(aiMesh* mesh, const aiScene* scen
     v_mesh.vx_end = model.data.vertices.size();
     v_mesh.bones_begin = bone_offset;
     v_mesh.bones_end = model.data.bones.size();
-    v_mesh.material_id = mat_offset;
+    v_mesh.material_id = mesh->mMaterialIndex;
 
     model.meshes_views.push_back(v_mesh);
 
     meshes_counter[mesh]++;
     // return a mesh object created from the extracted mesh data
-    return res::Mesh{ .vertices = vertices, .indices = indices, .bones = bones, .material = mesh_material };
+    return res::Mesh{ .vertices = vertices, .indices = indices, .bones = bones };
 }
 
 void log_material_texture(const aiScene* scene, aiMaterial* mat, aiTextureType type, std::string_view name)
@@ -442,24 +443,6 @@ res::Material res::loader::model_loader::copy_material(const aiScene* scene, aiM
     if (AI_SUCCESS == material->Get(AI_MATKEY_BUMPSCALING, mesh_material.bump_scaling)) {
         mesh_material.set_state(res::Material::BUMP_SCALING);
     }
-
-    //mesh_material.diffuse = find_material_texture(scene, material, aiTextureType_BASE_COLOR);
-    //if (!mesh_material.diffuse.is_valid()) {
-    //    mesh_material.diffuse = find_material_texture(scene, material, aiTextureType_DIFFUSE);
-    //}     
-    ////mesh_material.diffuse_color = get_material_color(material, )
-    //increase_txt_counter(mesh_material.diffuse);
-    //// 2. specular maps
-    //mesh_material.specular = find_material_texture(scene, material, aiTextureType_SPECULAR);
-    //increase_txt_counter(mesh_material.specular);
-    //// 3. normal maps
-    //mesh_material.normal = find_material_texture(scene, material, aiTextureType_NORMALS);
-    //increase_txt_counter(mesh_material.normal);
-    //// 4. ambient maps
-    //mesh_material.ambient = find_material_texture(scene, material, aiTextureType_AMBIENT);
-    //increase_txt_counter(mesh_material.ambient);
-
-
     model.data.materials.push_back(mesh_material);
     return mesh_material;
 }
