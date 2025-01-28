@@ -20,6 +20,7 @@
 #include "ds_event.hpp"
 
 using namespace std::string_literals;
+using namespace std::string_view_literals;
 
 template <typename SIGNATURE>
 using EventManaged = ds::Event<SIGNATURE, ds::EventPolicyManagedContainer<ds::EventStoragePopicyVector>>;

@@ -63,7 +63,7 @@ namespace rnd
 			return name == desc.name && defines == desc.defines && defines_values == desc.defines_values;
 		}
 
-		void preprocess_shader_code(std::vector<rnd::driver::shader_header>& headers, const auto& define_names) const;
+		void preprocess_shader_code(std::vector<res::Tag> tags, std::vector<rnd::driver::shader_header>& headers, const auto& define_names) const;
 
 		rnd::driver::texture_interface* tex0 = nullptr;
 		rnd::driver::texture_interface* tex1 = nullptr;
@@ -79,6 +79,9 @@ namespace rnd
 		enum
 		{
 			USE_ANIMATION = LAST,
+			USE_NORMAL_MAP,
+			USE_SPECULAR_MAP,
+			USE_TXM_AS_DIFFUSE,
 			MAX_BONE_MATRICES_COUNT,
 			LAST,
 		};
@@ -87,6 +90,9 @@ namespace rnd
 			auto arr1 = shader_desc::get_all_define_names();
 			constexpr auto arr2 = std::array{
 				"USE_ANIMATION"sv,
+				"USE_NORMAL_MAP"sv,
+				"USE_SPECULAR_MAP"sv,
+				"USE_TXM_AS_DIFFUSE"sv,
 				"MAX_BONE_MATRICES_COUNT"sv,
 			};
 
@@ -99,6 +105,7 @@ namespace rnd
 
 		glm::mat4 uWorldModel = glm::mat4{ 1.0 };
 		glm::mat4 uWorldMeshMatr = glm::mat4{ 1.0 };
+		glm::vec4 diffuseColor = glm::vec4(0);
 		std::vector<driver::shader_header> load() const;
 	};
 

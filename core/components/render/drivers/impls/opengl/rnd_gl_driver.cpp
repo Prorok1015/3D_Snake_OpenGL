@@ -285,6 +285,11 @@ void rnd::driver::gl::driver::disable(ENABLE_FLAGS flags)
 
 void rnd::driver::gl::driver::unuse()
 {
+	glBindTextureUnit(0, 0);
+	glBindTextureUnit(1, 0);
+	glBindTextureUnit(2, 0);
+	glBindTextureUnit(3, 0);
+	glBindTextureUnit(4, 0);
 	glUseProgram(0);
 	CHECK_GL_ERROR();
 }

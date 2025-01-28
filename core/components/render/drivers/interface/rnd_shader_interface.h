@@ -10,6 +10,7 @@ namespace rnd::driver
 		virtual ~shader_interface() {}
 
 		virtual void uniform(std::string_view name, glm::mat4 val) = 0;
+		virtual void uniform(std::string_view name, glm::vec4 val) = 0;
 		virtual void uniform(std::string_view name, glm::vec3 val) = 0;
 		virtual void uniform(std::string_view name, glm::vec2 val) = 0;
 		virtual void uniform(std::string_view name, int val) = 0;

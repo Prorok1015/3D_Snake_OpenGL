@@ -5,8 +5,11 @@
 #include "rnd_render_system.h"
 
 
-void rnd::shader_desc::preprocess_shader_code(std::vector<rnd::driver::shader_header>& headers, const auto& defines_names) const
+void rnd::shader_desc::preprocess_shader_code(std::vector<res::Tag> tags, std::vector<rnd::driver::shader_header>& headers, const auto& defines_names) const
 {
+    ASSERT_MSG(tags.size() == headers.size(), "tags and headers sizes should be equal");
+
+    std::size_t index = 0;
     for (auto& header : headers)
     {
         std::string_view body_view = header.body;
@@ -19,7 +22,7 @@ void rnd::shader_desc::preprocess_shader_code(std::vector<rnd::driver::shader_he
             if (begin != std::string_view::npos && end != std::string_view::npos) {
                 std::string_view include = body_view.substr(begin + 1, end - begin - 1);
 
-                auto include_code = res::get_system().require_resource<res::TextFile>(res::Tag::make(include));
+                auto include_code = res::get_system().require_resource<res::TextFile>(tags[index] + res::Tag::make(include));
                 if (include_code) {
                     std::size_t line_end = body.find_first_of('\n', offset);
                     body_view = header.body.replace(offset, line_end - offset, include_code->c_str());
@@ -28,6 +31,7 @@ void rnd::shader_desc::preprocess_shader_code(std::vector<rnd::driver::shader_he
 
             offset = body.find("#include", offset);
         }
+        ++index;
     }
 
     if (!defines_names.empty()) {
@@ -67,8 +71,8 @@ void rnd::shader_desc::preprocess_shader_code(std::vector<rnd::driver::shader_he
 
 std::vector<rnd::driver::shader_header> rnd::shader_scene_desc::load() const
 {
-	auto vertexCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("scene.vert"), true);
-	auto fragmentCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("scene.frag"), true);
+	auto vertexCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("shaders/scene.vert"), true);
+	auto fragmentCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("shaders/scene.frag"), true);
 	//auto geomCode = res::get_system().require_resource<res::TextFile>(res::Tag::make(name + ".geom"), true);
 
 	std::vector<driver::shader_header> headers
@@ -77,14 +81,20 @@ std::vector<rnd::driver::shader_header> rnd::shader_scene_desc::load() const
 		driver::shader_header{.title = "scene.frag", .body = fragmentCode->c_str(), .type = driver::shader_header::TYPE::FRAGMENT},
 	};
 
-    preprocess_shader_code(headers, get_all_define_names());
+    std::vector<res::Tag> tags
+    {
+        res::Tag::make("shaders/scene.vert"),
+        res::Tag::make("shaders/scene.frag"),
+    };
+
+    preprocess_shader_code(tags, headers, get_all_define_names());
 	return headers;
 }
 
 std::vector<rnd::driver::shader_header> rnd::shader_sky_desc::load() const
 {
-	auto vertexCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("sky.vert"), true);
-	auto fragmentCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("sky.frag"), true);
+	auto vertexCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("shaders/sky.vert"), true);
+	auto fragmentCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("shaders/sky.frag"), true);
 	//auto geomCode = res::get_system().require_resource<res::TextFile>(res::Tag::make(name + ".geom"), true);
 	std::vector<driver::shader_header> headers
 	{
@@ -97,8 +107,8 @@ std::vector<rnd::driver::shader_header> rnd::shader_sky_desc::load() const
 
 std::vector<rnd::driver::shader_header> rnd::shader_scene_instance_desc::load() const
 {
-	auto vertexCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("scene_inst.vert"), true);
-	auto fragmentCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("scene_inst.frag"), true);
+	auto vertexCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("shaders/scene_inst.vert"), true);
+	auto fragmentCode = res::get_system().require_resource<res::TextFile>(res::Tag::make("shaders/scene_inst.frag"), true);
 	//auto geomCode = res::get_system().require_resource<res::TextFile>(res::Tag::make(name + ".geom"), true);
 	std::vector<driver::shader_header> headers
 	{
@@ -109,46 +119,45 @@ std::vector<rnd::driver::shader_header> rnd::shader_scene_instance_desc::load() 
 	return headers;
 }
 
-void rnd::configure_render_pass(const shader_desc& decs, rnd::driver::shader_interface* shader)
+void rnd::configure_render_pass(const shader_desc& desc, rnd::driver::shader_interface* shader)
 {
-    if (decs.tex0) {
-        decs.tex0->bind(0);
+    if (desc.tex0) {
+        desc.tex0->bind(0);
     }
 
-    if (decs.tex1) {
-        decs.tex1->bind(1);
+    if (desc.tex1) {
+        desc.tex1->bind(1);
     }
 
-    if (decs.tex2) {
-        decs.tex2->bind(2);
+    if (desc.tex2) {
+        desc.tex2->bind(2);
     }
 
-    if (decs.tex3) {
-        decs.tex3->bind(3);
+    if (desc.tex3) {
+        desc.tex3->bind(3);
     }
 }
 
-void rnd::configure_render_pass(const shader_scene_desc& decs, rnd::driver::shader_interface* shader)
+void rnd::configure_render_pass(const shader_scene_desc& desc, rnd::driver::shader_interface* shader)
 {
-    //shader->uniform("use_animation", decs.use_animation);
-    shader->uniform("uWorldModel", decs.uWorldModel);
-    shader->uniform("uWorldMeshMatr", decs.uWorldMeshMatr);
-    shader->uniform("ambient", glm::vec3(1.0f, 0.5f, 0.31f));
+    shader->uniform("uWorldModel", desc.uWorldModel);
+    shader->uniform("uWorldMeshMatr", desc.uWorldMeshMatr);
+    shader->uniform("diffuseColor", desc.diffuseColor);
     shader->uniform("shininess", 32.0f);
 
-    if (decs.tex0) {
-        decs.tex0->bind(0);
+    if (desc.tex0) {
+        desc.tex0->bind(0);
     }
 
-    if (decs.tex1) {
-        decs.tex1->bind(1);
+    if (desc.tex1) {
+        desc.tex1->bind(1);
     }
 
-    if (decs.tex2) {
-        decs.tex2->bind(2);
+    if (desc.tex2) {
+        desc.tex2->bind(2);
     }
 
-    if (decs.tex3) {
-        decs.tex3->bind(3);
+    if (desc.tex3) {
+        desc.tex3->bind(3);
     }
 }

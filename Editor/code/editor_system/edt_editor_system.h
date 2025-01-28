@@ -22,6 +22,8 @@ namespace editor
 
 		bool show_clear_cache();
 
+		void draw_gizmo(const glm::vec2& pos, const glm::vec2& size, const glm::mat4& view, const glm::mat4& proj);
+
 		bool init_ecs_test();
 	private:
 		std::vector<std::string> cameras_list

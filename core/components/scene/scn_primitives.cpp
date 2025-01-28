@@ -166,7 +166,10 @@ scn::model_cube scn::generate_cube()
     res::meshes_conteiner data;
     data.indices = inc;
     data.vertices = vex;
-    data.materials.push_back(res::Material{ .diffuse = res::Tag::make("block.png") });
+    res::Material mlt;
+    mlt.txm_list[res::Material::ALBEDO_TXM] = res::Tag::make("block.png");
+    mlt.set_state(res::Material::ALBEDO_TXM);
+    data.materials.push_back(mlt);
     res::mesh_view mesh;
     mesh.ind_end = inc.size();
     mesh.vx_end = vex.size();
@@ -280,8 +283,11 @@ scn::model_sphere scn::generate_sphere()
 
     res::meshes_conteiner data;
     data.indices = inc;
-    data.vertices = vex;
-    data.materials.push_back(res::Material{ .diffuse = res::Tag::make("block.png") });
+    data.vertices = vex; 
+    res::Material mlt;
+    mlt.txm_list[res::Material::ALBEDO_TXM] = res::Tag::make("block.png");
+    mlt.set_state(res::Material::ALBEDO_TXM);
+    data.materials.push_back(mlt);
     res::mesh_view mesh;
     mesh.ind_end = inc.size();
     mesh.vx_end = vex.size();

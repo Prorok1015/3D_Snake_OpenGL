@@ -30,6 +30,10 @@ rnd::driver::gl::render_context::render_context(GLADloadproc load)
 	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxUniformBlockSize);
 	GLint maxUniformBufferBindings;
 	glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxUniformBufferBindings);
+	GLint maxTextureUnits;
+	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &maxTextureUnits);
+	GLint maxVertexTextureUnits;
+	glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &maxVertexTextureUnits);
 
 	egLOG("render_context/init",
 		"OpenGL Info: \n"
@@ -41,7 +45,9 @@ rnd::driver::gl::render_context::render_context(GLADloadproc load)
 		"Max Vertex Uniform Vectors(vec4):   {5}\n"
 		"Max Fragment Uniform Vectors(vec4): {6}\n"
 		"Max Uniform Block Size(b):          {7}\n"
-		"Max Uniform Buffer Bindings:        {8}\n",
+		"Max Uniform Buffer Bindings:        {8}\n"
+		"Max image units in fragment: {9}, vertex: {10}\n"
+		,
 		(const char*)glGetString(GL_VENDOR),
 		(const char*)glGetString(GL_RENDERER),
 		(const char*)glGetString(GL_VERSION),
@@ -50,7 +56,10 @@ rnd::driver::gl::render_context::render_context(GLADloadproc load)
 		maxVertexUniformVectors,
 		maxFragmentUniformVectors,
 		maxUniformBlockSize,
-		maxUniformBufferBindings);
+		maxUniformBufferBindings,
+		maxTextureUnits,
+		maxVertexTextureUnits
+		);
 
 	ASSERT_MSG(GLVersion.major > 4 || (GLVersion.major == 4 && GLVersion.minor >= 5), "Engine requires at least OpenGL version 4.5!");
 

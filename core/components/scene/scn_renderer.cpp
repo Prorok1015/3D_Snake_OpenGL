@@ -35,7 +35,7 @@ scn::renderer_3d::renderer_3d()
     vertex_array = drv->create_vertex_array();
 
     vertex_buffer = drv->create_buffer();
-    vertex_buffer->reserve(800000 * sizeof(res::Vertex));
+    vertex_buffer->reserve(8000000 * sizeof(res::Vertex));
     vertex_buffer->set_layout(
         {
             {rnd::driver::SHADER_DATA_TYPE::VEC3_F, "position"},
@@ -114,21 +114,25 @@ void scn::renderer_3d::setup_instance_buffer()
 
 void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
+    static res::Tag color_rt_tag = res::Tag(res::Tag::memory, "__color_scene_rt");
     rnd::global_params common_matrix{ .time = (float)Timer::now() };
 
-    static res::Tag color_rt_tag = res::Tag(res::Tag::memory, "__color_scene_rt");
     auto& txm_manager = rnd::get_system().get_texture_manager();
     for (ecs::entity& ent : ecs::filter<scn::light_point>()) {
         auto* light = ecs::get_component<scn::light_point>(ent);
+        glm::vec4 position(0);
+        if (auto* trans = ecs::get_component<scn::transform_component>(ent)) {
+            position = glm::vec4{ eng::transform3d{ trans->world }.get_pos(), 1 };
+        }
 
         rnd::sun_params sun;
         sun.ambient = light->ambient;
         sun.diffuse = light->diffuse;
         sun.specular = light->specular;
-        sun.position = light->position;
+        sun.position = position;
         rnd::get_system().get_shader_manager().update_global_sun(sun);
     }
-    static bool first_init = true;
+
     for (ecs::entity& ent : ecs::filter<scn::camera_component, scn::is_render_component_flag>())
     {
         scn::camera_component* camera = ecs::get_component<scn::camera_component>(ent);
@@ -180,8 +184,7 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         common_matrix.view_position = glm::vec4(pos.get_pos(), 1.0);
 
         rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
-        glm::ivec4 vp{ camera->viewport.center, camera->viewport.size };
-        drv->set_viewport(vp);
+        drv->set_viewport(camera->viewport);
 
 
         draw_instances(drv);
@@ -217,16 +220,34 @@ void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
         matrices_buffer_inst->set_data(inst->worlds);
 
         rnd::shader_scene_instance_desc desc;
-        if (inst->tpl.material.diffuse.is_valid()) {
-            desc.tex0 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.diffuse);
+        auto& material = inst->tpl.material;
+        if (material.is_state(res::Material::ALBEDO_TXM)) {
+            desc.tex0 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::ALBEDO_TXM));
+            desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = true;
+        }
+        else if (material.is_state(res::Material::ALBEDO_COLOR)) {
+            //desc.diffuseColor = material.diffuse_color;
+            desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = false;
         }
 
-        if (inst->tpl.material.specular.is_valid()) {
-            desc.tex1 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.specular);
+        if (material.is_state(res::Material::SPECULAR_TXM)) {
+            desc.tex1 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::SPECULAR_TXM));
+            desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = true;
+        }
+        else {
+            desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = false;
         }
 
-        if (inst->tpl.material.ambient.is_valid()) {
-            desc.tex2 = rnd::get_system().get_texture_manager().require_texture(inst->tpl.material.ambient);
+        if (material.is_state(res::Material::AMBIENT_TXM)) {
+            desc.tex2 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::AMBIENT_TXM));
+        }
+
+        if (material.is_state(res::Material::NORMALS_TXM)) {
+            desc.tex2 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::NORMALS_TXM));
+            desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = true;
+        }
+        else {
+            desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = false;
         }
 
         rnd::get_system().get_shader_manager().use(desc);
@@ -324,16 +345,30 @@ void scn::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, 
     index_buffer->set_data_ptr(&data.indices[mesh.ind_begin], mesh.get_indices_count());
 
     auto& material = data.materials[mesh.material_id];
-    if (material.diffuse.is_valid()) {
-        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(material.diffuse);
+    if (material.is_state(res::Material::ALBEDO_TXM)) {
+        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::ALBEDO_TXM));
+        desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = true;
+    } else if (material.is_state(res::Material::ALBEDO_COLOR)){
+        desc.diffuseColor = material.diffuse_color;
+        desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = false;
     }
 
-    if (material.specular.is_valid()) {
-        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(material.specular);
+    if (material.is_state(res::Material::SPECULAR_TXM)) {
+        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::SPECULAR_TXM));
+        desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = true;
+    } else {
+        desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = false;
     }
 
-    if (material.ambient.is_valid()) {
-        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(material.ambient);
+    if (material.is_state(res::Material::AMBIENT_TXM)) {
+        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::AMBIENT_TXM));
+    }
+
+    if (material.is_state(res::Material::NORMALS_TXM)) {
+        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::NORMALS_TXM));
+        desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = true;
+    } else {
+        desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = false;
     }
 
     if (data.bones_data.bones_indeces_txm.is_valid()) {

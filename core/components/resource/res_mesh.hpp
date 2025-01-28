@@ -18,10 +18,79 @@ namespace res
 
 	struct Material
 	{
-		Tag diffuse;
-		Tag specular;
-		Tag ambient;
-		Tag normal;
+		enum STATES
+		{
+			DIFFUSE_TXM,
+			SPECULAR_TXM,
+			HEIGHT_TXM,
+			NORMALS_TXM,
+			AMBIENT_TXM,
+			ALBEDO_TXM,
+			EMISSIVE_TXM,
+			CLEARCOAT_TXM,
+			SHININESS_TXM,
+			OPACITY_TXM,
+			LIGHTMAP_TXM,
+			REFLECTION_TXM,
+			NORMAL_CAMERA_TXM,
+			EMISSION_COLOR_TXM,
+			METALNESS_TXM,
+			DIFFUSE_ROUGHNESS_TXM,
+			AMBIENT_OCCLUSION_TXM,
+			SHEEN_TXM,
+			TRANSMISSION_TXM,
+
+			ALBEDO_COLOR,
+			SPECULAR_COLOR,
+			AMBIENT_COLOR,
+			EMISSIVE_COLOR,
+			TRANSPARENT_COLOR,
+			REFLECTIVE_COLOR,
+			OPACITY,
+			REFLECTIVITY,
+			REFRACTI,
+			SHININESS,
+			SHININESS_STRENGTH,
+			BUMP_SCALING,
+			COUNT
+		};
+		std::array<bool, STATES::COUNT> state{};
+		constexpr void set_state(STATES flag) { state[flag] = true; }
+		constexpr void clear_state(STATES flag) { state[flag] = false; }
+		constexpr bool is_state(STATES flag) const { return state[flag]; }
+		const res::Tag& get_txm(STATES txm) const {
+			if (0 < txm && txm < TRANSMISSION_TXM + 1) {
+				return txm_list[txm];
+			}
+			return {};
+		}
+
+		std::string name;
+		std::array<res::Tag, TRANSMISSION_TXM + 1> txm_list{};
+		//Tag diffuse;
+		//Tag specular;
+		//Tag ambient;
+		//Tag normal;
+
+		//COLOR_DIFFUSE
+		glm::vec4 diffuse_color { 0 };
+		//COLOR_SPECULAR
+		glm::vec4 specular_color{ 0 };
+		//COLOR_AMBIENT
+		glm::vec4 ambient_color{ 0 };
+		//COLOR_EMISSIVE
+		glm::vec4 emissive_color{ 0 };
+		//COLOR_TRANSPARENT
+		glm::vec4 transparent_color{ 0 };
+		//COLOR_REFLECTIVE
+		glm::vec4 reflective_color{ 0 };
+
+		float opacity = 1.0;// 0.0 -> 1.0
+		float reflectivity = 0.0;// 0.0 -> 1.0
+		float refracti = 0.0;
+		float shininess = 0.0;// 0.0 -> 1000
+		float shininess_strength = 0.0;// 0.0 -> 1.0
+		float bump_scaling = 0.0;// height map scaling
 	};
 
 	struct animation

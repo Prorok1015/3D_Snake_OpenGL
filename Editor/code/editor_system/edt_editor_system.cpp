@@ -14,7 +14,7 @@
 #include "wnd_window_system.h"
 
 #include "edt_input_manager.h"
-
+#include "edt_guizmo.hpp"
 #include <imgui.h>
 
 editor::EditorSystem::EditorSystem()
@@ -89,8 +89,11 @@ editor::EditorSystem::EditorSystem()
 	{
 		editor_web = ecs::create_entity();
 		children.push_back(editor_web);
-		auto web = scn::generate_web({ 50, 50 });
-		web.data.materials.push_back(res::Material{ .diffuse = res::Tag(res::Tag::memory, "__black") });
+		auto web = scn::generate_web({ 50, 50 }); 
+		res::Material mlt;
+		mlt.diffuse_color = glm::vec4(0);
+		mlt.set_state(res::Material::ALBEDO_COLOR);
+		web.data.materials.push_back(mlt);
 		res::meshes_conteiner& data = web.data;
 		res::mesh_view& mesh = web.mesh;
 		mesh.material_id = 0;
@@ -123,6 +126,8 @@ editor::EditorSystem::EditorSystem()
 		ecs::add_component(light, scn::transform_component{ .local = glm::translate(glm::mat4{1.0}, glm::vec3(50, 50, 50)) });
 		ecs::add_component(light, scn::parent_component{ .parent = world_anchor });
 		ecs::add_component(light, scn::name_component{ .name = "Light" });
+		ecs::add_component(light, scn::is_render_component_flag{});
+
 	}
 	// sky
 	{
@@ -270,7 +275,7 @@ void show_tree_items(ecs::entity ent)
 
 		if (auto* colot = ecs::get_component<scn::light_point>(ent))
 		{
-			ImGui::ColorEdit3("Color", glm::value_ptr(colot->diffuse));
+			ImGui::ColorEdit3("Light Color", glm::value_ptr(colot->diffuse));
 		}
 
 		if (auto* camera = ecs::get_component<scn::camera_component>(ent))
@@ -417,32 +422,6 @@ bool editor::EditorSystem::show_toolbar()
 			ImGui::InputText("Name", buf, 64);
 		}
 
-		static int cube_count_add = 1;
-		static int cube_count_remove = 1;
-		static int cube_count = 0;
-
-		if (ImGui::Button("add cube")) {
-			for (int i = 0; i < cube_count_add; ++i) {
-				//gs::get_system().add_cube_to_scene(20.f);
-				cube_count++;
-			}
-		}		
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(100);
-		ImGui::SliderInt("count add", &cube_count_add, 1, 100);
-
-		if (ImGui::Button("remove cube")) {
-			for (int i = 0; i < cube_count_remove; ++i) {
-				//gs::get_system().remove_cube();
-				if (cube_count > 0)
-					cube_count--;
-			}
-		}
-		ImGui::SameLine();
-		ImGui::SetNextItemWidth(100);
-		ImGui::SliderInt("count remove", &cube_count_remove, 1, 100); 
-		ImGui::Text("cubes count: %d", cube_count);
-
 		ImGui::Separator();
 		if (ImGui::BeginCombo("Render mode", render_modes_list[current_render_mode].c_str(), 0))
 		{
@@ -494,21 +473,24 @@ bool editor::EditorSystem::show_scene()
 	{
 		ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 		ImVec2 pos = ImGui::GetCursorScreenPos();
+		glm::mat4 viewMatrix{ 0 };
+		glm::mat4 projMat{ 0 };
 		for (auto& ent : ecs::filter<scn::camera_component>())
 		{
 			auto* camera = ecs::get_component<scn::camera_component>(ent);
 			camera->viewport.size = glm::ivec2(contentRegionAvailable.x, contentRegionAvailable.y);
+			if (auto* trans = ecs::get_component<scn::transform_component>(ent))
+			{
+				viewMatrix = glm::inverse(trans->local);
+			}
+			if (camera->viewport.size != glm::ivec2{ 0 }) {
+				projMat = glm::perspective(glm::radians(camera->fov), (float)camera->viewport.size.x / (float)camera->viewport.size.y, camera->near_distance, camera->far_distance);
+			}
 		}
 
-		if (ImGui::BeginChild("Buttons", ImVec2(0, 60), false, ImGuiWindowFlags_NoScrollbar)) { 
-			if (ImGui::Button("Button 1")) {
-				egLOG("", "Click btn1");
-			}
-			if (ImGui::Button("Button 2")) {
-				egLOG("", "Click btn2");
-			}
-			ImGui::EndChild(); 
-		}
+		glm::vec2 start{ pos.x, pos.y };
+		glm::vec2 size{ contentRegionAvailable.x, contentRegionAvailable.y };
+		draw_gizmo(start, size, viewMatrix, projMat);
 
 		auto texture = rnd::get_system().get_texture_manager().find(res::Tag(res::Tag::memory, "__color_scene_rt"));
 		auto* backend = wnd::get_system().get_gui_backend();
@@ -534,7 +516,6 @@ bool editor::EditorSystem::show_scene()
 		if (ImGui::IsItemHovered()) {
 			input->unblock_layer_once();
 		}
-
 	}
 	ImGui::End();
 
@@ -597,6 +578,20 @@ bool editor::EditorSystem::show_clear_cache()
 	}
 	ImGui::End();
 	return is_open;
+}
+
+void editor::EditorSystem::draw_gizmo(const glm::vec2& start, const glm::vec2& size, const glm::mat4& view, const glm::mat4& proj)
+{
+	glm::vec2 guizmo_size{ 120, 120 };
+	glm::vec2 guizmo_start = start + size - guizmo_size;
+	ImGui::SetNextWindowPos(ImVec2(guizmo_start.x, guizmo_start.y));
+	if (ImGui::BeginChild("Guizmo", ImVec2(guizmo_size.x, guizmo_size.y), 0, ImGuiWindowFlags_NoScrollbar)) {
+		ImVec2 pos = ImGui::GetCursorScreenPos();
+		ImVec2 size = ImGui::GetContentRegionAvail();
+		edt::imgui::set_view_area(pos.x, pos.y, size.y);
+		edt::imgui::draw_gizmo(view, proj);
+	}
+	ImGui::EndChild();
 }
 
 bool editor::EditorSystem::init_ecs_test()

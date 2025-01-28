@@ -10,6 +10,25 @@
 
 const aiNodeAnim* find_node_anim(const aiAnimation* pAnimation, const std::string_view NodeName);
 
+glm::vec4 get_material_color(aiMaterial* material, const char* pKey, unsigned int type, unsigned int idx, const glm::vec4& defaultValue) {
+    aiColor4D color;
+    if (AI_SUCCESS == material->Get(pKey, type, idx, color)) {
+        return glm::vec4(color.r, color.g, color.b, color.a);
+    } else {
+        egLOG("loader", "Material color not found. Using default color.");
+        return defaultValue;
+    }
+}
+
+std::string get_material_string(aiMaterial* material, const char* pKey, unsigned int type, unsigned int idx, const std::string& defaultValue) {
+    aiString str;
+    if (AI_SUCCESS == material->Get(pKey, type, idx, str)) {
+        return { str.C_Str() };
+    } else {
+        egLOG("loader", "Material color not found. Using default color.");
+        return defaultValue;
+    }
+}
 
 glm::quat convert_to_glm(const aiQuaternion& vector) {
     glm::quat result;
@@ -77,14 +96,6 @@ std::vector<res::Mesh> res::loader::model_loader::load()
     }
 
     aiNode* Root = scene->mRootNode;
-    if (tag.name().find(".gltf") != std::string::npos) {
-        for (int i = 0; i < 3; ++i) {
-            if (Root->mNumChildren > 0) {
-                //Root = Root->mChildren[0];
-            }
-        }
-    }
-
     // process ASSIMP's root node recursively
     process_node(Root, scene, model.head);
 
@@ -136,8 +147,8 @@ std::vector<res::Mesh> res::loader::model_loader::load()
 
     for (auto& mesh : meshes)
     {
-        egLOG("load/meshes", "mesh: vx - {}   \tind - {}   \tbouns - {},   \tmaterial: {}, {}, {}, {}", mesh.vertices.size(), mesh.indices.size(), mesh.bones.size(),
-            mesh.material.diffuse.name(), mesh.material.ambient.name(), mesh.material.normal.name(), mesh.material.specular.name());
+        //egLOG("load/meshes", "mesh: vx - {}   \tind - {}   \tbouns - {},   \tmaterial: {}, {}, {}, {}", mesh.vertices.size(), mesh.indices.size(), mesh.bones.size(),
+        //    mesh.material.diffuse.name(), mesh.material.ambient.name(), mesh.material.normal.name(), mesh.material.specular.name());
     }
 
     for (auto& mesh : model.meshes_views)
@@ -213,12 +224,6 @@ res::Mesh res::loader::model_loader::copy_mesh(aiMesh* mesh, const aiScene* scen
 
     // process materials
     aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
-    // we assume a convention for sampler names in the shaders. Each diffuse texture should be named
-    // as 'texture_diffuseN' where N is a sequential number ranging from 1 to MAX_SAMPLER_NUMBER. 
-    // Same applies to other texture as the following list summarizes:
-    // diffuse: texture_diffuseN
-    // specular: texture_specularN
-    // normal: texture_normalN 
     res::Material mesh_material = copy_material(scene, material);
 
     res::mesh_view v_mesh;
@@ -237,24 +242,225 @@ res::Mesh res::loader::model_loader::copy_mesh(aiMesh* mesh, const aiScene* scen
     return res::Mesh{ .vertices = vertices, .indices = indices, .bones = bones, .material = mesh_material };
 }
 
+void log_material_texture(const aiScene* scene, aiMaterial* mat, aiTextureType type, std::string_view name)
+{
+    if (mat->GetTextureCount(type) > 0)
+    {
+        aiString str;
+        mat->GetTexture(type, 0, &str);
+        std::string_view texture_name = str.C_Str();
+        egLOG("loader", "{0} count: {1}, path: {2}", name, mat->GetTextureCount(type), texture_name);
+    }
+}
+
+#define TXM_LOG(type) log_material_texture(scene, material, type, ###type)
+
 res::Material res::loader::model_loader::copy_material(const aiScene* scene, aiMaterial* material)
 {
+    TXM_LOG(aiTextureType_DIFFUSE);
+    TXM_LOG(aiTextureType_SPECULAR);
+    TXM_LOG(aiTextureType_HEIGHT);
+    TXM_LOG(aiTextureType_NORMALS);
+    TXM_LOG(aiTextureType_AMBIENT);
+    TXM_LOG(aiTextureType_BASE_COLOR);
+    TXM_LOG(aiTextureType_EMISSIVE);
+    TXM_LOG(aiTextureType_CLEARCOAT);
+    TXM_LOG(aiTextureType_SHININESS);
+    TXM_LOG(aiTextureType_OPACITY);
+    TXM_LOG(aiTextureType_LIGHTMAP);
+    TXM_LOG(aiTextureType_REFLECTION);
+    TXM_LOG(aiTextureType_NORMAL_CAMERA);
+    TXM_LOG(aiTextureType_EMISSION_COLOR);
+    TXM_LOG(aiTextureType_METALNESS);
+    TXM_LOG(aiTextureType_DIFFUSE_ROUGHNESS);
+    TXM_LOG(aiTextureType_AMBIENT_OCCLUSION);
+    TXM_LOG(aiTextureType_SHEEN);
+    TXM_LOG(aiTextureType_TRANSMISSION);
+
     res::Material mesh_material;
     // 1. diffuse maps
-    mesh_material.diffuse = find_material_texture(scene, material, aiTextureType_DIFFUSE);
-    increase_txt_counter(mesh_material.diffuse);
-    // 2. specular maps
-    mesh_material.specular = find_material_texture(scene, material, aiTextureType_SPECULAR);
-    increase_txt_counter(mesh_material.specular);
-    // 3. normal maps
-    mesh_material.normal = find_material_texture(scene, material, aiTextureType_HEIGHT);
-    increase_txt_counter(mesh_material.normal);
-    // 4. ambient maps
-    mesh_material.ambient = find_material_texture(scene, material, aiTextureType_AMBIENT);
-    increase_txt_counter(mesh_material.ambient);
+    auto tmp = find_material_texture(scene, material, aiTextureType_BASE_COLOR);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::ALBEDO_TXM] = tmp;
+        mesh_material.set_state(res::Material::ALBEDO_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_DIFFUSE);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::DIFFUSE_TXM] = tmp;
+        mesh_material.set_state(res::Material::DIFFUSE_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_SPECULAR);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::SPECULAR_TXM] = tmp;
+        mesh_material.set_state(res::Material::SPECULAR_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_HEIGHT);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::HEIGHT_TXM] = tmp;
+        mesh_material.set_state(res::Material::HEIGHT_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_NORMALS);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::NORMALS_TXM] = tmp;
+        mesh_material.set_state(res::Material::NORMALS_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_EMISSIVE);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::EMISSIVE_TXM] = tmp;
+        mesh_material.set_state(res::Material::EMISSIVE_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_CLEARCOAT);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::CLEARCOAT_TXM] = tmp;
+        mesh_material.set_state(res::Material::CLEARCOAT_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_SHININESS);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::SHININESS_TXM] = tmp;
+        mesh_material.set_state(res::Material::SHININESS_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_OPACITY);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::OPACITY_TXM] = tmp;
+        mesh_material.set_state(res::Material::OPACITY_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_LIGHTMAP);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::LIGHTMAP_TXM] = tmp;
+        mesh_material.set_state(res::Material::LIGHTMAP_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_EMISSION_COLOR);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::EMISSION_COLOR_TXM] = tmp;
+        mesh_material.set_state(res::Material::EMISSION_COLOR_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_METALNESS);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::METALNESS_TXM] = tmp;
+        mesh_material.set_state(res::Material::METALNESS_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_DIFFUSE_ROUGHNESS);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::DIFFUSE_ROUGHNESS_TXM] = tmp;
+        mesh_material.set_state(res::Material::DIFFUSE_ROUGHNESS_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_TRANSMISSION);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::TRANSMISSION_TXM] = tmp;
+        mesh_material.set_state(res::Material::TRANSMISSION_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_AMBIENT_OCCLUSION);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::AMBIENT_OCCLUSION_TXM] = tmp;
+        mesh_material.set_state(res::Material::AMBIENT_OCCLUSION_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_SHEEN);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::SHEEN_TXM] = tmp;
+        mesh_material.set_state(res::Material::SHEEN_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_REFLECTION);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::REFLECTION_TXM] = tmp;
+        mesh_material.set_state(res::Material::REFLECTION_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    tmp = find_material_texture(scene, material, aiTextureType_AMBIENT);
+    if (tmp.is_valid()) {
+        mesh_material.txm_list[res::Material::AMBIENT_TXM] = tmp;
+        mesh_material.set_state(res::Material::AMBIENT_TXM);
+        increase_txt_counter(tmp);
+    }
+
+    mesh_material.name = get_material_string(material, AI_MATKEY_NAME, "new_material");
+    aiColor4D color;
+    if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_DIFFUSE, color)) {
+        mesh_material.diffuse_color = glm::vec4(color.r, color.g, color.b, color.a);
+        mesh_material.set_state(res::Material::ALBEDO_COLOR);
+    }
+    if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_SPECULAR, color)) {
+        mesh_material.specular_color = glm::vec4(color.r, color.g, color.b, color.a);
+        mesh_material.set_state(res::Material::SPECULAR_COLOR);
+    }
+    if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_AMBIENT, color)) {
+        mesh_material.ambient_color = glm::vec4(color.r, color.g, color.b, color.a);
+        mesh_material.set_state(res::Material::AMBIENT_COLOR);
+    }
+    if (AI_SUCCESS == material->Get(AI_MATKEY_COLOR_EMISSIVE, color)) {
+        mesh_material.emissive_color = glm::vec4(color.r, color.g, color.b, color.a);
+        mesh_material.set_state(res::Material::EMISSIVE_COLOR);
+    }
+    
+    if (AI_SUCCESS == material->Get(AI_MATKEY_OPACITY, mesh_material.opacity)) {
+        mesh_material.set_state(res::Material::OPACITY);
+    }
+    if (AI_SUCCESS == material->Get(AI_MATKEY_REFLECTIVITY, mesh_material.reflectivity)) {
+        mesh_material.set_state(res::Material::REFLECTIVITY);
+    }
+    if (AI_SUCCESS == material->Get(AI_MATKEY_REFRACTI, mesh_material.refracti)) {
+        mesh_material.set_state(res::Material::REFRACTI);
+    }
+    if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS, mesh_material.shininess)) {
+        mesh_material.set_state(res::Material::SHININESS);
+    }
+    if (AI_SUCCESS == material->Get(AI_MATKEY_SHININESS_STRENGTH, mesh_material.shininess_strength)) {
+        mesh_material.set_state(res::Material::SHININESS_STRENGTH);
+    }
+    if (AI_SUCCESS == material->Get(AI_MATKEY_BUMPSCALING, mesh_material.bump_scaling)) {
+        mesh_material.set_state(res::Material::BUMP_SCALING);
+    }
+
+    //mesh_material.diffuse = find_material_texture(scene, material, aiTextureType_BASE_COLOR);
+    //if (!mesh_material.diffuse.is_valid()) {
+    //    mesh_material.diffuse = find_material_texture(scene, material, aiTextureType_DIFFUSE);
+    //}     
+    ////mesh_material.diffuse_color = get_material_color(material, )
+    //increase_txt_counter(mesh_material.diffuse);
+    //// 2. specular maps
+    //mesh_material.specular = find_material_texture(scene, material, aiTextureType_SPECULAR);
+    //increase_txt_counter(mesh_material.specular);
+    //// 3. normal maps
+    //mesh_material.normal = find_material_texture(scene, material, aiTextureType_NORMALS);
+    //increase_txt_counter(mesh_material.normal);
+    //// 4. ambient maps
+    //mesh_material.ambient = find_material_texture(scene, material, aiTextureType_AMBIENT);
+    //increase_txt_counter(mesh_material.ambient);
+
 
     model.data.materials.push_back(mesh_material);
-
     return mesh_material;
 }
 
@@ -264,19 +470,21 @@ std::vector<res::Vertex> res::loader::model_loader::copy_vertices(aiMesh* mesh)
     vertices.reserve(mesh->mNumVertices);
 
     model.data.vertices.reserve(model.data.vertices.size() + mesh->mNumVertices);
+    int normals_count = 0;
+    int uv_count = 0;
+    int tangents_count = 0;
+    int bitangents_count = 0;
+    int color_count = 0;
 
     // walk through each of the mesh's vertices
     for (unsigned int i = 0; i < mesh->mNumVertices; i++)
     {
-        res::Vertex native_vertex;
         Vertex vertex;
         glm::vec3 vector; // we declare a placeholder vector since assimp uses its own vector class that doesn't directly convert to glm's vec3 class so we transfer the data to this placeholder glm::vec3 first.
         // positions
         vector.x = mesh->mVertices[i].x;
         vector.y = mesh->mVertices[i].y;
         vector.z = mesh->mVertices[i].z;
-
-        native_vertex.position = vector;
 
         glm::mat4 matrix = glm::translate(vector);
 
@@ -298,11 +506,11 @@ std::vector<res::Vertex> res::loader::model_loader::copy_vertices(aiMesh* mesh)
             vector.y = mesh->mNormals[i].y;
             vector.z = mesh->mNormals[i].z;
             vertex.normal = vector;
-            native_vertex.normal = vector;
+            normals_count++;
         }
 
         // texture coordinates
-        if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
+        if (mesh->HasTextureCoords(0)) // does the mesh contain texture coordinates?
         {
             glm::vec2 vec;
             // a vertex can contain up to 8 different texture coordinates. We thus make the assumption that we won't 
@@ -310,37 +518,48 @@ std::vector<res::Vertex> res::loader::model_loader::copy_vertices(aiMesh* mesh)
             vec.x = mesh->mTextureCoords[0][i].x;
             vec.y = mesh->mTextureCoords[0][i].y;
             vertex.uv = vec;
-            native_vertex.uv = vec;
+            uv_count++;
+        }
+
+        if (mesh->HasTangentsAndBitangents())
+        {
             // tangent
             vector.x = mesh->mTangents[i].x;
             vector.y = mesh->mTangents[i].y;
             vector.z = mesh->mTangents[i].z;
             vertex.tangent = vector;
-            native_vertex.tangent = vector;
+            tangents_count++;
             // bitangent
+
             vector.x = mesh->mBitangents[i].x;
             vector.y = mesh->mBitangents[i].y;
             vector.z = mesh->mBitangents[i].z;
             vertex.bitangent = vector;
-            native_vertex.bitangent = vector;
+            bitangents_count++;
         }
-        else
-            vertex.uv = glm::vec2(0.0f, 0.0f);
 
-        for (int i = 0; i < 8; ++i) {
-            if (mesh->HasVertexColors(i))
-            {
-                glm::vec4 color;
-                color.r = mesh->mColors[i]->r;
-                color.g = mesh->mColors[i]->g;
-                color.b = mesh->mColors[i]->b;
-                color.a = mesh->mColors[i]->a;
-                vertex.color = color;
-            }
+        if (mesh->HasVertexColors(i))
+        {
+            glm::vec4 color;
+            color.r = mesh->mColors[i]->r;
+            color.g = mesh->mColors[i]->g;
+            color.b = mesh->mColors[i]->b;
+            color.a = mesh->mColors[i]->a;
+            vertex.color = color;
+            color_count++;
         }
         vertices.push_back(vertex);
         model.data.vertices.push_back(vertex);
     }
+
+    egLOG("loader", "Vertex count: {0}, Normals: {1}, UVs: {2}, Tangents: {3}, Bitangents: {4}, Colors: {5}",
+        mesh->mNumVertices,
+        normals_count,
+        uv_count,
+        tangents_count,
+        bitangents_count,
+        color_count
+        );
 
     return vertices;
 }
@@ -411,35 +630,35 @@ res::Tag res::loader::model_loader::find_material_texture(const aiScene* scene, 
         std::string_view texture_name = str.C_Str();
         if (auto* pEmbededTxm = scene->GetEmbeddedTexture(texture_name.data()))
         {
-            std::string embedded_path = "__embedded_txm_" + std::string(tag.pure_name()) + "/" + std::string(pEmbededTxm->mFilename.C_Str()) + "." + std::string(pEmbededTxm->achFormatHint);
-            res::Tag embedded_tag = res::Tag("memory", embedded_path);
+            const std::string_view embedded_filename{ pEmbededTxm->mFilename.C_Str() };
+            const std::string_view embedded_format{ pEmbededTxm->achFormatHint };
+            std::string embedded_path = std::vformat("__embedded_txm_{0}/{1}.{2}", std::make_format_args(tag.pure_name(), embedded_filename, embedded_format));
+            res::Tag embedded_tag = res::Tag(res::Tag::memory, embedded_path);
 
-            if (res::get_system().is_exist(embedded_tag)) {
-                return embedded_tag;
+            if (!res::get_system().is_exist(embedded_tag)) {
+                glm::ivec2 size;
+                int channel = 4;
+                unsigned char* data;
+
+                if (pEmbededTxm->mHeight != 0) {
+                    size.x = pEmbededTxm->mWidth;
+                    size.y = pEmbededTxm->mHeight;
+
+                    data = new unsigned char[size.x * size.y * channel];
+                    std::copy((unsigned char*)pEmbededTxm->pcData, (unsigned char*)pEmbededTxm->pcData + (size.x * size.y * channel), data);
+                }
+                else {
+                    auto img = stb_image::Image::read_from_memory((unsigned char*)pEmbededTxm->pcData, pEmbededTxm->mWidth);
+                    size.x = img.width();
+                    size.y = img.height();
+                    channel = img.channels_count();
+                    data = new unsigned char[img.size()];
+                    std::copy(img.data(), img.data() + img.size(), data);
+                }
+
+                auto pct = std::make_shared<res::Picture>(embedded_tag, size, channel, data);
+                res::get_system().add_resource(pct);            
             }
-
-            glm::ivec2 size;
-            int channel = 4;
-            unsigned char* data;
-
-            if (pEmbededTxm->mHeight != 0) {
-                size.x = pEmbededTxm->mWidth;
-                size.y = pEmbededTxm->mHeight;
-
-                data = new unsigned char[size.x * size.y * channel];
-                std::copy((unsigned char*)pEmbededTxm->pcData, (unsigned char*)pEmbededTxm->pcData + (size.x * size.y * channel), data);
-            }
-            else {
-                auto img = stb_image::Image::read_from_memory((unsigned char*)pEmbededTxm->pcData, pEmbededTxm->mWidth);
-                size.x = img.width();
-                size.y = img.height();
-                channel = img.channels_count();
-                data = new unsigned char[img.size()];
-                std::copy(img.data(), img.data() + img.size(), data);
-            }
-
-            auto pct = std::make_shared<res::Picture>(embedded_tag, size, channel, data);
-            res::get_system().add_resource(pct);
 
             return embedded_tag;
         }
@@ -533,44 +752,44 @@ const aiNodeAnim* find_node_anim(const aiAnimation* pAnimation, const std::strin
 
 void res::loader::model_loader::batch_meshes()
 {
-    std::unordered_map<std::size_t, std::vector<std::size_t>> batches;
-    bool is_need_batch = false;
-    for (std::size_t idx = 0; idx < meshes.size(); ++idx)
-    {
-        auto& mesh = meshes[idx];
-        std::size_t batch_idx = mesh.material.diffuse.get_hash()
-            | mesh.material.ambient.get_hash()
-            | mesh.material.normal.get_hash()
-            | mesh.material.specular.get_hash();
-        batches[batch_idx].push_back(idx);
-    }
+    //std::unordered_map<std::size_t, std::vector<std::size_t>> batches;
+    //bool is_need_batch = false;
+    //for (std::size_t idx = 0; idx < meshes.size(); ++idx)
+    //{
+    //    auto& mesh = meshes[idx];
+    //    std::size_t batch_idx = mesh.material.diffuse.get_hash()
+    //        | mesh.material.ambient.get_hash()
+    //        | mesh.material.normal.get_hash()
+    //        | mesh.material.specular.get_hash();
+    //    batches[batch_idx].push_back(idx);
+    //}
 
-    std::vector<res::Mesh> batch_result;
-    for (auto& [_, bmeshes] : batches)
-    {
-        res::Mesh new_mesh = meshes[bmeshes[0]];
-        egLOG("load/batch", "batch {}", new_mesh.material.diffuse.get_full());
+    //std::vector<res::Mesh> batch_result;
+    //for (auto& [_, bmeshes] : batches)
+    //{
+    //    res::Mesh new_mesh = meshes[bmeshes[0]];
+    //    egLOG("load/batch", "batch {}", new_mesh.material.diffuse.get_full());
 
-        for (std::size_t idx = 1; idx < bmeshes.size(); ++idx)
-        {
-            auto& mesh = meshes[bmeshes[idx]];
+    //    for (std::size_t idx = 1; idx < bmeshes.size(); ++idx)
+    //    {
+    //        auto& mesh = meshes[bmeshes[idx]];
 
-            std::size_t addition = new_mesh.vertices.size();
+    //        std::size_t addition = new_mesh.vertices.size();
 
-            new_mesh.vertices.reserve(new_mesh.vertices.size() + mesh.vertices.size());
-            std::copy(mesh.vertices.begin(), mesh.vertices.end(), std::back_inserter(new_mesh.vertices));
+    //        new_mesh.vertices.reserve(new_mesh.vertices.size() + mesh.vertices.size());
+    //        std::copy(mesh.vertices.begin(), mesh.vertices.end(), std::back_inserter(new_mesh.vertices));
 
-            std::for_each(mesh.indices.begin(), mesh.indices.end(), [addition](unsigned int& inc) { inc += addition; });
+    //        std::for_each(mesh.indices.begin(), mesh.indices.end(), [addition](unsigned int& inc) { inc += addition; });
 
-            new_mesh.indices.reserve(new_mesh.indices.size() + mesh.indices.size());
-            std::copy(mesh.indices.begin(), mesh.indices.end(), std::back_inserter(new_mesh.indices));
-        }
-        batch_result.push_back(new_mesh);
-    }
+    //        new_mesh.indices.reserve(new_mesh.indices.size() + mesh.indices.size());
+    //        std::copy(mesh.indices.begin(), mesh.indices.end(), std::back_inserter(new_mesh.indices));
+    //    }
+    //    batch_result.push_back(new_mesh);
+    //}
 
-    if (!batch_result.empty()) {
-        egLOG("load/batching", "from {} meshes convert to {} meshes", meshes.size(), batch_result.size());
+    //if (!batch_result.empty()) {
+    //    egLOG("load/batching", "from {} meshes convert to {} meshes", meshes.size(), batch_result.size());
 
-        meshes = batch_result;
-    }
+    //    meshes = batch_result;
+    //}
 }

@@ -135,8 +135,9 @@ void gs::GameSystem::check_loaded_model()
 		model = glm::scale(model, glm::vec3{ 1 });
 
 		ecs::entity obj = ecs::create_entity();
-		if (auto& bones_data = res->get_model_pres().data.bones_data.bones_indeces; !bones_data.empty()) {
-			res::Tag txm = res::Tag("memory", "__bones_indeces_" + std::to_string(obj.index)); // TODO: create texture only for model desc
+		if (auto& bones_data = res->get_model_pres().data.bones_data.bones_indeces; !bones_data.empty()) { 
+			// TODO: create texture only for model desc
+			res::Tag txm = res::Tag("memory", "__bones_indeces_" + std::to_string(obj.index));
 			auto& last_bone_view = res->get_model_pres().data.bones_data;
 			last_bone_view.bones_indeces_txm = txm;
 
