@@ -10,10 +10,10 @@ namespace rnd
 {
 	struct global_params
 	{
-		glm::mat4 projection;
-		glm::mat4 view;
-		float time;
-		glm::vec4 view_position;
+		glm::mat4 projection{};
+		glm::mat4 view{};
+		float time = 0;
+		glm::vec4 view_position{};
 	};
 
 	struct sun_params

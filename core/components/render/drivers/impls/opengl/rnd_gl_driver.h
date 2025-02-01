@@ -11,6 +11,8 @@ namespace rnd::driver::gl
 		driver();
 		virtual ~driver() override;
 
+		void attach_frame_buffer();
+		void dettach_frame_buffer();
 		virtual void push_frame_buffer() override;
 		virtual void pop_frame_buffer() override;
 		virtual void set_render_rarget(texture_interface* color, texture_interface* depth_stencil = nullptr) override;

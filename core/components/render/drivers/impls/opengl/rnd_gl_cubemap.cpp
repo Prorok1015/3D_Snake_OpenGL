@@ -12,3 +12,8 @@ void rnd::driver::gl::cubemap::bind(unsigned int idx)
 	glBindTextureUnit(idx, id);
 	CHECK_GL_ERROR();
 }
+
+glm::ivec2 rnd::driver::gl::cubemap::size() const
+{
+	return {};
+}

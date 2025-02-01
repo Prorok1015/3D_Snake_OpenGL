@@ -20,6 +20,7 @@ namespace editor
 		bool show_scene();
 		bool show_ecs_test();
 		bool show_materials();
+		bool show_textures();
 
 		bool show_clear_cache();
 

@@ -8,6 +8,8 @@ namespace rnd::driver
 {
 	class shader_interface;
 	class texture_interface;
+	struct texture_header;
+	struct cubmap_texture_header;
 	class cubemap_interface;
 	class render_context_interface;
 	class vertex_array_interface;
@@ -15,7 +17,7 @@ namespace rnd::driver
 	class buffer_interface;
 
 	enum class CLEAR_FLAGS { COLOR_BUFFER, DEPTH_BUFFER	};
-	enum class ENABLE_FLAGS { DEPTH_TEST, DEPTH_TEST_LEQUEL, FACE_CULLING };
+	enum class ENABLE_FLAGS { DEPTH_TEST, DEPTH_TEST_LEQUEL, DEPTH_TEST_EQUEL, FACE_CULLING, DEPTH_MASK, COLOR_TEST };
 
 	struct shader_header
 	{
@@ -23,60 +25,6 @@ namespace rnd::driver
 		std::string title;
 		std::string body;
 		TYPE type;
-	};
-
-	struct texture_header
-	{
-		enum class TYPE
-		{
-			R8,
-			RGB8,
-			RGBA8,
-			R32I,
-		};
-
-		enum class FILTERING
-		{
-			NEAREST,
-			LINEAR,
-			LINEAR_MIPMAP
-		};
-
-		enum class WRAPPING
-		{
-			REPEAT,
-			REPEAT_MIRROR,
-			CLAMP_TO_EDGE,
-			CLAMP_TO_BORDER
-		};
-
-		struct data
-		{
-			int width = 0;
-			int height = 0;
-			TYPE channels = TYPE::R8;
-			unsigned char* data;
-		};
-
-		std::string name = "unknown";//TODO: maybe delete?
-		data picture{};
-		FILTERING min = FILTERING::LINEAR;
-		FILTERING mag = FILTERING::LINEAR;
-		WRAPPING wrap = WRAPPING::CLAMP_TO_EDGE;
-	};
-
-	struct cubmap_texture_header
-	{
-		texture_header::data right;
-		texture_header::data left;
-		texture_header::data bottom;
-		texture_header::data top;
-		texture_header::data front;
-		texture_header::data back;
-
-		texture_header::FILTERING min;
-		texture_header::FILTERING mag;
-		texture_header::WRAPPING wrap;
 	};
 
 	enum class RENDER_MODE

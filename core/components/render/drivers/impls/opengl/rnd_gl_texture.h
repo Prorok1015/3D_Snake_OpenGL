@@ -7,13 +7,14 @@ namespace rnd::driver::gl
 	class texture : public rnd::driver::texture_interface
 	{
 	public:
-		texture(GLuint id, int w, int h); 
+		texture(GLuint id, const texture_header& hdr); 
 		virtual ~texture() override;
 
 		virtual void bind(unsigned int position) override;
 
 		virtual int width() const override;
 		virtual int height() const override;
+		virtual glm::ivec2 size() const override;
 
 		GLuint get_id() const { return id; }
 	private:

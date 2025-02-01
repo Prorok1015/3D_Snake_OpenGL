@@ -33,6 +33,8 @@ editor::EditorSystem::EditorSystem()
 	GUI_REG_LAMBDA("Editor/Clear", [this] { return show_clear_cache(); });
 	GUI_REG_LAMBDA("Window/Materials", [this] { return show_materials(); });
 	GUI_SET_ITEM_CHECKED("Window/Materials", true);
+	GUI_REG_LAMBDA("Window/Textures", [this] { return show_textures(); });
+	GUI_SET_ITEM_CHECKED("Window/Textures", true);
 	GUI_REG_LAMBDA("Editor/Draw web", [this] { return true; });
 	GUI_SET_ITEM_CHECKED("Editor/Draw web", is_show_web);
 
@@ -582,6 +584,72 @@ bool editor::EditorSystem::show_materials()
 		ImGui::PushItemWidth(windowSize.x);
 		ImGui::ListBox("##materials_listbox", &item_current, items_getter, (void*)&mlts, mlts.size(), std::min(visibleItems, (int)mlts.size()));
 		ImGui::PopItemWidth();
+	}
+	ImGui::End();
+
+	return is_open;
+}
+
+bool editor::EditorSystem::show_textures()
+{
+	bool is_open = true;
+	if (ImGui::Begin("Textures", &is_open))
+	{
+		std::vector<std::string> list;
+		std::vector<res::Tag> list_tags;
+		std::size_t max_name = 0;
+		for (const auto& [key, _] : rnd::get_system().get_texture_manager().get_cache())
+		{
+			list_tags.push_back(key);
+			list.push_back(std::string(key.pure_name()));
+			max_name = std::max(max_name, list.back().size());
+		} 
+
+		auto items_getter = [](void* data, int idx) -> const char*
+			{
+				std::vector<std::string>* list = (std::vector<std::string>*)data;
+
+				if (idx < 0 && idx >= list->size()) {
+					nullptr;
+				}
+				return (*list)[idx].c_str();
+			};
+		ImVec2 windowSize = ImGui::GetContentRegionAvail();
+		ImVec2 pos1 = ImGui::GetCursorScreenPos();
+		float itemHeight = ImGui::GetTextLineHeight() + ImGui::GetStyle().ItemSpacing.y;
+
+		int visibleItems = static_cast<int>((windowSize.y - ImGui::GetStyle().ItemSpacing.y) / itemHeight);
+
+		static int item_current = 1;
+		ImGui::PushItemWidth(max_name * 10);
+		ImGui::ListBox("##materials_listbox", &item_current, items_getter, (void*)&list, list.size(), std::min(visibleItems, (int)list.size()));
+		ImGui::PopItemWidth();
+
+		if (item_current >= 0 && item_current < list_tags.size())
+		{
+			glm::vec2 pos{ pos1.x + max_name * 10, pos1.y };
+			glm::vec2 contentRegionAvailable{ windowSize.x - max_name * 10, windowSize.y };
+			auto texture = rnd::get_system().get_texture_manager().find(list_tags[item_current]);
+			auto* backend = wnd::get_system().get_gui_backend();
+
+			ImGuiStyle& style = ImGui::GetStyle();
+			ImVec4 original_button_color = style.Colors[ImGuiCol_Button];
+			ImVec4 original_button_hovered_color = style.Colors[ImGuiCol_ButtonHovered];
+			ImVec4 original_button_active_color = style.Colors[ImGuiCol_ButtonActive];
+			ImVec2 original_padding = style.FramePadding;
+			style.Colors[ImGuiCol_Button] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+			style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+			style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+			style.FramePadding = { 0, 0 };
+
+			ImGui::SetCursorScreenPos(ImVec2{ pos.x, pos.y });
+			ImGui::ImageButton("##TextureImg", backend->get_imgui_texture_from_texture(texture), ImVec2{ contentRegionAvailable.x, contentRegionAvailable.y }, ImVec2(0, 1), ImVec2(1, 0));
+
+			style.Colors[ImGuiCol_Button] = original_button_color;
+			style.Colors[ImGuiCol_ButtonHovered] = original_button_hovered_color;
+			style.Colors[ImGuiCol_ButtonActive] = original_button_active_color;
+			style.FramePadding = original_padding;
+		}
 	}
 	ImGui::End();
 

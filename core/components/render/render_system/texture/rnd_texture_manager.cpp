@@ -1,6 +1,7 @@
 #include "rnd_texture_manager.h"
 #include "res_system.h"
 #include "res_picture.h"
+#include "rnd_cubemap_interface.h"
 
 rnd::driver::texture_interface* rnd::TextureManager::require_texture(const res::Tag& tag)
 {

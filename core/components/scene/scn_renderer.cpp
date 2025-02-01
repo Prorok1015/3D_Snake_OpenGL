@@ -116,8 +116,11 @@ void scn::renderer_3d::setup_instance_buffer()
 void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 {
     static res::Tag color_rt_tag = res::Tag(res::Tag::memory, "__color_scene_rt");
+    static res::Tag z_pass_tag = res::Tag(res::Tag::memory, "__z_prepass_rt");
     rnd::global_params common_matrix{ .time = (float)Timer::now() };
 
+    z_prepass(drv);
+    //return;
     auto& txm_manager = rnd::get_system().get_texture_manager();
     for (ecs::entity& ent : ecs::filter<scn::light_point>()) {
         auto* light = ecs::get_component<scn::light_point>(ent);
@@ -167,10 +170,11 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
             egLOG("scn/renderer", "'{2}' render target Recreated size: {0}, {1}", color_rt->width(), color_rt->height(), color_rt_tag.name());
         }
 
+        drv->disable(rnd::driver::ENABLE_FLAGS::DEPTH_MASK);
+        drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL);
         drv->push_frame_buffer();
-        drv->set_render_rarget(color_rt);
+        drv->set_render_rarget(color_rt, txm_manager.find(z_pass_tag));
         drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
-        drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
 
         eng::transform3d pos{ glm::mat4{1.0} };
         common_matrix.view = glm::inverse(glm::mat4{ 1.0 });
@@ -186,23 +190,15 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
         rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
         drv->set_viewport(camera->viewport);
-
-
         draw_instances(drv);
-
         draw_ecs_model(drv);
-
         draw_sky(drv);
-
         drv->pop_frame_buffer();
     }
 }
 
 void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 {
-    drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
-    drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
-
     for (auto ent : ecs::filter<res::instance_object>()) {
         res::instance_object* inst = ecs::get_component<res::instance_object>(ent);
         if (inst->worlds.empty()) {
@@ -264,9 +260,6 @@ void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 
 void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
 {
-    drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
-    //drv->enable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
-
     for (auto ent : ecs::filter<scn::model_root_component, scn::is_render_component_flag>()) {
         auto* transform = ecs::get_component<scn::transform_component>(ent);
         auto* root = ecs::get_component<scn::model_root_component>(ent);
@@ -356,11 +349,82 @@ void scn::renderer_3d::apply_material(ecs::entity material, rnd::shader_scene_de
     }
 }
 
+void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
+{
+    static res::Tag z_pass_tag = res::Tag(res::Tag::memory, "__z_prepass_rt");
+    static res::Tag z_pass_color_tag = res::Tag(res::Tag::memory, "__z_prepass_color_rt");
+    auto& txm_manager = rnd::get_system().get_texture_manager();
+    rnd::global_params common_matrix;
+
+    for (ecs::entity& ent : ecs::filter<scn::camera_component, scn::is_render_component_flag>())
+    {
+        scn::camera_component* camera = ecs::get_component<scn::camera_component>(ent);
+        if (camera->viewport.size.x < 1 || camera->viewport.size.y < 1) {
+            continue;
+        }
+        auto z_pass_rt = txm_manager.find(z_pass_tag);
+        auto z_pass_color_rt = txm_manager.find(z_pass_color_tag);
+
+        if (z_pass_rt && (z_pass_rt->size() != camera->viewport.size))
+        {
+            txm_manager.remove(z_pass_tag);
+            txm_manager.remove(z_pass_color_tag);
+            z_pass_rt = nullptr;
+            z_pass_color_rt = nullptr;
+        }
+
+        if (!z_pass_rt) {
+            rnd::driver::texture_header header;
+            header.picture.height = camera->viewport.size.y;
+            header.picture.width = camera->viewport.size.x;
+            header.picture.channels = rnd::driver::texture_header::TYPE::D32;
+            header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_BORDER;
+            header.mag = rnd::driver::texture_header::FILTERING::NEAREST;
+            header.min = rnd::driver::texture_header::FILTERING::NEAREST;
+            z_pass_rt = txm_manager.generate_texture(z_pass_tag, header);
+
+            header.picture.channels = rnd::driver::texture_header::TYPE::RGBA8;
+            z_pass_color_rt = txm_manager.generate_texture(z_pass_color_tag, header);
+            egLOG("scn/renderer", "'{2}' Z-prepass size: {0}, {1}", z_pass_rt->width(), z_pass_rt->height(), z_pass_tag.name());
+        }
+
+        //drv->disable(rnd::driver::ENABLE_FLAGS::COLOR_TEST);
+        drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
+        drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_MASK);
+
+        drv->push_frame_buffer();
+        drv->set_render_rarget(z_pass_color_rt, z_pass_rt);
+        drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
+        drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
+
+        eng::transform3d pos{ glm::mat4{1.0} };
+        common_matrix.view = glm::inverse(glm::mat4{ 1.0 });
+
+        if (auto* trans = ecs::get_component<scn::transform_component>(ent))
+        {
+            common_matrix.view = glm::inverse(trans->local);
+            pos = eng::transform3d{ trans->local };
+        }
+
+        common_matrix.projection = scn::make_projection(*camera);
+        common_matrix.view_position = glm::vec4(pos.get_pos(), 1.0);
+
+        rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
+        drv->set_viewport(camera->viewport);
+        
+        draw_ecs_model(drv);
+
+        drv->pop_frame_buffer();
+
+        //drv->enable(rnd::driver::ENABLE_FLAGS::COLOR_TEST);
+        drv->disable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
+        drv->disable(rnd::driver::ENABLE_FLAGS::DEPTH_MASK);
+    }
+}
+
 void scn::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
 {
-    drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL);
-    drv->disable(rnd::driver::ENABLE_FLAGS::FACE_CULLING);
-
+    
     for (auto sky : ecs::filter<scn::is_render_component_flag, scn::sky_component>()) {
         auto* cube_map = ecs::get_component<scn::sky_component>(sky);
         rnd::shader_sky_desc sky;

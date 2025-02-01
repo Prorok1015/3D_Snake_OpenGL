@@ -22,6 +22,11 @@ namespace rnd
 		driver::texture_interface* find(const res::Tag& tag) const;
 		void remove(const res::Tag& tag);
 
+		const std::unordered_map<res::Tag, std::unique_ptr<driver::texture_interface>, res::Tag::hash>& get_cache() const 
+		{
+			return cache;
+		}
+
 		void clear_cache();
 	protected:
 		mutable std::unordered_map<res::Tag, std::unique_ptr<driver::texture_interface>, res::Tag::hash> cache;

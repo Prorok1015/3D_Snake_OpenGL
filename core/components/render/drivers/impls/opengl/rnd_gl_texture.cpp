@@ -1,11 +1,12 @@
 #include "rnd_gl_texture.h"
 #include "open_gl_specific.h"
 
-rnd::driver::gl::texture::texture(GLuint texture_id, int w, int h)
+rnd::driver::gl::texture::texture(GLuint texture_id, const texture_header& hdr)
 	: id(texture_id)
-	, width_i(w)
-	, height_i(h)
+	, texture_interface(hdr)
 {
+	width_i = hdr.picture.width;
+	height_i = hdr.picture.height;
 }
 
 rnd::driver::gl::texture::~texture()
@@ -16,9 +17,6 @@ rnd::driver::gl::texture::~texture()
 
 void rnd::driver::gl::texture::bind(unsigned int idx)
 {
-	// TODO: add backward compatibility 
-	// int skyboxLocation = glGetUniformLocation(shaderProgram, "skybox");
-	// glUniform1i(skyboxLocation, 0);
 	glBindTextureUnit(idx, id);
 	CHECK_GL_ERROR();
 }
@@ -31,4 +29,9 @@ int rnd::driver::gl::texture::width() const
 int rnd::driver::gl::texture::height() const
 {
 	return height_i;
+}
+
+glm::ivec2 rnd::driver::gl::texture::size() const
+{
+	return { width_i , height_i };
 }
