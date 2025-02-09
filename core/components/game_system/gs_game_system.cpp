@@ -86,27 +86,40 @@ void ensure_ecs_material(ecs::entity material, const res::Material& mlt)
 	if (mlt.is_state(res::Material::EMISSIVE_COLOR)) {
 		base_mlt.emissive = mlt.emissive_color;
 	}
-	if (mlt.is_state(res::Material::TRANSPARENT_COLOR)) {
-		base_mlt.transparent = mlt.transparent_color;
-	}
-	if (mlt.is_state(res::Material::REFLECTIVE_COLOR)) {
-		base_mlt.reflective = mlt.reflective_color;
-	}
-	if (mlt.is_state(res::Material::OPACITY)) {
-		base_mlt.opacity = mlt.opacity;
-	}
-	if (mlt.is_state(res::Material::REFLECTIVITY)) {
-		base_mlt.reflectivity = mlt.reflectivity;
-	}
-	if (mlt.is_state(res::Material::REFRACTI)) {
-		base_mlt.refracti = mlt.refracti;
-	}
 	if (mlt.is_state(res::Material::SHININESS)) {
 		base_mlt.shininess = mlt.shininess;
 	}
-	if (mlt.is_state(res::Material::SHININESS_STRENGTH)) {
-		base_mlt.shininess_strength = mlt.shininess_strength;
+
+	bool has_advanced_properties = false;
+	scn::advanced_material_component advanced_mlt;
+	if (mlt.is_state(res::Material::TRANSPARENT_COLOR)) {
+		advanced_mlt.transparent = mlt.transparent_color;
+		has_advanced_properties = true;
 	}
+	if (mlt.is_state(res::Material::REFLECTIVE_COLOR)) {
+		advanced_mlt.reflective = mlt.reflective_color;
+		has_advanced_properties = true;
+	}
+	if (mlt.is_state(res::Material::OPACITY)) {
+		advanced_mlt.opacity = mlt.opacity;
+		has_advanced_properties = true;
+	}
+	if (mlt.is_state(res::Material::REFLECTIVITY)) {
+		advanced_mlt.reflectivity = mlt.reflectivity;
+		has_advanced_properties = true;
+	}
+	if (mlt.is_state(res::Material::REFRACTI)) {
+		advanced_mlt.refracti = mlt.refracti;
+		has_advanced_properties = true;
+	}
+	if (mlt.is_state(res::Material::SHININESS_STRENGTH)) {
+		advanced_mlt.shininess_strength = mlt.shininess_strength;
+		has_advanced_properties = true;
+	}
+	if (has_advanced_properties) {
+		ecs::add_component(material, advanced_mlt);
+	}
+
 	ecs::add_component(material, base_mlt);
 	if (mlt.is_state(res::Material::ALBEDO_TXM)) {
 		ecs::add_component(material, scn::albedo_map_component{ .txm = mlt.get_txm(res::Material::ALBEDO_TXM) });

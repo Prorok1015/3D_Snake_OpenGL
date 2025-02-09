@@ -70,7 +70,7 @@ namespace rnd
 		rnd::driver::texture_interface* tex2 = nullptr;
 		rnd::driver::texture_interface* tex3 = nullptr;
 		std::string_view name;
-		std::vector<bool> defines;
+		mutable std::vector<bool> defines;
 		std::vector<std::string> defines_values;
 	};
 	
@@ -83,6 +83,9 @@ namespace rnd
 			USE_SPECULAR_MAP,
 			USE_TXM_AS_DIFFUSE,
 			MAX_BONE_MATRICES_COUNT,
+			DIRECTION_LIGHT_COUNT,
+			POINT_LIGHT_COUNT,
+			LIGHTS_ENABLED,
 			LAST,
 		};
 
@@ -94,25 +97,44 @@ namespace rnd
 				"USE_SPECULAR_MAP"sv,
 				"USE_TXM_AS_DIFFUSE"sv,
 				"MAX_BONE_MATRICES_COUNT"sv,
+				"DIRECTION_LIGHT_COUNT"sv,
+				"POINT_LIGHT_COUNT"sv,
+				"LIGHTS_ENABLED"sv,
 			};
 
 			return concat_arrays(arr1, arr2);
 		}
 
-		shader_scene_desc()
-			: shader_desc("scene", LAST)
-		{}
+		shader_scene_desc(std::string_view name = "scene")
+			: shader_desc(name, LAST) {}
 
 		glm::mat4 uWorldModel = glm::mat4{ 1.0 };
 		glm::mat4 uWorldMeshMatr = glm::mat4{ 1.0 };
 		glm::vec4 diffuseColor = glm::vec4(0);
+		glm::vec4 emissiveColor = glm::vec4(0);
+		float shininess = 32.f;
 		std::vector<driver::shader_header> load() const;
+	};
+
+	struct pass_transparent_desc : shader_scene_desc
+	{
+		pass_transparent_desc(std::string_view name = "transparent")
+			: shader_scene_desc(name) {}
 	};
 
 	struct shader_sky_desc : public shader_desc
 	{
 		shader_sky_desc()
 			: shader_desc("sky", LAST)
+		{}
+
+		std::vector<driver::shader_header> load() const;
+	};
+
+	struct pass_composition_desc : public shader_desc
+	{
+		pass_composition_desc()
+			: shader_desc("composition", LAST)
 		{}
 
 		std::vector<driver::shader_header> load() const;

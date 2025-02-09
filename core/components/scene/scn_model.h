@@ -60,9 +60,9 @@ namespace scn {
         std::vector<res::Tag> cube_map;
     };
 
-    struct light_point
+    struct directional_light
     {
-        glm::vec4 position;
+        glm::vec4 direction;
         glm::vec4 diffuse;
         glm::vec4 ambient;
         glm::vec4 specular;

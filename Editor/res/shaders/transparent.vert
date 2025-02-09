@@ -54,4 +54,5 @@ void main()
 #endif
 
     gl_Position = projection * view * worldMesh * vec4(aPos, 1.0);
+    
 }

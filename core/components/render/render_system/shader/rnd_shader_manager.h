@@ -16,12 +16,32 @@ namespace rnd
 		glm::vec4 view_position{};
 	};
 
-	struct sun_params
+	struct lights_params
 	{
-		glm::vec4 position;
-		glm::vec4 diffuse;
-		glm::vec4 ambient;
-		glm::vec4 specular;
+		static constexpr int MAX_LIGHT_COUNT = 12;
+
+		struct directional_light
+		{
+			glm::vec4 direction;
+			glm::vec4 diffuse;
+			glm::vec4 ambient;
+			glm::vec4 specular;
+		};
+
+		struct point_light
+		{
+			glm::vec4 position;
+			glm::vec4 ambient;
+			glm::vec4 diffuse;
+			glm::vec4 specular;
+
+			float constant;
+			float linear;
+			float quadratic;
+		};
+
+		directional_light directional_lights[MAX_LIGHT_COUNT];
+		point_light point_lights[MAX_LIGHT_COUNT];
 	};
 
 	struct bones_matrices
@@ -72,7 +92,7 @@ namespace rnd
 		}
 
 		void update_global_uniform(const global_params& val) const;
-		void update_global_sun(const sun_params& val) const;
+		void update_global_sun(const lights_params& val) const;
 		void update_global_bones_matrices(const bones_matrices& val, std::size_t count) const;
 	private:
 		driver::driver_interface* drv = nullptr;

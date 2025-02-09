@@ -9,21 +9,39 @@ namespace scn
 		ecs::entity material;
 	};
 
-	struct base_material_component
-	{
-		ds::color albedo = ds::color(1.0f); 
+	//struct base_material_component
+	//{
+	//	ds::color albedo = ds::color(1.0f); 
+	//	ds::color specular = ds::color(1.0f);
+	//	ds::color ambient = ds::color(1.0f);
+	//	ds::color emissive = ds::color(0.0f);
+	//	ds::color transparent = ds::color(1.0f);
+	//	ds::color reflective = ds::color(1.0f);
+	//	float opacity = 1.0f;
+	//	float reflectivity = 0.0;// 0.0 -> 1.0
+	//	float refracti = 0.0;
+	//	float shininess = 0.0;// 0.0 -> 1000
+	//	float shininess_strength = 0.0;// 0.0 -> 1.0
+	//};
+
+	struct base_material_component {
+		ds::color albedo = ds::color(1.0f);
 		ds::color specular = ds::color(1.0f);
 		ds::color ambient = ds::color(1.0f);
-		ds::color emissive = ds::color(1.0f);
+		ds::color emissive = ds::color(0.0f);
+		float shininess = 0.0f; // 0.0 -> 1000
+	};
+
+	struct advanced_material_component {
 		ds::color transparent = ds::color(1.0f);
 		ds::color reflective = ds::color(1.0f);
 		float opacity = 1.0f;
-		float reflectivity = 0.0;// 0.0 -> 1.0
-		float refracti = 0.0;
-		float shininess = 0.0;// 0.0 -> 1000
-		float shininess_strength = 0.0;// 0.0 -> 1.0
+		float reflectivity = 0.0f; // 0.0 -> 1.0
+		float refracti = 0.0f;
+		float shininess_strength = 0.0f; // 0.0 -> 1.0
 	};
 
+	struct is_transparent_flag_component {};
 	struct albedo_map_component {	res::Tag txm; };
 	struct normal_map_component { res::Tag txm; };
 	struct roughness_map_component { res::Tag txm; };

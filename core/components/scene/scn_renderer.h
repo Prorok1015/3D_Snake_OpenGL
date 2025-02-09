@@ -28,11 +28,17 @@ namespace scn
 		void draw_sky(rnd::driver::driver_interface* drv);
 		void draw_ecs_model(rnd::driver::driver_interface* drv);
 		void draw_ecs_meshes(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv);
+		void draw_ecs_meshes_transparant(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv);
 		void apply_material(ecs::entity material, rnd::shader_scene_desc& scene);
 		void setup_instance_buffer();
 		void z_prepass(rnd::driver::driver_interface* drv);
+		void draw_transparent(rnd::driver::driver_interface* drv);
+		void draw_composition(rnd::driver::driver_interface* drv, rnd::driver::texture_interface* color, rnd::driver::texture_interface* weight);
+		void prepare_directional_light();
 
 	public:
+		int directional_light_count = 0;
+		int point_light_count = 0;
 		bool is_flag_test_render = true;
 		bool is_flag_show_anim = true;
 		std::vector<ecs::entity> scene_objects;

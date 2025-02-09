@@ -14,7 +14,7 @@ namespace glm
 rnd::ShaderManager::ShaderManager(driver::driver_interface* ptr)
 	: drv(ptr)
 	, _matrices(drv->create_uniform_buffer(sizeof(global_params), 0))
-	, sun_light(drv->create_uniform_buffer(sizeof(sun_params) + 4, 1))
+	, sun_light(drv->create_uniform_buffer(sizeof(lights_params), 1))
 	, bones_buffer(drv->create_uniform_buffer(sizeof(bones_matrices), 2))
 {
 }
@@ -36,12 +36,10 @@ void rnd::ShaderManager::update_global_uniform(const global_params& val) const
 	_matrices->set_data(glm::value_ptr(val.view_position), sizeof(decltype(val.view_position)), offsetof(global_params, view_position));
 }
 
-void rnd::ShaderManager::update_global_sun(const sun_params& val) const
+void rnd::ShaderManager::update_global_sun(const lights_params& val) const
 {
-	sun_light->set_data(glm::value_ptr(val.position), sizeof(decltype(val.position)), offsetof(sun_params, position));
-	sun_light->set_data(glm::value_ptr(val.diffuse), sizeof(decltype(val.diffuse)), offsetof(sun_params, diffuse));
-	sun_light->set_data(glm::value_ptr(val.ambient), sizeof(decltype(val.ambient)), offsetof(sun_params, ambient));
-	sun_light->set_data(glm::value_ptr(val.specular), sizeof(decltype(val.specular)), offsetof(sun_params, specular));
+	sun_light->set_data(glm::value_ptr(val.directional_lights), sizeof(decltype(val.directional_lights)), offsetof(lights_params, directional_lights));
+	sun_light->set_data(glm::value_ptr(val.point_lights), sizeof(decltype(val.point_lights)), offsetof(lights_params, point_lights));
 }
 
 void rnd::ShaderManager::update_global_bones_matrices(const bones_matrices& val, std::size_t count) const

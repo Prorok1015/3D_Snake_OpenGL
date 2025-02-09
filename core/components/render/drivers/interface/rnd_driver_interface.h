@@ -17,7 +17,7 @@ namespace rnd::driver
 	class buffer_interface;
 
 	enum class CLEAR_FLAGS { COLOR_BUFFER, DEPTH_BUFFER	};
-	enum class ENABLE_FLAGS { DEPTH_TEST, DEPTH_TEST_LEQUEL, DEPTH_TEST_EQUEL, FACE_CULLING, DEPTH_MASK, COLOR_TEST };
+	enum class ENABLE_FLAGS { DEPTH_TEST, DEPTH_TEST_LEQUEL, DEPTH_TEST_EQUEL, DEPTH_TEST_ALWAYS, FACE_CULLING, DEPTH_MASK, COLOR_TEST, BLEND_MODE_ADD, BLEND_MODE_MINUS_ALPHA, BLEND_MODE_ZERO_MINUS_ALPHA };
 
 	struct shader_header
 	{
@@ -50,11 +50,13 @@ namespace rnd::driver
 		virtual void push_frame_buffer() = 0;
 		virtual void pop_frame_buffer() = 0;
 		virtual void set_render_rarget(texture_interface* color, texture_interface* depth_stencil = nullptr) = 0;
+		virtual void set_render_rargets(std::vector<texture_interface*> colors, texture_interface* depth_stencil = nullptr) = 0;
 
 		virtual void set_viewport(glm::ivec4 rect) = 0;
 		virtual void set_clear_color(glm::vec4 color) = 0;
 		virtual void clear(CLEAR_FLAGS flags) = 0;
 		virtual void clear(CLEAR_FLAGS flags, glm::vec4 color) = 0;
+		virtual void clear(CLEAR_FLAGS flags, std::vector<glm::vec4> colors) = 0;
 		virtual void set_activate_texture(int idx) = 0;
 		virtual void set_line_size(float size) = 0;
 		virtual void set_point_size(float size) = 0;
@@ -65,6 +67,7 @@ namespace rnd::driver
 
 		//TODO: change to barrier abstraction
 		virtual void enable(ENABLE_FLAGS flags) = 0;
+		virtual void enable(ENABLE_FLAGS flags, int draw_buffer) = 0;
 		virtual void disable(ENABLE_FLAGS flags) = 0;
 
 		//TODO: remove
