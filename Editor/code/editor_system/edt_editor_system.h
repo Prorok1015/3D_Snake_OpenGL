@@ -5,7 +5,7 @@
 #include "ecs_entity.h"
 #include "rnd_render_system.h"
 #include "edt_input_manager.h"
-
+#include "edt_file_dialog.h"
 namespace editor
 {
 	class EditorSystem
@@ -14,6 +14,7 @@ namespace editor
 		EditorSystem();
 		~EditorSystem();
 		bool show_toolbar();
+		bool show_file_dialog();
 
 		//TODO change to renderer
 		bool show_web();
@@ -77,7 +78,9 @@ namespace editor
 		bool is_show_web = true;
 		bool is_inited_ecs_test = false;
 		std::shared_ptr<edt::input_manager> input;
+		edt::file_dialog file_dialog;
 	};
+
 
 }
 

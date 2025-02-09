@@ -22,6 +22,8 @@ vec3 getNormalVector()
 
 layout (location = 0) out vec4 fragColor;
 layout (location = 1) out float fragWeight;
+
+
 void main()
 {    
     vec3 norm = getNormalVector();

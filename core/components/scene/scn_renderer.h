@@ -26,7 +26,7 @@ namespace scn
 		void draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, const res::meshes_conteiner& data, rnd::driver::driver_interface* drv);
 		void draw_instances(rnd::driver::driver_interface* drv);
 		void draw_sky(rnd::driver::driver_interface* drv);
-		void draw_ecs_model(rnd::driver::driver_interface* drv);
+		void draw_ecs_model(rnd::driver::driver_interface* drv, rnd::shader_scene_desc& scene);
 		void draw_ecs_meshes(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv);
 		void draw_ecs_meshes_transparant(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv);
 		void apply_material(ecs::entity material, rnd::shader_scene_desc& scene);

@@ -189,7 +189,8 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
             drv->set_viewport(camera->viewport);
             draw_instances(drv);
-            draw_ecs_model(drv);
+            rnd::shader_scene_desc scene{};
+            draw_ecs_model(drv, scene);
             draw_sky(drv);
             drv->pop_frame_buffer();
         }
@@ -315,7 +316,7 @@ void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
     }
 }
 
-void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
+void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv, rnd::shader_scene_desc& scene)
 {
     for (auto ent : ecs::filter<scn::model_root_component, scn::is_render_component_flag>()) {
         auto* transform = ecs::get_component<scn::transform_component>(ent);
@@ -327,7 +328,6 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv)
         }
 
         vertex_buffer->set_data(root->data.vertices);
-        rnd::shader_scene_desc scene;
         if (directional_light_count > 0) {
             scene.defines[rnd::shader_scene_desc::DIRECTION_LIGHT_COUNT] = true;
             scene.defines_values[rnd::shader_scene_desc::DIRECTION_LIGHT_COUNT] = std::to_string(directional_light_count);
@@ -372,10 +372,10 @@ void scn::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_contei
 
         if (auto* material = ecs::get_component<scn::material_link_component>(ent)) {
             apply_material(material->material, scene);
-            auto is_transparent = ecs::get_component<scn::is_transparent_flag_component>(material->material);
-            if (!is_transparent) {
+            //auto is_transparent = ecs::get_component<scn::is_transparent_flag_component>(material->material);
+            //if (!is_transparent) {
                 draw(scene, meshes->mesh, data, drv);
-            }
+            //}
         }
 
     }
@@ -511,8 +511,8 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
 
         rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
         drv->set_viewport(camera->viewport);
-        
-        draw_ecs_model(drv);
+        rnd::pass_z_prepass_desc z_pass;
+        draw_ecs_model(drv, z_pass);
 
         drv->pop_frame_buffer();
 

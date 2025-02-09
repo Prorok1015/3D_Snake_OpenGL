@@ -50,7 +50,7 @@ void main()
 #ifdef USE_NORMAL_MAP
     PS.TBN = getTBNMatrix(worldMesh);
 #else
-    PS.Normal = (normalize(mat3(worldMesh) * aNormal));
+    PS.Normal = abs(normalize(mat3(worldMesh) * aNormal));
 #endif
 
     gl_Position = projection * view * worldMesh * vec4(aPos, 1.0);

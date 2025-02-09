@@ -127,5 +127,8 @@ vec4 calculatePhongModel(vec3 norm, vec4 materialColor, vec4 materialSpecular, v
     // phase 3: Spot light
     //result += CalcSpotLight(spotLight, norm, FragPos, viewDir);
 #endif
-    return result + vec4(emissiveColor.rgb, 0);
+
+    //vec4 gamma = vec4(1/2.2);
+    vec4 gamma = vec4(1);
+    return pow(result + vec4(emissiveColor.rgb, 0), gamma);
 }

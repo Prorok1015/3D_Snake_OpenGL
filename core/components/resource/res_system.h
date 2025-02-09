@@ -56,11 +56,14 @@ namespace res
 			return find_cache(tag) != nullptr;
 		}
 
+		static std::filesystem::path get_resources_path() { return std::filesystem::path(s_res_path); }
+
 	private:
 		std::shared_ptr<Resource> find_cache(const Tag& tag) const;
 
 	private:
 		std::vector<std::shared_ptr<Resource>> cache_;
+		static std::string s_res_path;
 
 	};
 

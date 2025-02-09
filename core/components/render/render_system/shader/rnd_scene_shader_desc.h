@@ -122,6 +122,12 @@ namespace rnd
 			: shader_scene_desc(name) {}
 	};
 
+	struct pass_z_prepass_desc : shader_scene_desc
+	{
+		pass_z_prepass_desc(std::string_view name = "z_prepass")
+			: shader_scene_desc(name) {}
+	};
+
 	struct shader_sky_desc : public shader_desc
 	{
 		shader_sky_desc()

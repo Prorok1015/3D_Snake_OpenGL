@@ -19,6 +19,8 @@
 
 editor::EditorSystem::EditorSystem()
 {
+	GUI_REG_LAMBDA("File/Import...", [this] { return show_file_dialog(); });
+
 	GUI_REG_LAMBDA("Window/Toolbar", [this] { return show_toolbar(); });
 	GUI_SET_ITEM_CHECKED("Window/Toolbar", true);
 
@@ -47,6 +49,8 @@ editor::EditorSystem::EditorSystem()
 
 	input = std::make_shared<edt::input_manager>();
 	inp::get_system().activate_manager(input);
+
+	file_dialog.set_current_path(res::get_system().get_resources_path());
 
 	gs::get_system().get_window()->eventResizeWindow.subscribe([](wnd::window&, int w, int h)
 	{
@@ -130,6 +134,7 @@ editor::EditorSystem::EditorSystem()
 		ecs::add_component(editor_web, scn::material_link_component{ .material = black_mlt });
 	}
 	// windows objects
+	for(int i = 0; i < 10; ++i)
 	{
 		auto wind = ecs::create_entity();
 		children.push_back(wind);
@@ -138,9 +143,11 @@ editor::EditorSystem::EditorSystem()
 		res::meshes_conteiner& data = geom.data;
 		res::mesh_view& mesh = geom.mesh;
 
+		glm::vec2 rnd_pos = glm::diskRand(5.f);
+
 		ecs::add_component(wind, scn::model_root_component{ .data = data });
 		ecs::add_component(wind, scn::mesh_component{ .mesh = mesh });
-		ecs::add_component(wind, scn::transform_component{ .local = glm::translate(glm::mat4{1.0}, glm::vec3(0, 0, 0)) });
+		ecs::add_component(wind, scn::transform_component{ .local = glm::translate(glm::mat4{1.0}, glm::vec3(rnd_pos.x, 0, rnd_pos.y)) });
 		ecs::add_component(wind, scn::parent_component{ .parent = world_anchor });
 		ecs::add_component(wind, scn::name_component{ .name = "Window" });
 		ecs::add_component(wind, scn::is_render_component_flag{});
@@ -571,6 +578,13 @@ bool editor::EditorSystem::show_toolbar()
 	}
 	ImGui::End();
 	return is_open;
+}
+
+bool editor::EditorSystem::show_file_dialog()
+{
+	bool is_open = true;
+	file_dialog.show("Import", &is_open);
+    return is_open;
 }
 
 bool editor::EditorSystem::show_web()

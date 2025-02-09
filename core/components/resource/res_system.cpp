@@ -7,8 +7,7 @@
 using namespace res;
 
 ResourceSystem* p_res_system = nullptr;
-
-std::string res_path = RESOURCE_PATH;
+std::string ResourceSystem::s_res_path = RESOURCE_PATH;
 
 res::ResourceSystem& res::get_system()
 {
@@ -18,9 +17,9 @@ res::ResourceSystem& res::get_system()
 
 res::ResourceSystem::ResourceSystem()
 {
-	if (res_path.empty()) {
+	if (s_res_path.empty()) {
 		ASSERT_MSG(std::filesystem::exists("./res/"), "The './res/' folder should be exist next to your exe");
-		res_path = std::filesystem::absolute("./res/").generic_string();
+		s_res_path = std::filesystem::absolute("./res/").generic_string();
 	}
 }
 
@@ -29,7 +28,7 @@ std::string res::ResourceSystem::get_absolut_path(const Tag& tag)
 	if (tag.protocol() == Tag::default_protocol()) {
 		std::string path{ tag.path() };
 		std::string name{ tag.name() };
-		return res_path + path + name;
+		return s_res_path + path + name;
 	}
 
 	egLOG("resource/absolut_path", "Broken tag {}", tag.get_full());

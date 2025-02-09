@@ -16,6 +16,7 @@ imgui.ini
 bin/
 build/
 .idea/
+.vscode/
 CMakeSettings.json
 Makefile
 

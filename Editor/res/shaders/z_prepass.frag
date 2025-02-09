@@ -20,14 +20,13 @@ vec3 getNormalVector()
 #endif
 }
 
-out vec4 fragColor;
-
+//out vec4 fragColor;
 void main()
 {    
     vec3 norm = getNormalVector();
     vec4 result = calculatePhongModel(norm, getMaterialColor(PS.UV), getMaterialSpecular(PS.UV), PS.FragPos);
     if (result.a < 1.0) {
-    discard;
+        discard;
     }
-    fragColor = result;
+    //fragColor = result;
 }
