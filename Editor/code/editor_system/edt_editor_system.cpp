@@ -716,15 +716,28 @@ bool editor::EditorSystem::show_materials()
 				ImGui::DragFloat("Shininess", &material->shininess, 1.0f, 0.0f, 1000.0f);
 			}
 
-			if (auto* advanced = ecs::get_component<scn::advanced_material_component>(mlts[item_current]))
+			if (auto* transparent = ecs::get_component<scn::transparent_material_component>(mlts[item_current]))
 			{
-				ImGui::ColorEdit4("Transparent", &advanced->transparent.r);
-				ImGui::ColorEdit4("Reflective", &advanced->reflective.r);
-				ImGui::DragFloat("Opacity", &advanced->opacity, 0.01f, 0.0f, 1.0f);
-				ImGui::DragFloat("Reflectivity", &advanced->reflectivity, 0.01f, 0.0f, 1.0f);
-				ImGui::DragFloat("Refraction Index", &advanced->refracti, 0.01f, 0.0f, 10.0f);
-				ImGui::DragFloat("Shininess Strength", &advanced->shininess_strength, 0.01f, 0.0f, 1.0f);
+				ImGui::ColorEdit4("Transparent", &transparent->transparent.r);
+				ImGui::DragFloat("Opacity", &transparent->opacity, 0.01f, 0.0f, 1.0f);
 			}
+
+			if (auto* reflective = ecs::get_component<scn::reflective_material_component>(mlts[item_current]))
+			{
+				ImGui::ColorEdit4("Reflective", &reflective->reflective.r);
+				ImGui::DragFloat("Reflectivity", &reflective->reflectivity, 0.01f, 0.0f, 1.0f);
+			}
+
+			if (auto* refractive = ecs::get_component<scn::refractive_material_component>(mlts[item_current]))
+			{
+				ImGui::DragFloat("Refraction Index", &refractive->refracti, 0.01f, 0.0f, 10.0f);
+			}
+
+			if (auto* shininess = ecs::get_component<scn::shininess_strength_component>(mlts[item_current]))
+			{
+				ImGui::DragFloat("Shininess Strength", &shininess->shininess_strength, 0.01f, 0.0f, 1.0f);
+			}
+
 			if (auto* normal_map = ecs::get_component<scn::normal_map_component>(mlts[item_current]))
 			{
 				ImGui::Text("Normal Map: %s", normal_map->txm.get_full().data());

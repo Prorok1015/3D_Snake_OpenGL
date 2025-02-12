@@ -20,7 +20,6 @@ vec3 getNormalVector()
 #endif
 }
 
-//out vec4 fragColor;
 void main()
 {    
     vec3 norm = getNormalVector();
@@ -28,5 +27,4 @@ void main()
     if (result.a < 1.0) {
         discard;
     }
-    //fragColor = result;
 }

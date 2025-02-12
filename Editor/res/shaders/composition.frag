@@ -1,12 +1,6 @@
 #version 460 core
 
 in vec2 uv;
-//
-//layout(binding = 0) uniform sampler2D colorTxm;
-//layout(binding = 1) uniform sampler2D weightTxm;
-//
-//
-//out vec4 fragColor;
 // shader outputs
 layout (location = 0) out vec4 frag;
 
@@ -30,16 +24,9 @@ float max3(vec3 v)
 {
     return max(max(v.x, v.y), v.z);
 }
+
 void main()
-{    
-//    vec4 accumulatedColor = texture(colorTxm, uv);
-//    float totalWeight = texture(weightTxm, uv).r;
-//
-//    float epsilon = 0.0000001;
-//    vec4 transparentColor = accumulatedColor / (totalWeight + epsilon);
-//    //vec4 transparentColor = accumulatedColor;
-//    //fragColor = vec4(vec3(totalWeight), accumulatedColor.a);
-//    fragColor = transparentColor;
+{
     // fragment coordination
     ivec2 coords = ivec2(gl_FragCoord.xy);
 
@@ -47,8 +34,8 @@ void main()
     float revealage = texelFetch(reveal, coords, 0).r;
 
     // save the blending and color texture fetch cost if there is not a transparent fragment
-    if (isApproximatelyEqual(revealage, 1.0f))
-        discard;
+    if (isApproximatelyEqual(revealage, 1.0f));
+        //discard;
 
     // fragment color
     vec4 accumulation = texelFetch(accum, coords, 0);

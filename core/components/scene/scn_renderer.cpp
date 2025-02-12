@@ -168,10 +168,14 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
         {
             // Main view NON-transparent objects
-            drv->disable(rnd::driver::ENABLE_FLAGS::DEPTH_MASK);
-            drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL);
+            rnd::driver::render_state state;
+            state.depth.enabled = true;
+            state.depth.test_func = rnd::driver::depth_state::func::LEQUAL;
+            state.depth.write_mask = false;
+            drv->set_render_state(state);
+
             drv->push_frame_buffer();
-            drv->set_render_rarget(color_rt, txm_manager.find(z_pass_tag));
+            drv->set_render_target(color_rt, txm_manager.find(z_pass_tag));
             drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER, {glm::vec4(0)});
 
             eng::transform3d pos{ glm::mat4{1.0} };
@@ -198,38 +202,52 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         {
             // Main view TRANSPARENT objects
             // Order-Independent Transparency (OIT)        
-            drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
-            drv->disable(rnd::driver::ENABLE_FLAGS::DEPTH_MASK);
+            rnd::driver::render_state state;
+            state.depth.enabled = true;
+            state.depth.write_mask = false;
+            state.depth.test_func = rnd::driver::depth_state::func::LEQUAL;
+            
+            // Настройка для первого render target (color)
+            rnd::driver::blend_state color_blend;
+            color_blend.enabled = true;
+            color_blend.src_factor = rnd::driver::blend_state::factor::ONE;
+            color_blend.dst_factor = rnd::driver::blend_state::factor::ONE;
+            
+            // Настройка для второго render target (weight)
+            rnd::driver::blend_state weight_blend;
+            weight_blend.enabled = true;
+            weight_blend.src_factor = rnd::driver::blend_state::factor::ZERO;
+            weight_blend.dst_factor = rnd::driver::blend_state::factor::ONE_MINUS_SRC_COLOR;
+            
+
+            state.blend_states = { color_blend, weight_blend };
+            drv->set_render_state(state);
 
             drv->push_frame_buffer();
-            drv->set_render_rargets({ color_tp_rt, waight_tp_rt }, txm_manager.find(z_pass_tag));
-            //BLAND MODE ONE ONE
-            drv->enable(rnd::driver::ENABLE_FLAGS::BLEND_MODE_ADD, 0);
-            drv->enable(rnd::driver::ENABLE_FLAGS::BLEND_MODE_ZERO_MINUS_ALPHA, 1);
+            drv->set_render_targets({ color_tp_rt, waight_tp_rt }, txm_manager.find(z_pass_tag));
             drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER, { glm::vec4(0), glm::vec4(1) });
-
             drv->set_viewport(camera->viewport);
             draw_transparent(drv);
-
             drv->pop_frame_buffer();
-
-            drv->disable(rnd::driver::ENABLE_FLAGS::BLEND_MODE_ADD);
         }
         {
             // Composition
-            drv->enable(rnd::driver::ENABLE_FLAGS::BLEND_MODE_MINUS_ALPHA, 0);
-            drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST_ALWAYS);
+            rnd::driver::render_state state;
+            state.depth.enabled = true;
+            state.depth.test_func = rnd::driver::depth_state::func::ALWAYS;
+            state.depth.write_mask = false;
+            rnd::driver::blend_state blend;
+            blend.enabled = true;
+            blend.src_factor = rnd::driver::blend_state::factor::SRC_ALPHA;
+            blend.dst_factor = rnd::driver::blend_state::factor::ONE_MINUS_SRC_ALPHA;
+            state.blend_states = { blend };
+            drv->set_render_state(state);
 
             drv->push_frame_buffer();
-            drv->set_render_rarget(color_rt);
-
+            drv->set_render_target(color_rt);
             drv->set_viewport(camera->viewport);
             draw_composition(drv, color_tp_rt, waight_tp_rt);
-
             drv->pop_frame_buffer();
-
-            drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
-            drv->disable(rnd::driver::ENABLE_FLAGS::BLEND_MODE_MINUS_ALPHA);
         }
     }
 }
@@ -308,10 +326,10 @@ void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
         rnd::get_system().get_shader_manager().use(desc);
 
         if (inst->worlds.size() == 1) {
-            drv->draw_indeces(vertex_array_inst, tmp, inst->tpl.indices.size());
+            drv->draw_indices(vertex_array_inst, tmp, inst->tpl.indices.size());
         }
         else {
-            drv->draw_instanced_indeces(vertex_array_inst, tmp, inst->tpl.indices.size(), inst->worlds.size());
+            drv->draw_instanced_indices(vertex_array_inst, tmp, inst->tpl.indices.size(), inst->worlds.size());
         }
     }
 }
@@ -488,12 +506,14 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
             egLOG("scn/renderer", "'{2}' Z-prepass size: {0}, {1}", z_pass_rt->width(), z_pass_rt->height(), z_pass_tag.name());
         }
 
-        drv->disable(rnd::driver::ENABLE_FLAGS::COLOR_TEST);
-        drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
-        drv->enable(rnd::driver::ENABLE_FLAGS::DEPTH_MASK);
+        rnd::driver::render_state state;
+        state.depth.enabled = true;
+        state.depth.write_mask = true;
+        state.depth.test_func = rnd::driver::depth_state::func::LESS;
+        drv->set_render_state(state);
 
         drv->push_frame_buffer();
-        drv->set_render_rarget(nullptr, z_pass_rt);
+        drv->set_render_target(nullptr, z_pass_rt);
         drv->clear(rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER);
         drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER);
 
@@ -515,10 +535,6 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
         draw_ecs_model(drv, z_pass);
 
         drv->pop_frame_buffer();
-
-        drv->enable(rnd::driver::ENABLE_FLAGS::COLOR_TEST);
-        drv->disable(rnd::driver::ENABLE_FLAGS::DEPTH_TEST);
-        drv->disable(rnd::driver::ENABLE_FLAGS::DEPTH_MASK);
     }
 }
 
@@ -584,7 +600,7 @@ void scn::renderer_3d::draw_composition(rnd::driver::driver_interface* drv, rnd:
     decs.tex1 = weight;
     drv->set_viewport({ 0,0, color->width(), color->height() });
     rnd::configure_pass(decs);
-    drv->draw_indeces(vertex_array, rnd::RENDER_MODE::TRIANGLE, std::size(indeces));
+    drv->draw_indices(vertex_array, rnd::RENDER_MODE::TRIANGLE, std::size(indeces));
 }
 
 void scn::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
@@ -599,7 +615,7 @@ void scn::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
         index_buffer->set_data(is);
 
         rnd::configure_pass(sky);
-        drv->draw_indeces(vertex_array, rnd::RENDER_MODE::TRIANGLE, is.size());
+        drv->draw_indices(vertex_array, rnd::RENDER_MODE::TRIANGLE, is.size());
     }
 }
 
@@ -613,5 +629,5 @@ void scn::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, 
 
     rnd::configure_pass(desc);
     // draw mesh
-    drv->draw_indeces(vertex_array, rnd::get_system().get_render_mode(), mesh.get_indices_count(), mesh.vx_begin);
+    drv->draw_indices(vertex_array, rnd::get_system().get_render_mode(), mesh.get_indices_count(), mesh.vx_begin);
 }

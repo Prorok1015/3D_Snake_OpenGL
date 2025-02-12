@@ -53,21 +53,43 @@ const GLint gClearFlagsToGlClearFlags[] =
 	GL_DEPTH_BUFFER_BIT,
 };
 
-const GLint gEnableFlagsToGlEnableFlags[] =
-{
-	GL_DEPTH_TEST,
-	GL_DEPTH_TEST,
-	GL_DEPTH_TEST,
-	GL_DEPTH_TEST,
-	GL_CULL_FACE,
-};
-
-const GLint gDepthFuncFlagsToGlDepthFuncFlags[] =
-{
+// Conversion tables for OpenGL constants
+const GLenum gDepthFuncToGL[] = {
 	GL_LESS,
 	GL_LEQUAL,
 	GL_EQUAL,
 	GL_ALWAYS,
+	GL_GREATER,
+	GL_GEQUAL,
+	GL_NOTEQUAL,
+	GL_NEVER
+};
+
+const GLenum gBlendFactorToGL[] = {
+	GL_ZERO,
+	GL_ONE,
+	GL_SRC_COLOR,
+	GL_ONE_MINUS_SRC_COLOR,
+	GL_DST_COLOR,
+	GL_ONE_MINUS_DST_COLOR,
+	GL_SRC_ALPHA,
+	GL_ONE_MINUS_SRC_ALPHA,
+	GL_DST_ALPHA,
+	GL_ONE_MINUS_DST_ALPHA
+};
+
+const GLenum gCullModeToGL[] = {
+	GL_FRONT,
+	GL_BACK,
+	GL_FRONT_AND_BACK
+};
+
+const GLenum gBlendEquationToGL[] = {
+	GL_FUNC_ADD,
+	GL_FUNC_SUBTRACT,
+	GL_FUNC_REVERSE_SUBTRACT,
+	GL_MIN,
+	GL_MAX
 };
 
 struct gl_type
@@ -204,7 +226,7 @@ void rnd::driver::gl::driver::attach_frame_buffer()
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.top().first);
 }
 
-void rnd::driver::gl::driver::dettach_frame_buffer()
+void rnd::driver::gl::driver::detach_frame_buffer()
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -243,8 +265,7 @@ void rnd::driver::gl::driver::check_frame_buffer()
 		egLOG("Framebuffer is not complete: {0}", errorString);
 		ASSERT_FAIL("ERROR");
 	}
-	dettach_frame_buffer();
-
+	detach_frame_buffer();
 }
 
 void rnd::driver::gl::driver::push_frame_buffer()
@@ -270,66 +291,71 @@ void rnd::driver::gl::driver::pop_frame_buffer()
 	CHECK_GL_ERROR();
 }
 
-void rnd::driver::gl::driver::set_render_rarget(texture_interface* color, texture_interface* depth_stencil /* = nullptr*/)
+void rnd::driver::gl::driver::set_render_target(texture_interface* color, texture_interface* depth_stencil /* = nullptr*/)
 {
-	set_render_rargets({ color }, depth_stencil);
+	set_render_targets({ color }, depth_stencil);
 }
 
-void rnd::driver::gl::driver::set_render_rargets(std::vector<texture_interface*> colors, texture_interface* depth_stencil /* = nullptr*/)
+void rnd::driver::gl::driver::set_render_targets(std::vector<texture_interface*> colors, texture_interface* depth_stencil /* = nullptr*/)
 {
 	auto& [fb, ds_b] = framebuffers.top();
 	constexpr std::size_t MAX_COLOR_ATTACHMENTS = (GL_COLOR_ATTACHMENT31 - GL_COLOR_ATTACHMENT0 + 1);
-	ASSERT_MSG(colors.size() < MAX_COLOR_ATTACHMENTS, "Max color attachment is reached!");
+	ASSERT_MSG(colors.size() <= MAX_COLOR_ATTACHMENTS, "Max color attachment is reached!");
 
 	glm::ivec2 rt_size{ 0 };
 	std::size_t color_count = std::min(colors.size(), MAX_COLOR_ATTACHMENTS);
 	std::vector<GLenum> drawBuffers;
-	for (int i = 0; i < color_count; ++i) {
-		auto color = colors[i];
-		if (color) {
-			auto gl_color = static_cast<texture*>(color);
+	drawBuffers.reserve(color_count);
+
+	for (std::size_t i = 0; i < color_count; ++i) {
+		if (auto* color = colors[i]) {
+			auto* gl_color = static_cast<texture*>(color);
 			glNamedFramebufferTexture(fb, GL_COLOR_ATTACHMENT0 + i, gl_color->get_id(), 0);
 			CHECK_GL_ERROR();
 			rt_size = gl_color->size();
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + i);
 		}
 	}
-	
-	glNamedFramebufferDrawBuffers(fb, drawBuffers.size(), drawBuffers.data());
-    CHECK_GL_ERROR();
+
+	if (!drawBuffers.empty()) {
+		glNamedFramebufferDrawBuffers(fb, drawBuffers.size(), drawBuffers.data());
+	} else {
+		glNamedFramebufferDrawBuffers(fb, 0, nullptr);
+	}
+	CHECK_GL_ERROR();
 
 	if (!depth_stencil) {
-		glCreateRenderbuffers(1, &ds_b); CHECK_GL_ERROR();
-		glNamedRenderbufferStorage(ds_b, GL_DEPTH_COMPONENT32, rt_size.x, rt_size.y); CHECK_GL_ERROR();
-		glNamedFramebufferRenderbuffer(fb, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, ds_b); CHECK_GL_ERROR();
-	}
-
-	if (depth_stencil) {
-		auto gl_depth_stencil = static_cast<texture*>(depth_stencil);
-		texture_header::TYPE type = gl_depth_stencil->header.picture.channels;
-		GLenum gl_type = 0;
-		switch (type)
-		{
-		case rnd::driver::texture_header::TYPE::D32F_S8:
-		case rnd::driver::texture_header::TYPE::D24_S8:
-			gl_type = GL_DEPTH_STENCIL_ATTACHMENT;
-			break;
-		case rnd::driver::texture_header::TYPE::D32:
-		case rnd::driver::texture_header::TYPE::D24:
-		case rnd::driver::texture_header::TYPE::D16:
-		case rnd::driver::texture_header::TYPE::D32F:
-			gl_type = GL_DEPTH_ATTACHMENT;
-			break;
-		case rnd::driver::texture_header::TYPE::S1:
-		case rnd::driver::texture_header::TYPE::S4:
-		case rnd::driver::texture_header::TYPE::S8:
-			gl_type = GL_STENCIL_ATTACHMENT;
-			break;
-		default:
-			ASSERT_FAIL("Wrong depth_stencil render target type");
-			break;
+		if (ds_b == 0) {
+			glCreateRenderbuffers(1, &ds_b);
+			CHECK_GL_ERROR();
 		}
-
+		glNamedRenderbufferStorage(ds_b, GL_DEPTH_COMPONENT32, rt_size.x, rt_size.y);
+		CHECK_GL_ERROR();
+		glNamedFramebufferRenderbuffer(fb, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, ds_b);
+		CHECK_GL_ERROR();
+	} else {
+		auto* gl_depth_stencil = static_cast<texture*>(depth_stencil);
+		GLenum gl_type = 0;
+		switch (gl_depth_stencil->header.picture.channels) {
+			case rnd::driver::texture_header::TYPE::D32F_S8:
+			case rnd::driver::texture_header::TYPE::D24_S8:
+				gl_type = GL_DEPTH_STENCIL_ATTACHMENT;
+				break;
+			case rnd::driver::texture_header::TYPE::D32:
+			case rnd::driver::texture_header::TYPE::D24:
+			case rnd::driver::texture_header::TYPE::D16:
+			case rnd::driver::texture_header::TYPE::D32F:
+				gl_type = GL_DEPTH_ATTACHMENT;
+				break;
+			case rnd::driver::texture_header::TYPE::S1:
+			case rnd::driver::texture_header::TYPE::S4:
+			case rnd::driver::texture_header::TYPE::S8:
+				gl_type = GL_STENCIL_ATTACHMENT;
+				break;
+			default:
+				ASSERT_FAIL("Wrong depth_stencil render target type");
+				return;
+		}
 		glNamedFramebufferTexture(fb, gl_type, gl_depth_stencil->get_id(), 0);
 		CHECK_GL_ERROR();
 	}
@@ -359,7 +385,7 @@ void rnd::driver::gl::driver::clear(CLEAR_FLAGS flags)
 	glClearDepth(1.0);
 	glClear(gClearFlagsToGlClearFlags[(int)flags]);
 	CHECK_GL_ERROR();
-	dettach_frame_buffer();
+	detach_frame_buffer();
 }
 
 void rnd::driver::gl::driver::clear(CLEAR_FLAGS flags, glm::vec4 color)
@@ -387,7 +413,7 @@ void rnd::driver::gl::driver::clear(CLEAR_FLAGS flags, std::vector<glm::vec4> co
 	default:
 		break;
 	}
-	dettach_frame_buffer();
+	detach_frame_buffer();
 }
 
 void rnd::driver::gl::driver::set_activate_texture(int idx)
@@ -420,7 +446,7 @@ void rnd::driver::gl::driver::draw_elements(RENDER_MODE render_mode, unsigned in
 	CHECK_GL_ERROR();
 }
 
-void rnd::driver::gl::driver::draw_indeces(const std::unique_ptr<vertex_array_interface>& verteces, RENDER_MODE render_mode, unsigned int count, unsigned int base_vertex)
+void rnd::driver::gl::driver::draw_indices(const std::unique_ptr<vertex_array_interface>& vertices, RENDER_MODE render_mode, unsigned int count, unsigned int offset)
 {
 	GLenum rm = GL_TRIANGLES;
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.top().first);
@@ -432,20 +458,22 @@ void rnd::driver::gl::driver::draw_indeces(const std::unique_ptr<vertex_array_in
 		rm = gRenderModeToGLRenderMode[(int)render_mode];
 	}
 
-	verteces->bind();
-	if (base_vertex > 0) {
-		glDrawElementsBaseVertex(rm, count, GL_UNSIGNED_INT, 0, base_vertex);
+	vertices->bind();
+	if (offset > 0) {
+		glDrawElementsBaseVertex(rm, count, GL_UNSIGNED_INT, 0, offset);
 		CHECK_GL_ERROR();
 	} else {
 		glDrawElements(rm, count, GL_UNSIGNED_INT, 0);
 		CHECK_GL_ERROR();
 	}
-	verteces->unbind();
+
+
+	vertices->unbind();
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void rnd::driver::gl::driver::draw_instanced_indeces(const std::unique_ptr<vertex_array_interface>& verteces, RENDER_MODE render_mode, unsigned int count, unsigned int instance_count, unsigned int offset)
+void rnd::driver::gl::driver::draw_instanced_indices(const std::unique_ptr<vertex_array_interface>& vertices, RENDER_MODE render_mode, unsigned int count, unsigned int instance_count, unsigned int offset)
 {
 	GLenum rm = GL_TRIANGLES;
 	glBindFramebuffer(GL_FRAMEBUFFER, framebuffers.top().first);
@@ -456,142 +484,56 @@ void rnd::driver::gl::driver::draw_instanced_indeces(const std::unique_ptr<verte
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		rm = gRenderModeToGLRenderMode[(int)render_mode];
 	}
-	verteces->bind();
+	vertices->bind();
 	glDrawElementsInstanced(rm, count, GL_UNSIGNED_INT, 0, instance_count);
 	CHECK_GL_ERROR();
-	verteces->unbind();
+	vertices->unbind();
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void rnd::driver::gl::driver::enable(ENABLE_FLAGS flags)
-{
-	attach_frame_buffer();
-	switch (flags)
-	{
-	case rnd::driver::ENABLE_FLAGS::BLEND_MODE_ADD:
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_ONE, GL_ONE);
-		break;
-	case rnd::driver::ENABLE_FLAGS::BLEND_MODE_MINUS_ALPHA:
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		break;
-	case rnd::driver::ENABLE_FLAGS::DEPTH_MASK:
-		glDepthMask(GL_TRUE);
-		CHECK_GL_ERROR();
-		break;
-	case rnd::driver::ENABLE_FLAGS::DEPTH_TEST: 
-	case rnd::driver::ENABLE_FLAGS::DEPTH_TEST_EQUEL:
-	case rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL:
-	case rnd::driver::ENABLE_FLAGS::DEPTH_TEST_ALWAYS:
-		glEnable(gEnableFlagsToGlEnableFlags[(int)flags]);
-		CHECK_GL_ERROR();
-		glDepthFunc(gDepthFuncFlagsToGlDepthFuncFlags[(int)flags]);
-		CHECK_GL_ERROR();
-		break;
-	case rnd::driver::ENABLE_FLAGS::FACE_CULLING:
-		glCullFace(GL_BACK);
-		CHECK_GL_ERROR();
-		glEnable(gEnableFlagsToGlEnableFlags[(int)flags]);
-		CHECK_GL_ERROR();
-		break;
-	case ENABLE_FLAGS::COLOR_TEST:
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		CHECK_GL_ERROR();
-		break;
-	default:
-		glEnable(gEnableFlagsToGlEnableFlags[(int)flags]);
-		CHECK_GL_ERROR();
-	}
-	dettach_frame_buffer();
-}
+void rnd::driver::gl::driver::set_render_state(const render_state& state) {
+    // Depth state
+    if (state.depth.enabled) {
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(gDepthFuncToGL[static_cast<int>(state.depth.test_func)]);
+        glDepthMask(state.depth.write_mask ? GL_TRUE : GL_FALSE);
+    } else {
+        glDisable(GL_DEPTH_TEST);
+        glDepthMask(GL_FALSE);
+    }
+    CHECK_GL_ERROR();
 
-void rnd::driver::gl::driver::enable(ENABLE_FLAGS flags, int draw_buffer)
-{
-	attach_frame_buffer();
-	switch (flags)
-	{
-	case rnd::driver::ENABLE_FLAGS::BLEND_MODE_ADD:
-		glEnable(GL_BLEND);
-		glBlendFunci(draw_buffer, GL_ONE, GL_ONE);
-		break;
-	case rnd::driver::ENABLE_FLAGS::BLEND_MODE_MINUS_ALPHA:
-		glEnable(GL_BLEND);
-		glBlendFunci(draw_buffer, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		glEnable(GL_FRAMEBUFFER_SRGB);
-		break;
-	case rnd::driver::ENABLE_FLAGS::BLEND_MODE_ZERO_MINUS_ALPHA:
-		glEnable(GL_BLEND);
-		glBlendFunci(draw_buffer, GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-		glBlendEquation(GL_FUNC_ADD);
-		break;
-	case rnd::driver::ENABLE_FLAGS::DEPTH_MASK:
-		glDepthMask(GL_TRUE);
-		CHECK_GL_ERROR();
-		break;
-	case rnd::driver::ENABLE_FLAGS::DEPTH_TEST:
-	case rnd::driver::ENABLE_FLAGS::DEPTH_TEST_EQUEL:
-	case rnd::driver::ENABLE_FLAGS::DEPTH_TEST_LEQUEL:
-	case rnd::driver::ENABLE_FLAGS::DEPTH_TEST_ALWAYS:
-		glEnable(gEnableFlagsToGlEnableFlags[(int)flags]);
-		CHECK_GL_ERROR();
-		glDepthFunc(gDepthFuncFlagsToGlDepthFuncFlags[(int)flags]);
-		CHECK_GL_ERROR();
-		break;
-	case rnd::driver::ENABLE_FLAGS::FACE_CULLING:
-		glCullFace(GL_BACK);
-		CHECK_GL_ERROR();
-		glEnable(gEnableFlagsToGlEnableFlags[(int)flags]);
-		CHECK_GL_ERROR();
-		break;
-	case ENABLE_FLAGS::COLOR_TEST:
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-		CHECK_GL_ERROR();
-		break;
-	default:
-		glEnable(gEnableFlagsToGlEnableFlags[(int)flags]);
-		CHECK_GL_ERROR();
-	}
-	dettach_frame_buffer();
-}
+    // Blend states for each render target
+    if (!state.blend_states.empty()) {
+        if (state.blend_states[0].enabled) {
+            glEnable(GL_BLEND);
+        } else {
+            glDisable(GL_BLEND);
+        }
 
-void rnd::driver::gl::driver::disable(ENABLE_FLAGS flags)
-{
-	attach_frame_buffer();
-	switch (flags)
-	{
-	case rnd::driver::ENABLE_FLAGS::BLEND_MODE_ADD:
-	case rnd::driver::ENABLE_FLAGS::BLEND_MODE_MINUS_ALPHA:
-	case rnd::driver::ENABLE_FLAGS::BLEND_MODE_ZERO_MINUS_ALPHA:
-		glDisable(GL_BLEND);
-		//glBlendFunc(GL_ONE, GL_ONE);
-		glDisable(GL_FRAMEBUFFER_SRGB);
-		break;
-	case rnd::driver::ENABLE_FLAGS::DEPTH_MASK:
-		glDepthMask(GL_FALSE);
-		CHECK_GL_ERROR();
-		break;
-	case ENABLE_FLAGS::COLOR_TEST:
-		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-		return;
-		break;
-	default:
-		glDisable(gEnableFlagsToGlEnableFlags[(int)flags]);
-		CHECK_GL_ERROR();
-		break;
-	}
-	dettach_frame_buffer();
-}
+        for (size_t i = 0; i < state.blend_states.size(); ++i) {
+            const auto& blend = state.blend_states[i];
+            if (blend.enabled) {
+                glBlendFunci(i, 
+                    gBlendFactorToGL[static_cast<int>(blend.src_factor)],
+                    gBlendFactorToGL[static_cast<int>(blend.dst_factor)]
+                );
+                glBlendEquationi(i, gBlendEquationToGL[static_cast<int>(blend.blend_eq)]);
+            }
+        }
+    } else {
+        glDisable(GL_BLEND);
+    }
+    CHECK_GL_ERROR();
 
-void rnd::driver::gl::driver::unuse()
-{
-	glBindTextureUnit(0, 0);
-	glBindTextureUnit(1, 0);
-	glBindTextureUnit(2, 0);
-	glBindTextureUnit(3, 0);
-	glBindTextureUnit(4, 0);
-	glUseProgram(0);
-	CHECK_GL_ERROR();
+    // Face culling state
+    if (state.face_culling.enabled) {
+        glEnable(GL_CULL_FACE);
+        glCullFace(gCullModeToGL[static_cast<int>(state.face_culling.cull_mode)]);
+    } else {
+        glDisable(GL_CULL_FACE);
+    }
+    CHECK_GL_ERROR();
 }
 
 std::unique_ptr<rnd::driver::shader_interface> rnd::driver::gl::driver::create_shader(const std::vector<shader_header>& headers)
@@ -765,4 +707,10 @@ std::unique_ptr<rnd::driver::buffer_interface> rnd::driver::gl::driver::create_b
 std::unique_ptr<rnd::driver::uniform_buffer_interface> rnd::driver::gl::driver::create_uniform_buffer(std::size_t size, std::size_t binding)
 {
 	return std::make_unique<gl::uniform_buffer>(size, binding);
+}
+
+void rnd::driver::gl::driver::register_render_state(const render_state& state) {
+    // OpenGL doesn't require state preregistration,
+    // but we can cache them for optimization
+    state_cache.register_state(state);
 }

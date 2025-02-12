@@ -90,34 +90,30 @@ void ensure_ecs_material(ecs::entity material, const res::Material& mlt)
 		base_mlt.shininess = mlt.shininess;
 	}
 
-	bool has_advanced_properties = false;
-	scn::advanced_material_component advanced_mlt;
 	if (mlt.is_state(res::Material::TRANSPARENT_COLOR)) {
-		advanced_mlt.transparent = mlt.transparent_color;
-		has_advanced_properties = true;
+		scn::transparent_material_component transparent;
+		transparent.transparent = mlt.transparent_color;
+		if (mlt.is_state(res::Material::OPACITY)) {
+			transparent.opacity = mlt.opacity;
+		}
+		ecs::add_component(material, transparent);
 	}
+
 	if (mlt.is_state(res::Material::REFLECTIVE_COLOR)) {
-		advanced_mlt.reflective = mlt.reflective_color;
-		has_advanced_properties = true;
+		scn::reflective_material_component reflective;
+		reflective.reflective = mlt.reflective_color;
+		if (mlt.is_state(res::Material::REFLECTIVITY)) {
+			reflective.reflectivity = mlt.reflectivity;
+		}
+		ecs::add_component(material, reflective);
 	}
-	if (mlt.is_state(res::Material::OPACITY)) {
-		advanced_mlt.opacity = mlt.opacity;
-		has_advanced_properties = true;
-	}
-	if (mlt.is_state(res::Material::REFLECTIVITY)) {
-		advanced_mlt.reflectivity = mlt.reflectivity;
-		has_advanced_properties = true;
-	}
+
 	if (mlt.is_state(res::Material::REFRACTI)) {
-		advanced_mlt.refracti = mlt.refracti;
-		has_advanced_properties = true;
+		ecs::add_component(material, scn::refractive_material_component{ .refracti = mlt.refracti });
 	}
+
 	if (mlt.is_state(res::Material::SHININESS_STRENGTH)) {
-		advanced_mlt.shininess_strength = mlt.shininess_strength;
-		has_advanced_properties = true;
-	}
-	if (has_advanced_properties) {
-		ecs::add_component(material, advanced_mlt);
+		ecs::add_component(material, scn::shininess_strength_component{ .shininess_strength = mlt.shininess_strength });
 	}
 
 	ecs::add_component(material, base_mlt);
@@ -196,19 +192,20 @@ void gs::GameSystem::check_loaded_model()
 {
 	if (future_model && is_ready(*future_model)) {
 		auto res = future_model->get();
-		auto& pres = res->get_model_pres();
+		auto& pres = res->get_model_pres().data;
+		auto& root = res->get_model_pres();
 		auto rand_pos = glm::ballRand(20.f);
 		auto model = glm::translate(glm::mat4(1.0), glm::vec3{ 0 });
 		model = glm::scale(model, glm::vec3{ 1 });
 
 		ecs::entity obj = ecs::create_entity();
-		if (auto& bones_data = res->get_model_pres().data.bones_data.bones_indeces; !bones_data.empty()) { 
+		if (auto& bones_data = pres.bones_data.bones_indeces; !bones_data.empty()) { 
 			// TODO: create texture only for model desc
 			res::Tag txm = res::Tag("memory", "__bones_indeces_" + std::to_string(obj.index));
-			auto& last_bone_view = res->get_model_pres().data.bones_data;
+			auto& last_bone_view = pres.bones_data;
 			last_bone_view.bones_indeces_txm = txm;
 
-			glm::ivec2 size{ res->get_model_pres().data.vertices.size(), 0 };
+			glm::ivec2 size{ pres.vertices.size(), 0 };
 			size.y = bones_data.size() / size.x;
 
 			const auto& origin_width = size.x;
@@ -259,10 +256,11 @@ void gs::GameSystem::check_loaded_model()
 			rnd::get_system().get_texture_manager().generate_texture(txm, header);
 		}
 
-		pres.head.mt = model * pres.head.mt;
+		root.head.mt = model * root.head.mt;
 		std::unordered_map<int, ecs::entity> material_mapping;
 		auto anchors = ecs::filter<scn::scene_anchor_component>();
 		ecs::entity world_anchor;
+
 		if (anchors.empty()) {
 			world_anchor = ecs::create_entity();
 			ecs::add_component(world_anchor, scn::scene_anchor_component{});
@@ -277,9 +275,9 @@ void gs::GameSystem::check_loaded_model()
 			ecs::remove_component<scn::children_component>(world_anchor);
 		}
 
-		for (int i = 0; i < pres.data.materials.size(); ++i) {
+		for (int i = 0; i < pres.materials.size(); ++i) {
 			auto material = ecs::create_entity();
-			ensure_ecs_material(material, pres.data.materials[i]);
+			ensure_ecs_material(material, pres.materials[i]);
 			material_mapping[i] = material;
 		}
 
@@ -287,12 +285,14 @@ void gs::GameSystem::check_loaded_model()
 		ecs::add_component(anchors.front(), scn::children_component{ .children = children });
 
 		ecs::add_component(obj, scn::parent_component{ .parent = anchors.front() });
-		ecs::add_component(obj, scn::model_root_component{ .data = pres.data });
-		if (!pres.animations.empty()) {
-			ecs::add_component(obj, scn::animations_component{ .animations = pres.animations });
+		ecs::add_component(obj, scn::model_root_component{ .data = pres });
+		if (!root.animations.empty()) {
+			ecs::add_component(obj, scn::animations_component{ .animations = root.animations });
 		}		
 
-		ensure_ecs_node(obj, pres.head, pres.data, material_mapping);
+
+		ensure_ecs_node(obj, root.head, pres, material_mapping);
+
 
 		renderer->scene_objects.push_back(obj);
 		future_model = nullptr;

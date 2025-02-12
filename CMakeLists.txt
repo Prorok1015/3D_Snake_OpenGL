@@ -6,4 +6,4 @@ set(ENGINE_CORE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/core")
 
 set(SE_PROJECT_SOURCE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
 
-add_subdirectory(editor)
+add_subdirectory(editor) 
