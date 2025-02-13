@@ -243,11 +243,11 @@ void gs::GameSystem::check_loaded_model()
 			
 
 			rnd::driver::texture_header header;
-			header.picture.data = (unsigned char*)bones_data.data();
-			header.picture.channels = rnd::driver::texture_header::TYPE::R32I;
+			header.data.initial_data = (unsigned char*)bones_data.data();
+			header.data.format = rnd::driver::texture_header::TYPE::R32I;
 
-			header.picture.width = size.x;
-			header.picture.height = size.y;
+			header.data.extent.width = size.x;
+			header.data.extent.height = size.y;
 
 			header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_EDGE;
 			header.min = rnd::driver::texture_header::FILTERING::NEAREST;

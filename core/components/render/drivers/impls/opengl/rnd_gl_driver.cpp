@@ -3,7 +3,6 @@
 #include <glad/glad.h>
 #include <rnd_gl_shader.h>
 #include <rnd_gl_texture.h>
-#include <rnd_gl_cubemap.h>
 #include <rnd_gl_vertex_array.h>
 #include <rnd_gl_buffer.h>
 #include <rnd_gl_uniform_buffer.h>
@@ -45,12 +44,6 @@ const GLint gTextureWrappingToGlWrapping[] =
 	GL_MIRRORED_REPEAT,
 	GL_CLAMP_TO_EDGE,
 	GL_CLAMP_TO_BORDER,
-};
-
-const GLint gClearFlagsToGlClearFlags[] =
-{
-	GL_COLOR_BUFFER_BIT,
-	GL_DEPTH_BUFFER_BIT,
 };
 
 // Conversion tables for OpenGL constants
@@ -309,10 +302,16 @@ void rnd::driver::gl::driver::set_render_targets(std::vector<texture_interface*>
 
 	for (std::size_t i = 0; i < color_count; ++i) {
 		if (auto* color = colors[i]) {
+			ASSERT_MSG(color->has_usage(TEXTURE_USAGE::COLOR_TARGET), "Texture must have COLOR_TARGET usage flag");
 			auto* gl_color = static_cast<texture*>(color);
-			glNamedFramebufferTexture(fb, GL_COLOR_ATTACHMENT0 + i, gl_color->get_id(), 0);
+			
+			if (color->get_type() == TEXTURE_TYPE::RENDERBUFFER) {
+				glNamedFramebufferRenderbuffer(fb, GL_COLOR_ATTACHMENT0 + i, GL_RENDERBUFFER, gl_color->get_id());
+			} else {
+				glNamedFramebufferTexture(fb, GL_COLOR_ATTACHMENT0 + i, gl_color->get_id(), 0);
+			}
 			CHECK_GL_ERROR();
-			rt_size = gl_color->size();
+			rt_size = { gl_color->width(), gl_color->height() };
 			drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + i);
 		}
 	}
@@ -324,39 +323,16 @@ void rnd::driver::gl::driver::set_render_targets(std::vector<texture_interface*>
 	}
 	CHECK_GL_ERROR();
 
-	if (!depth_stencil) {
-		if (ds_b == 0) {
-			glCreateRenderbuffers(1, &ds_b);
-			CHECK_GL_ERROR();
-		}
-		glNamedRenderbufferStorage(ds_b, GL_DEPTH_COMPONENT32, rt_size.x, rt_size.y);
-		CHECK_GL_ERROR();
-		glNamedFramebufferRenderbuffer(fb, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, ds_b);
-		CHECK_GL_ERROR();
-	} else {
+	if (depth_stencil) {
+		ASSERT_MSG(depth_stencil->has_usage(TEXTURE_USAGE::DEPTH_TARGET) || 
+			   depth_stencil->has_usage(TEXTURE_USAGE::STENCIL_TARGET), "Texture must have DEPTH_TARGET or STENCIL_TARGET usage flag");
 		auto* gl_depth_stencil = static_cast<texture*>(depth_stencil);
-		GLenum gl_type = 0;
-		switch (gl_depth_stencil->header.picture.channels) {
-			case rnd::driver::texture_header::TYPE::D32F_S8:
-			case rnd::driver::texture_header::TYPE::D24_S8:
-				gl_type = GL_DEPTH_STENCIL_ATTACHMENT;
-				break;
-			case rnd::driver::texture_header::TYPE::D32:
-			case rnd::driver::texture_header::TYPE::D24:
-			case rnd::driver::texture_header::TYPE::D16:
-			case rnd::driver::texture_header::TYPE::D32F:
-				gl_type = GL_DEPTH_ATTACHMENT;
-				break;
-			case rnd::driver::texture_header::TYPE::S1:
-			case rnd::driver::texture_header::TYPE::S4:
-			case rnd::driver::texture_header::TYPE::S8:
-				gl_type = GL_STENCIL_ATTACHMENT;
-				break;
-			default:
-				ASSERT_FAIL("Wrong depth_stencil render target type");
-				return;
+		
+		if (depth_stencil->get_type() == TEXTURE_TYPE::RENDERBUFFER) {
+			glNamedFramebufferRenderbuffer(fb, gl_depth_stencil->get_attachment_type(), GL_RENDERBUFFER, gl_depth_stencil->get_id());
+		} else {
+			glNamedFramebufferTexture(fb, gl_depth_stencil->get_attachment_type(), gl_depth_stencil->get_id(), 0);
 		}
-		glNamedFramebufferTexture(fb, gl_type, gl_depth_stencil->get_id(), 0);
 		CHECK_GL_ERROR();
 	}
 
@@ -379,40 +355,63 @@ void rnd::driver::gl::driver::set_clear_color(glm::vec4 color)
 	CHECK_GL_ERROR();
 }
 
-void rnd::driver::gl::driver::clear(CLEAR_FLAGS flags)
+void rnd::driver::gl::driver::clear(clear_flags flags)
 {
 	attach_frame_buffer();
 	glClearDepth(1.0);
-	glClear(gClearFlagsToGlClearFlags[(int)flags]);
+	GLbitfield gl_flags = 0;
+	if (flags.has_flag(CLEAR_FLAGS::COLOR_BUFFER)) gl_flags |= GL_COLOR_BUFFER_BIT;
+	if (flags.has_flag(CLEAR_FLAGS::DEPTH_BUFFER)) gl_flags |= GL_DEPTH_BUFFER_BIT;
+	if (flags.has_flag(CLEAR_FLAGS::STENCIL_BUFFER)) gl_flags |= GL_STENCIL_BUFFER_BIT;
+	if (flags.has_flag(CLEAR_FLAGS::DEPTH_STENCIL_BUFFER)) gl_flags |= (GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glClear(gl_flags);
 	CHECK_GL_ERROR();
 	detach_frame_buffer();
 }
 
-void rnd::driver::gl::driver::clear(CLEAR_FLAGS flags, glm::vec4 color)
+void rnd::driver::gl::driver::clear(clear_flags flags, glm::vec4 color)
 {
-	set_clear_color(color);
-	clear(flags);
+	clear(flags, std::vector<glm::vec4>{color});
 }
 
-void rnd::driver::gl::driver::clear(CLEAR_FLAGS flags, std::vector<glm::vec4> colors)
+void rnd::driver::gl::driver::clear(clear_flags flags, const std::vector<glm::vec4>& colors)
 {
 	attach_frame_buffer();
+
+	if (colors.empty()) {
+		detach_frame_buffer();
+		return;
+	}
+
 	int i = 0;
-	switch (flags)
-	{
-	case rnd::driver::CLEAR_FLAGS::COLOR_BUFFER:
+	if (flags.has_flag(CLEAR_FLAGS::COLOR_BUFFER)) {
 		for (auto& color : colors) {
 			glClearBufferfv(GL_COLOR, i++, glm::value_ptr(color));
+			CHECK_GL_ERROR();
 		}
-		break;
-	case rnd::driver::CLEAR_FLAGS::DEPTH_BUFFER:
-		for (auto& color : colors) {
-			glClearBufferfv(GL_DEPTH, i++, glm::value_ptr(color));
-		}
-		break;
-	default:
-		break;
 	}
+
+	if (flags.has_flag(CLEAR_FLAGS::DEPTH_BUFFER)) {
+		if (!colors.empty()) {
+			glClearBufferfv(GL_DEPTH, 0, glm::value_ptr(colors[0]));
+			CHECK_GL_ERROR();
+		}
+	}
+
+	if (flags.has_flag(CLEAR_FLAGS::STENCIL_BUFFER)) {
+		if (!colors.empty()) {
+			glClearBufferiv(GL_STENCIL, 0, reinterpret_cast<const GLint*>(glm::value_ptr(colors[0])));
+			CHECK_GL_ERROR();
+		}
+	}
+
+	if (flags.has_flag(CLEAR_FLAGS::DEPTH_STENCIL_BUFFER)) {
+		if (!colors.empty()) {
+			glClearBufferfi(GL_DEPTH_STENCIL, 0, colors[0].r, static_cast<GLint>(colors[0].g));
+			CHECK_GL_ERROR();
+		}
+	}
+
 	detach_frame_buffer();
 }
 
@@ -596,102 +595,7 @@ std::unique_ptr<rnd::driver::shader_interface> rnd::driver::gl::driver::create_s
 
 std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_texture(const texture_header& header)
 {
-	GLsizei t_width = header.picture.width;
-	GLsizei t_height = header.picture.height;
-
-	GLint maxTextureSize;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTextureSize);
-
-	ASSERT_MSG(t_height < maxTextureSize && t_width < maxTextureSize, "Texture size is too big");
-
-	GLubyte* image_data = header.picture.data;
-	GLuint texture;
-	glCreateTextures(GL_TEXTURE_2D, 1, &texture);
-	CHECK_GL_ERROR();
-
-	glTextureParameteri(texture, GL_TEXTURE_MIN_FILTER, gTextureFilteringToGlFiltering[(int)header.min]);
-	glTextureParameteri(texture, GL_TEXTURE_MAG_FILTER, gTextureFilteringToGlFiltering[(int)header.mag]);
-	CHECK_GL_ERROR();
-
-	glTextureParameteri(texture, GL_TEXTURE_WRAP_S, gTextureWrappingToGlWrapping[(int)header.wrap]);
-	glTextureParameteri(texture, GL_TEXTURE_WRAP_T, gTextureWrappingToGlWrapping[(int)header.wrap]);
-	CHECK_GL_ERROR();
-	float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	CHECK_GL_ERROR();
-	
-	auto [format_internal, format_2, data_type] = to_gl_type(header.picture.channels);
-	glTextureStorage2D(texture, 1, format_internal, t_width, t_height);
-	CHECK_GL_ERROR();
-
-	GLint result = 0;
-	glGetTextureParameteriv(texture, GL_TEXTURE_IMMUTABLE_FORMAT, &result);
-	if (result != GL_TRUE) {
-		egLOG("texture/create", "Broken tex immutable format");
-	}
-
-	if (image_data) {
-		glTextureSubImage2D(texture, 0, 0, 0, t_width, t_height, format_2, data_type, image_data);
-		CHECK_GL_ERROR();
-	}
-
-	//glTextureParameteri(texture, GL_TEXTURE_MAX_LEVEL, 4);
-	//CHECK_GL_ERROR();
-	//glGenerateTextureMipmap(texture);
-	//CHECK_GL_ERROR();
-
-	return std::make_unique<rnd::driver::gl::texture>(texture, header);
-}
-
-std::unique_ptr<rnd::driver::texture_interface> rnd::driver::gl::driver::create_texture(const cubmap_texture_header& header)
-{
-	GLuint texture;
-	glGenTextures(1, &texture);
-	CHECK_GL_ERROR();
-	glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
-	CHECK_GL_ERROR();
-
-	auto add = [](int direction, texture_header::data header)
-	{
-		auto width = header.width;
-		auto height = header.height;
-		auto data = header.data;
-		GLenum format = 0;
-		if (header.channels == rnd::driver::texture_header::TYPE::R8) {
-			format = GL_RED;
-		}
-		else if (header.channels == rnd::driver::texture_header::TYPE::RGB8) {
-			format = GL_RGB;
-		}
-		else if (header.channels == rnd::driver::texture_header::TYPE::RGBA8) {
-			format = GL_RGBA;
-		}
-		else if (header.channels == rnd::driver::texture_header::TYPE::R32I) {
-			format = GL_R32I;
-		}
-		glTexImage2D(direction, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-	};
-
-	add(GL_TEXTURE_CUBE_MAP_POSITIVE_X, header.right);
-	CHECK_GL_ERROR();
-	add(GL_TEXTURE_CUBE_MAP_NEGATIVE_X, header.left);
-	CHECK_GL_ERROR();
-	add(GL_TEXTURE_CUBE_MAP_POSITIVE_Y, header.top);
-	CHECK_GL_ERROR();
-	add(GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, header.bottom);
-	CHECK_GL_ERROR();
-	add(GL_TEXTURE_CUBE_MAP_POSITIVE_Z, header.back);
-	CHECK_GL_ERROR();
-	add(GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, header.front);
-	CHECK_GL_ERROR();
-
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, gTextureFilteringToGlFiltering[(int)header.min]);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, gTextureFilteringToGlFiltering[(int)header.mag]);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, gTextureWrappingToGlWrapping[(int)header.wrap]);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, gTextureWrappingToGlWrapping[(int)header.wrap]);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, gTextureWrappingToGlWrapping[(int)header.wrap]);
-
-	return std::make_unique<rnd::driver::gl::texture>(texture, texture_header{}/*TODO*/);
+	return std::make_unique<rnd::driver::gl::texture>(header);
 }
 
 std::unique_ptr<rnd::driver::vertex_array_interface> rnd::driver::gl::driver::create_vertex_array()

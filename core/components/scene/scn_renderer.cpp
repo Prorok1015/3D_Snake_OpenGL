@@ -136,7 +136,7 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
         auto color_rt = txm_manager.find(color_rt_tag);
         auto color_tp_rt = txm_manager.find(color_rt_transparent_tag);
         auto waight_tp_rt = txm_manager.find(waight_rt_transparent_tag);
-        if (color_rt && (color_rt->size() != camera->viewport.size))
+        if (color_rt && (color_rt->width() != camera->viewport.size.x || color_rt->height() != camera->viewport.size.y))
         {
             txm_manager.remove(color_rt_tag);
             txm_manager.remove(color_rt_transparent_tag);
@@ -148,21 +148,22 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
         if (!color_rt) {
             rnd::driver::texture_header header;
-            header.picture.height = camera->viewport.size.y;
-            header.picture.width = camera->viewport.size.x;
-            header.picture.channels = rnd::driver::texture_header::TYPE::RGBA8;
+            header.data.extent.width = camera->viewport.size.x;
+            header.data.extent.height = camera->viewport.size.y;
+            header.data.format = rnd::driver::texture_header::TYPE::RGBA8;
+            header.usage = rnd::driver::TEXTURE_USAGE::COLOR_TARGET;
             header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_EDGE;
             header.mag = rnd::driver::texture_header::FILTERING::NEAREST;
             header.min = rnd::driver::texture_header::FILTERING::NEAREST;
             color_rt = txm_manager.generate_texture(color_rt_tag, header);
 
-            header.picture.channels = rnd::driver::texture_header::TYPE::RGBA16F;
+            header.data.format = rnd::driver::texture_header::TYPE::RGBA16F;
             header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_EDGE;
             header.mag = rnd::driver::texture_header::FILTERING::LINEAR;
             header.min = rnd::driver::texture_header::FILTERING::LINEAR;
             color_tp_rt = txm_manager.generate_texture(color_rt_transparent_tag, header);
             egLOG("scn/renderer", "'{2}' render target Created size: {0}, {1}", color_rt->width(), color_rt->height(), color_rt_tag.name());
-            header.picture.channels = rnd::driver::texture_header::TYPE::R8;
+            header.data.format = rnd::driver::texture_header::TYPE::R8;
             waight_tp_rt = txm_manager.generate_texture(waight_rt_transparent_tag, header);
         }
 
@@ -483,7 +484,7 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
         auto z_pass_rt = txm_manager.find(z_pass_tag);
         auto z_pass_color_rt = txm_manager.find(z_pass_color_tag);
 
-        if (z_pass_rt && (z_pass_rt->size() != camera->viewport.size))
+        if (z_pass_rt && (z_pass_rt->width() != camera->viewport.size.x || z_pass_rt->height() != camera->viewport.size.y))
         {
             txm_manager.remove(z_pass_tag);
             txm_manager.remove(z_pass_color_tag);
@@ -493,15 +494,17 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
 
         if (!z_pass_rt) {
             rnd::driver::texture_header header;
-            header.picture.height = camera->viewport.size.y;
-            header.picture.width = camera->viewport.size.x;
-            header.picture.channels = rnd::driver::texture_header::TYPE::D32;
+            header.data.extent.width = camera->viewport.size.x;
+            header.data.extent.height = camera->viewport.size.y;
+            header.data.format = rnd::driver::texture_header::TYPE::D32;
+            header.usage = rnd::driver::TEXTURE_USAGE::DEPTH_TARGET;
             header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_BORDER;
             header.mag = rnd::driver::texture_header::FILTERING::NEAREST;
             header.min = rnd::driver::texture_header::FILTERING::NEAREST;
             z_pass_rt = txm_manager.generate_texture(z_pass_tag, header);
 
-            header.picture.channels = rnd::driver::texture_header::TYPE::RGBA8;
+            header.data.format = rnd::driver::texture_header::TYPE::RGBA8;
+            header.usage = rnd::driver::TEXTURE_USAGE::COLOR_TARGET;
             z_pass_color_rt = txm_manager.generate_texture(z_pass_color_tag, header);
             egLOG("scn/renderer", "'{2}' Z-prepass size: {0}, {1}", z_pass_rt->width(), z_pass_rt->height(), z_pass_tag.name());
         }

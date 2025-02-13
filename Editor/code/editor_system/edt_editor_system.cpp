@@ -188,8 +188,8 @@ editor::EditorSystem::EditorSystem()
 			res::Tag::make("skybox/left.jpg"),
 			res::Tag::make("skybox/bottom.jpg"),
 			res::Tag::make("skybox/top.jpg"),
-			res::Tag::make("skybox/back.jpg"),
 			res::Tag::make("skybox/front.jpg"),
+			res::Tag::make("skybox/back.jpg"),
 			}
 			});
 		ecs::add_component(sky, scn::is_render_component_flag{});

@@ -18,9 +18,9 @@ namespace rnd::driver::gl
 
 		virtual void set_viewport(glm::ivec4 rect) override;
 		virtual void set_clear_color(glm::vec4 color) override;
-		virtual void clear(CLEAR_FLAGS flags) override;
-		virtual void clear(CLEAR_FLAGS flags, glm::vec4 color) override;
-		virtual void clear(CLEAR_FLAGS flags, std::vector<glm::vec4> colors) override;
+		virtual void clear(clear_flags flags) override;
+		virtual void clear(clear_flags flags, glm::vec4 color) override;
+		virtual void clear(clear_flags flags, const std::vector<glm::vec4>& colors) override;
 		virtual void set_activate_texture(int idx) override;
 		virtual void set_line_size(float size) override;
 		virtual void set_point_size(float size) override;
@@ -32,7 +32,7 @@ namespace rnd::driver::gl
 
 		virtual std::unique_ptr<shader_interface> create_shader(const std::vector<shader_header>& headers) override;
 		virtual std::unique_ptr<texture_interface> create_texture(const texture_header& header) override;
-		virtual std::unique_ptr<texture_interface> create_texture(const cubmap_texture_header& headers) override;
+		//virtual std::unique_ptr<texture_interface> create_texture(const cubmap_texture_header& headers) override;
 		virtual std::unique_ptr<vertex_array_interface> create_vertex_array() override;
 		virtual std::unique_ptr<buffer_interface> create_buffer() override;
 		virtual std::unique_ptr<uniform_buffer_interface> create_uniform_buffer(std::size_t size, std::size_t binding) override;

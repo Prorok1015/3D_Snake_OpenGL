@@ -5,7 +5,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace data_struct {
+namespace ds {
 
 	struct DataStoragePolicy
 	{
@@ -88,5 +88,3 @@ namespace data_struct {
 
 	using AppDataStorage = DataStorageT<DataStoragePolicy>;
 }
-
-namespace ds = data_struct;

@@ -4,6 +4,7 @@
 #include <memory>
 #include <glm/glm.hpp>
 #include <unordered_map>
+#include "ds_bit_frags.hpp"
 
 namespace rnd::driver
 {
@@ -17,7 +18,9 @@ namespace rnd::driver
 	class uniform_buffer_interface;
 	class buffer_interface;
 
-	enum class CLEAR_FLAGS { COLOR_BUFFER, DEPTH_BUFFER	};
+	enum class CLEAR_FLAGS { COLOR_BUFFER, DEPTH_BUFFER, STENCIL_BUFFER, DEPTH_STENCIL_BUFFER };
+
+	using clear_flags = ds::bit_flags<CLEAR_FLAGS>;
 
 	// Depth state configuration
 	struct depth_state {
@@ -104,7 +107,7 @@ namespace rnd::driver
 	// Combined render state
 	struct render_state {
 		depth_state depth;
-		std::vector<blend_state> blend_states;  // По одному для каждого render target
+		std::vector<blend_state> blend_states;
 		face_culling_state face_culling;
 
 		// Factory methods for common states
@@ -113,7 +116,7 @@ namespace rnd::driver
 			state.depth.enabled = true;
 			state.depth.write_mask = true;
 			state.depth.test_func = depth_state::func::LESS;
-			state.blend_states = { blend_state{} };  // Один disabled blend state
+			state.blend_states = { blend_state{} };
 			state.face_culling.enabled = true;
 			return state;
 		}
@@ -152,7 +155,7 @@ namespace rnd::driver
 		// Hash for use as a key in state cache
 		size_t hash() const {
 			size_t h = 0;
-			// ... hash calculation based on all fields ...
+			//TODO: hash calculation based on all fields
 			return h;
 		}
 	};
@@ -185,9 +188,9 @@ namespace rnd::driver
 
 		virtual void set_viewport(glm::ivec4 rect) = 0;
 		virtual void set_clear_color(glm::vec4 color) = 0;
-		virtual void clear(CLEAR_FLAGS flags) = 0;
-		virtual void clear(CLEAR_FLAGS flags, glm::vec4 color) = 0;
-		virtual void clear(CLEAR_FLAGS flags, std::vector<glm::vec4> colors) = 0;
+		virtual void clear(clear_flags flags) = 0;
+		virtual void clear(clear_flags flags, glm::vec4 color) = 0;
+		virtual void clear(clear_flags flags, const std::vector<glm::vec4>& colors) = 0;
 		virtual void set_activate_texture(int idx) = 0;
 		virtual void set_line_size(float size) = 0;
 		virtual void set_point_size(float size) = 0;
@@ -199,7 +202,7 @@ namespace rnd::driver
 
 		virtual std::unique_ptr<shader_interface> create_shader(const std::vector<shader_header>& headers) = 0;
 		virtual std::unique_ptr<texture_interface> create_texture(const texture_header& header) = 0;
-		virtual std::unique_ptr<texture_interface> create_texture(const cubmap_texture_header& headers) = 0;
+		//virtual std::unique_ptr<texture_interface> create_texture(const cubmap_texture_header& headers) = 0;
 		virtual std::unique_ptr<vertex_array_interface> create_vertex_array() = 0;
 		virtual std::unique_ptr<buffer_interface> create_buffer() = 0;
 		virtual std::unique_ptr<uniform_buffer_interface> create_uniform_buffer(std::size_t size, std::size_t binding) = 0;

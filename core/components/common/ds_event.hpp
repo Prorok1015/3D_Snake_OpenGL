@@ -4,7 +4,7 @@
 #include "ds_type_id.hpp"
 #include "engine_assert.h"
 
-namespace data_struct
+namespace ds
 {
 	struct EventSlotPolicyCopy
 	{
@@ -252,5 +252,3 @@ namespace data_struct
 		}
 	};
 }
-
-namespace ds = data_struct;
