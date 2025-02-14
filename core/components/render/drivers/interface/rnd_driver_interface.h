@@ -11,8 +11,6 @@ namespace rnd::driver
 	class shader_interface;
 	class texture_interface;
 	struct texture_header;
-	struct cubmap_texture_header;
-	class cubemap_interface;
 	class render_context_interface;
 	class vertex_array_interface;
 	class uniform_buffer_interface;
@@ -198,11 +196,8 @@ namespace rnd::driver
 		virtual void draw_indices(const std::unique_ptr<vertex_array_interface>& vertices, RENDER_MODE render_mode, unsigned int count, unsigned int offset = 0) = 0;
 		virtual void draw_instanced_indices(const std::unique_ptr<vertex_array_interface>& vertices, RENDER_MODE render_mode, unsigned int count, unsigned int instance_count, unsigned int offset = 0) = 0;
 
-		virtual void unuse() = 0;
-
 		virtual std::unique_ptr<shader_interface> create_shader(const std::vector<shader_header>& headers) = 0;
 		virtual std::unique_ptr<texture_interface> create_texture(const texture_header& header) = 0;
-		//virtual std::unique_ptr<texture_interface> create_texture(const cubmap_texture_header& headers) = 0;
 		virtual std::unique_ptr<vertex_array_interface> create_vertex_array() = 0;
 		virtual std::unique_ptr<buffer_interface> create_buffer() = 0;
 		virtual std::unique_ptr<uniform_buffer_interface> create_uniform_buffer(std::size_t size, std::size_t binding) = 0;

@@ -3,6 +3,7 @@
 #include "res_resource_text_file.h"
 #include "res_resource_model.h"
 #include <engine_log.h>
+#include <boost/json.hpp>
 
 using namespace res;
 

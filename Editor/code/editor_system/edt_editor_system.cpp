@@ -16,6 +16,7 @@
 #include "edt_input_manager.h"
 #include "edt_guizmo.hpp"
 #include <imgui.h>
+#include <boost/json/src.hpp>
 
 editor::EditorSystem::EditorSystem()
 {

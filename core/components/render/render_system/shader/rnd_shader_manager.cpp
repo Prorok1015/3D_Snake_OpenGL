@@ -23,11 +23,6 @@ rnd::ShaderManager::~ShaderManager()
 {
 }
 
-void rnd::ShaderManager::unuse() const
-{
-	drv->unuse();
-}
-
 void rnd::ShaderManager::update_global_uniform(const global_params& val) const
 {
 	_matrices->set_data(glm::value_ptr(val.projection), sizeof(decltype(val.projection)), offsetof(global_params, projection));

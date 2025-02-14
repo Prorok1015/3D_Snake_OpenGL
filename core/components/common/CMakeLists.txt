@@ -7,4 +7,12 @@ target_link_libraries(${PROJECT_NAME} INTERFACE glm)
 
 #glm
 add_subdirectory(${THIRD_PARTY_PATH}/glm glm)
-target_compile_definitions(glm INTERFACE GLM_ENABLE_EXPERIMENTAL=1)
+target_compile_definitions(glm INTERFACE GLM_ENABLE_EXPERIMENTAL)
+
+if(ENGINE_BOOST_NO_LIB) 
+  find_package(Boost REQUIRED)
+  target_include_directories(${PROJECT_NAME} INTERFACE ${Boost_INCLUDE_DIRS})
+  target_compile_definitions(${PROJECT_NAME} INTERFACE BOOST_ALL_NO_LIB)
+  message(STATUS "Boost_INCLUDE_DIRS: ${Boost_INCLUDE_DIRS}")
+  message(STATUS "Boost_LIBRARIES: ${Boost_LIBRARIES}")
+endif()
