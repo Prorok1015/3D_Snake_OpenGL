@@ -2,5 +2,6 @@
 
 namespace scn
 {
-	void ecs_process_update_camera_matrix(const float time_second);
+	void init_camera_controller_system();
+	void deinit_camera_controller_system();
 }

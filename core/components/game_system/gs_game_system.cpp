@@ -48,16 +48,20 @@ gs::GameSystem::GameSystem()
 	rnd::get_system().activate_renderer(renderer);
 
 	//input->create_click_action(inp::KEYBOARD_BUTTONS::ESCAPE, [this](float) { window->shutdown(); });
-
-	ecs::systems.push_back(scn::ecs_process_update_camera_matrix);
-	ecs::systems.push_back(scn::update_transform_system);
+	scn::init_camera_controller_system();
+	scn::init_transform_system();
+	//ecs::systems.push_back(scn::ecs_process_update_camera_matrix);
 	ecs::systems.push_back(scn::update_animation_system);
+	ecs::systems.push_back(scn::update_transform_system);
+	ecs::systems.push_back(scn::update_bone_offsets_system);
 }
 
 gs::GameSystem::~GameSystem()
 {
 	rnd::get_system().deactivate_renderer(renderer);
 	//inp::get_system().deactivate_manager(input);
+	scn::deinit_camera_controller_system();
+	scn::deinit_transform_system();
 }
 
 void gs::GameSystem::set_enable_input(bool enable)
@@ -72,7 +76,7 @@ void gs::GameSystem::load_model(std::string_view path)
 
 void ensure_ecs_material(ecs::entity material, const res::Material& mlt)
 {
-	ecs::add_component(material, scn::name_component{ .name = mlt.name });
+	ecs::registry.emplace<scn::name_component>(material, mlt.name);
 	scn::base_material_component base_mlt;
 	if (mlt.is_state(res::Material::ALBEDO_COLOR)) {
 		base_mlt.albedo = mlt.diffuse_color;
@@ -96,7 +100,7 @@ void ensure_ecs_material(ecs::entity material, const res::Material& mlt)
 		if (mlt.is_state(res::Material::OPACITY)) {
 			transparent.opacity = mlt.opacity;
 		}
-		ecs::add_component(material, transparent);
+		ecs::registry.emplace<scn::transparent_material_component>(material, transparent);
 	}
 
 	if (mlt.is_state(res::Material::REFLECTIVE_COLOR)) {
@@ -105,50 +109,51 @@ void ensure_ecs_material(ecs::entity material, const res::Material& mlt)
 		if (mlt.is_state(res::Material::REFLECTIVITY)) {
 			reflective.reflectivity = mlt.reflectivity;
 		}
-		ecs::add_component(material, reflective);
+		ecs::registry.emplace<scn::reflective_material_component>(material, reflective);
 	}
 
 	if (mlt.is_state(res::Material::REFRACTI)) {
-		ecs::add_component(material, scn::refractive_material_component{ .refracti = mlt.refracti });
+		ecs::registry.emplace<scn::refractive_material_component>(material, mlt.refracti);
 	}
 
 	if (mlt.is_state(res::Material::SHININESS_STRENGTH)) {
-		ecs::add_component(material, scn::shininess_strength_component{ .shininess_strength = mlt.shininess_strength });
+		ecs::registry.emplace<scn::shininess_strength_component>(material, mlt.shininess_strength);
 	}
 
-	ecs::add_component(material, base_mlt);
+	ecs::registry.emplace<scn::base_material_component>(material, base_mlt);
 	if (mlt.is_state(res::Material::ALBEDO_TXM)) {
-		ecs::add_component(material, scn::albedo_map_component{ .txm = mlt.get_txm(res::Material::ALBEDO_TXM) });
+		ecs::registry.emplace<scn::albedo_map_component>(material, mlt.get_txm(res::Material::ALBEDO_TXM));
 	}
 	if (mlt.is_state(res::Material::NORMALS_TXM)) {
-		ecs::add_component(material, scn::normal_map_component{ .txm = mlt.get_txm(res::Material::NORMALS_TXM) });
+		ecs::registry.emplace<scn::normal_map_component>(material, mlt.get_txm(res::Material::NORMALS_TXM));
 	}
 	if (mlt.is_state(res::Material::SPECULAR_TXM)) {
-		ecs::add_component(material, scn::specular_map_component{ .txm = mlt.get_txm(res::Material::SPECULAR_TXM) });
+		ecs::registry.emplace<scn::specular_map_component>(material, mlt.get_txm(res::Material::SPECULAR_TXM));
 	}
 	if (mlt.is_state(res::Material::AMBIENT_OCCLUSION_TXM)) {
-		ecs::add_component(material, scn::ao_map_component{ .txm = mlt.get_txm(res::Material::AMBIENT_OCCLUSION_TXM) });
+		ecs::registry.emplace<scn::ao_map_component>(material, mlt.get_txm(res::Material::AMBIENT_OCCLUSION_TXM));
 	}
 }
 
 void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, const res::meshes_conteiner& data, std::unordered_map<int, ecs::entity> material_mapping)
 {
-	ecs::add_component(ent, scn::is_render_component_flag{});
-	ecs::add_component(ent, scn::name_component{ .name = node.name });
-	ecs::add_component(ent, scn::transform_component{ .local = node.mt });
+	ecs::registry.emplace<scn::is_render_component_flag>(ent);
+	ecs::registry.emplace<scn::name_component>(ent, node.name);
+	ecs::registry.emplace_or_replace<scn::local_transform>(ent, node.mt);
 
 	if (!node.anim.empty()) {
-		ecs::add_component(ent, scn::keyframes_component{ .keyframes = node.anim });
+		ecs::registry.emplace<scn::keyframes_component>(ent, node.anim);
 	}
 
 	if (node.bone_id != -1) {
 		auto& bone = data.bones[node.bone_id];
-		ecs::add_component(ent, scn::bone_component{ .offset = bone.offset });
-		if (auto* key = ecs::get_component<scn::keyframes_component>(ent)) {
-			key->keyframes = bone.anim;
+		ecs::registry.emplace<scn::bone_component>(ent, bone.offset);
+		if (ecs::registry.all_of<scn::keyframes_component>(ent)) {
+			auto& key = ecs::registry.get<scn::keyframes_component>(ent);
+			key.keyframes = bone.anim;
 			egLOG("model/fill_components", "There is double animation on the node '{0}'", node.name);
 		} else {
-			ecs::add_component(ent, scn::keyframes_component{ .keyframes = bone.anim });
+			ecs::registry.emplace<scn::keyframes_component>(ent, bone.anim);
 		}
 	}
 
@@ -157,33 +162,32 @@ void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, cons
 	{
 		ecs::entity mesh_ent = ecs::create_entity();
 		children.push_back(mesh_ent);
-		ecs::add_component(mesh_ent, scn::parent_component{ .parent = ent });
-		ecs::add_component(mesh_ent, scn::mesh_component{ .mesh = mesh });
-		ecs::add_component(mesh_ent, scn::transform_component{});
-		ecs::add_component(mesh_ent, scn::is_render_component_flag{});
-		ecs::add_component(mesh_ent, scn::material_link_component{ .material = material_mapping[mesh.material_id]});
+		ecs::registry.emplace<scn::parent_component>(mesh_ent, ent);
+		ecs::registry.emplace<scn::mesh_component>(mesh_ent, mesh);
+		ecs::registry.emplace<scn::local_transform>(mesh_ent);
+		ecs::registry.emplace<scn::world_transform>(mesh_ent);
+		ecs::registry.emplace<scn::is_render_component_flag>(mesh_ent);
+		ecs::registry.emplace<scn::material_link_component>(mesh_ent, material_mapping[mesh.material_id]);
 	}
 
 	for (auto& child : node.children)
 	{
 		ecs::entity child_ent = ecs::create_entity();
 		children.push_back(child_ent);
-		ecs::add_component(child_ent, scn::parent_component{ .parent = ent });
+		ecs::registry.emplace<scn::parent_component>(child_ent, ent);
 		ensure_ecs_node(child_ent, child, data, material_mapping);
 	}
 
 	if (!children.empty()) {
-		ecs::add_component(ent, scn::children_component{ .children = children });
+		ecs::registry.emplace<scn::children_component>(ent, children);
 	}
 }
 
 // TODO: remove
 void gs::GameSystem::end_ecs_frame()
 {
-	for (auto ent : ecs::filter<ecs::input_changed_event_component>())
-	{
-		ecs::remove_entity(ent);
-	}
+	const auto ents = ecs::registry.view<ecs::input_changed_event_component>();
+	ecs::registry.destroy(ents.begin(), ents.end());
 
 	inp::get_system().mouse.clear_scroll();
 }
@@ -201,7 +205,7 @@ void gs::GameSystem::check_loaded_model()
 		ecs::entity obj = ecs::create_entity();
 		if (auto& bones_data = pres.bones_data.bones_indeces; !bones_data.empty()) { 
 			// TODO: create texture only for model desc
-			res::Tag txm = res::Tag("memory", "__bones_indeces_" + std::to_string(obj.index));
+			res::Tag txm = res::Tag("memory", "__bones_indeces_" + std::to_string((int)obj));
 			auto& last_bone_view = pres.bones_data;
 			last_bone_view.bones_indeces_txm = txm;
 
@@ -258,20 +262,20 @@ void gs::GameSystem::check_loaded_model()
 
 		root.head.mt = model * root.head.mt;
 		std::unordered_map<int, ecs::entity> material_mapping;
-		auto anchors = ecs::filter<scn::scene_anchor_component>();
+		auto anchors = ecs::registry.view<scn::scene_anchor_component>();
 		ecs::entity world_anchor;
 
 		if (anchors.empty()) {
 			world_anchor = ecs::create_entity();
-			ecs::add_component(world_anchor, scn::scene_anchor_component{});
-			ecs::add_component(world_anchor, scn::name_component{ .name = "Anchor" });
-			anchors.push_back(world_anchor);
+			ecs::registry.emplace<scn::scene_anchor_component>(world_anchor);
+			ecs::registry.emplace<scn::name_component>(world_anchor, "Anchor");
 		} else {
 			world_anchor = anchors.front();
 		}
 		decltype(scn::children_component::children) children;
-		if (auto* kids = ecs::get_component<scn::children_component>(world_anchor)) {
-			children = kids->children;
+		if (ecs::registry.all_of<scn::children_component>(world_anchor)) {
+			auto& kids = ecs::registry.get<scn::children_component>(world_anchor);
+			children = kids.children;
 			ecs::remove_component<scn::children_component>(world_anchor);
 		}
 
@@ -282,12 +286,12 @@ void gs::GameSystem::check_loaded_model()
 		}
 
 		children.push_back(obj);
-		ecs::add_component(anchors.front(), scn::children_component{ .children = children });
+		ecs::registry.emplace<scn::children_component>(world_anchor, children);
 
-		ecs::add_component(obj, scn::parent_component{ .parent = anchors.front() });
-		ecs::add_component(obj, scn::model_root_component{ .data = pres });
+		ecs::registry.emplace<scn::parent_component>(obj, world_anchor);
+		ecs::registry.emplace<scn::model_root_component>(obj, pres);
 		if (!root.animations.empty()) {
-			ecs::add_component(obj, scn::animations_component{ .animations = root.animations });
+			ecs::registry.emplace<scn::animations_component>(obj, root.animations);
 		}		
 
 
@@ -307,8 +311,8 @@ void gs::GameSystem::reload_shaders()
 void gs::GameSystem::add_cube_to_scene(float radius)
 {
 	glm::vec2 rand_pos = glm::diskRand(radius);
-	res::instance_object* inst = ecs::get_component<res::instance_object>(cubes_inst);
-	inst->worlds.push_back(glm::translate(glm::mat4{ 1.0 }, glm::vec3{ rand_pos.x, 1.f, rand_pos.y }));
+	auto& inst = ecs::registry.get<res::instance_object>(cubes_inst);
+	inst.worlds.push_back(glm::translate(glm::mat4{ 1.0 }, glm::vec3{ rand_pos.x, 1.f, rand_pos.y }));
 
 	//static bool is_gen_cube = true;
 	//scn::Model m = is_gen_cube ? generate_cube() : generate_sphere();

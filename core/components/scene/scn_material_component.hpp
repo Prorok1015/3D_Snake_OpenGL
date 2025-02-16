@@ -1,6 +1,10 @@
 #pragma once
 #include "common.h"
 #include "ecs_entity.h"
+#include "res_tag.h"
+#include <boost/json.hpp>
+
+namespace json = boost::json;
 
 namespace scn
 {
@@ -36,8 +40,9 @@ namespace scn
 	};
 
 	struct is_transparent_flag_component {};
-	struct albedo_map_component {	res::Tag txm; };
-	struct normal_map_component { res::Tag txm; };
+	
+	struct albedo_map_component { res::Tag txm; };
+	struct normal_map_component  { res::Tag txm; };
 	struct roughness_map_component { res::Tag txm; };
 	struct metallic_map_component { res::Tag txm; };
 	struct ao_map_component { res::Tag txm; };
@@ -47,4 +52,23 @@ namespace scn
 	struct emissive_map_component { res::Tag txm; };
 	struct opacity_map_component { res::Tag txm; };
 
+
+	void tag_invoke(json::value_from_tag, json::value& jv, const base_material_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const transparent_material_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const reflective_material_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const refractive_material_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const shininess_strength_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const albedo_map_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const normal_map_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const roughness_map_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const metallic_map_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const ao_map_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const height_map_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const specular_map_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const glossiness_map_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const emissive_map_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const opacity_map_component& c);
+	void tag_invoke(json::value_from_tag, json::value& jv, const is_transparent_flag_component& c);
+
+	json::value convert_material_to_json(const ecs::entity& ent);
 }

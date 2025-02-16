@@ -22,6 +22,8 @@ namespace {
         if (auto wnd = wndCreator.find_window({ window })) {
             wnd->on_resize_window(width, height);
         }
+        inp::InputSystem& inpSys = inp::get_system();
+        inpSys.mouse.on_window_resize({ width, height });
     }
 
     void device_scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -36,7 +38,7 @@ namespace {
 
         inp::InputSystem& inpSys = inp::get_system();
         inpSys.mouse.on_mouse_move(xpos, ypos);
-        inp::cursor_move_event evt{ .pos = {xpos, ypos}, .prev = inpSys.mouse.get_old_pos() };
+        inp::cursor_move_event evt{ .pos = {xpos, ypos}, .prev = inpSys.mouse.get_old_pos(), .direction = inpSys.mouse.get_direction() };
         inpSys.on_cursor_move_event(evt);
     }
 
@@ -134,6 +136,9 @@ std::shared_ptr<wnd::window> wnd::WindowSystem::make_window()
     glfwSetWindowRefreshCallback(wid, window_refresh_callback);
     glfwSetWindowPosCallback(wid, window_move_callback);
     glfwSetWindowSizeCallback(wid, window_size_callback);
+
+    inp::get_system().mouse.on_window_resize(shared_window->get_size());
+
     return shared_window;
 }
 

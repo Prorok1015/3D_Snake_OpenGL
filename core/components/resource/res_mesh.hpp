@@ -62,7 +62,7 @@ namespace res
 			if (0 < txm && txm < TRANSMISSION_TXM + 1) {
 				return txm_list[txm];
 			}
-			return {};
+			return res::Tag::null;
 		}
 
 		std::string name;

@@ -12,11 +12,9 @@ struct event_visitor
 	void operator() (const auto& evt) const noexcept
 	{
 		using T = std::decay_t<decltype(evt)>;
-		auto ent = mng.get_empty_entity<T>();
-		ecs::add_component(ent, evt);
-		if (!ecs::get_component<ecs::input_changed_event_component>(ent)) {
-			ecs::add_component(ent, ecs::input_changed_event_component{});
-		}
+		auto ent = mng.get_empty_entity();
+		ecs::registry.emplace_or_replace<T>(ent, evt);
+		ecs::registry.emplace_or_replace<ecs::input_changed_event_component>(ent);
 	}
 
 private:

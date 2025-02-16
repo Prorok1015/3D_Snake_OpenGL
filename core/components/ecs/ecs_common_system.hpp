@@ -5,6 +5,7 @@
 
 namespace ecs
 {
+	/*
 	std::unordered_map<ds::Type::unique_id, std::vector<std::byte>>& get_pool();
 	std::unordered_map<entity, std::vector<std::pair<ds::Type::unique_id, std::size_t>>, entity::hasher>& get_entitis();
 
@@ -102,4 +103,5 @@ namespace ecs
 
 		return result;
 	}
+	*/
 }

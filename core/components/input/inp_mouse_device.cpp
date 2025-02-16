@@ -3,8 +3,8 @@
 
 void inp::MouseDevice::on_mouse_move(double xpos, double ypos)
 {
-	prev_position = position;
-	position = { xpos, ypos };
+	prev = cur;
+	cur = { xpos, ypos };
 	//egLOG("", "Mouse pos x:{}, y:{}; prev x:{}, y:{}", position.x, position.y, prev_position.x, prev_position.y);
 }
 

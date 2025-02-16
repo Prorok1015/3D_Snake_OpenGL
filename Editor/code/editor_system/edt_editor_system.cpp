@@ -15,8 +15,91 @@
 #include "scn_material_component.hpp"
 #include "edt_input_manager.h"
 #include "edt_guizmo.hpp"
+#include <misc/cpp/imgui_stdlib.h>
+#include <boost/json.hpp>
 #include <imgui.h>
-#include <boost/json/src.hpp>
+
+void
+pretty_print( std::ostream& os, json::value const& jv, std::string* indent = nullptr )
+{
+    std::string indent_;
+    if(! indent)
+        indent = &indent_;
+    switch(jv.kind())
+    {
+    case json::kind::object:
+    {
+        os << "{\n";
+        indent->append(4, ' ');
+        auto const& obj = jv.get_object();
+        if(! obj.empty())
+        {
+            auto it = obj.begin();
+            for(;;)
+            {
+                os << *indent << json::serialize(it->key()) << " : ";
+                pretty_print(os, it->value(), indent);
+                if(++it == obj.end())
+                    break;
+                os << ",\n";
+            }
+        }
+        os << "\n";
+        indent->resize(indent->size() - 4);
+        os << *indent << "}";
+        break;
+    }
+
+    case json::kind::array:
+    {
+        os << "[\n";
+        indent->append(4, ' ');
+        auto const& arr = jv.get_array();
+        if(! arr.empty())
+        {
+            auto it = arr.begin();
+            for(;;)
+            {
+                os << *indent;
+                pretty_print( os, *it, indent);
+                if(++it == arr.end())
+                    break;
+                os << ",\n";
+            }
+        }
+        os << "\n";
+        indent->resize(indent->size() - 4);
+        os << *indent << "]";
+        break;
+    }
+
+    case json::kind::string:
+    {
+        os << json::serialize(jv.get_string());
+        break;
+    }
+
+    case json::kind::uint64:
+    case json::kind::int64:
+    case json::kind::double_:
+        os << jv;
+        break;
+
+    case json::kind::bool_:
+        if(jv.get_bool())
+            os << "true";
+        else
+            os << "false";
+        break;
+
+    case json::kind::null:
+        os << "null";
+        break;
+    }
+
+    if(indent->empty())
+        os << "\n";
+}
 
 editor::EditorSystem::EditorSystem()
 {
@@ -27,6 +110,23 @@ editor::EditorSystem::EditorSystem()
 
 	GUI_REG_LAMBDA("Window/Scene", [this] { return show_scene(); });
 	GUI_SET_ITEM_CHECKED("Window/Scene", true);
+	GUI_REG_LAMBDA("Editor/Test JSON Window", [this] { 
+		bool is_open = true;
+		if (ImGui::Begin("Test JSON Window", &is_open)) {
+			ImGui::Text("This is a test window for JSON serialization.");
+			if (test_json_selected_material != entt::null) {
+				auto obj = scn::convert_material_to_json(test_json_selected_material); 
+				std::ostringstream oss;
+				pretty_print(oss, obj);
+				std::string json_string = oss.str();
+				ImGui::InputTextMultiline("JSON", &json_string, ImVec2(500, 500), ImGuiInputTextFlags_ReadOnly); 
+			}
+
+			ImGui::End();
+		}
+		return is_open;
+	});
+	GUI_SET_ITEM_CHECKED("Editor/Test JSON Window", true);
 
 	GUI_REG_LAMBDA("Editor/Test ECS window", [this] { return show_ecs_test(); });
 	GUI_SET_ITEM_CHECKED("Editor/Test ECS window", false);
@@ -49,6 +149,7 @@ editor::EditorSystem::EditorSystem()
 	gui::get_system().set_show_title_bar_dbg(true);
 
 	input = std::make_shared<edt::input_manager>();
+	input->unblock_layer_once();
 	inp::get_system().activate_manager(input);
 
 	file_dialog.set_current_path(res::get_system().get_resources_path());
@@ -65,38 +166,38 @@ editor::EditorSystem::EditorSystem()
 	auto txt = rnd::get_system().get_texture_manager().generate_texture(res::Tag(res::Tag::memory, "__black"), {1,1}, rnd::driver::texture_header::TYPE::RGB8, {0, 0, 0});
 	auto txt2 = rnd::get_system().get_texture_manager().generate_texture(res::Tag(res::Tag::memory, "__red"), {1,1}, rnd::driver::texture_header::TYPE::RGB8, {255, 0, 0});
 
-	auto anchors = ecs::filter<scn::scene_anchor_component>();
+	auto anchors = ecs::registry.view<scn::scene_anchor_component>();
 	ecs::entity world_anchor;
 	if (anchors.empty()) {
 		world_anchor = ecs::create_entity();
-		ecs::add_component(world_anchor, scn::scene_anchor_component{});
-		ecs::add_component(world_anchor, scn::name_component{ .name = "Anchor" });
-		anchors.push_back(world_anchor);
+		ecs::registry.emplace<scn::scene_anchor_component>(world_anchor);
+		ecs::registry.emplace<scn::name_component>(world_anchor, scn::name_component{ .name = "Anchor" });
 	}
 	else {
 		world_anchor = anchors.front();
 	}
 	//TODO: make separate render pipline for editor things
 	decltype(scn::children_component::children) children;
-	if (auto* kids = ecs::get_component<scn::children_component>(world_anchor)) {
-		children = kids->children;
+	if (ecs::registry.all_of<scn::children_component>(world_anchor)) {
+		auto& kids = ecs::registry.get<scn::children_component>(world_anchor);
+		children = kids.children;
 		ecs::remove_component<scn::children_component>(world_anchor);
 	}
 
 	// black base material
 	ecs::entity black_mlt = ecs::create_entity();
-	ecs::add_component(black_mlt, scn::base_material_component{ .albedo = ds::color(glm::vec3(0), 1) });
-	ecs::add_component(black_mlt, scn::name_component{.name = "Editor web "});
+	ecs::registry.emplace<scn::base_material_component>(black_mlt, scn::base_material_component{ .albedo = ds::color(glm::vec3(0), 1) });
+	ecs::registry.emplace<scn::name_component>(black_mlt, scn::name_component{ .name = "Editor web "});
 	// chess base material
 	ecs::entity light_mlt = ecs::create_entity();
-	ecs::add_component(light_mlt, scn::base_material_component{});
-	ecs::add_component(light_mlt, scn::name_component{.name = "LIGHT"});
+	ecs::registry.emplace<scn::base_material_component>(light_mlt, scn::base_material_component{});
+	ecs::registry.emplace<scn::name_component>(light_mlt, scn::name_component{ .name = "LIGHT"});
 
 	ecs::entity window_mlt = ecs::create_entity();
-	ecs::add_component(window_mlt, scn::base_material_component{});
-	ecs::add_component(window_mlt, scn::albedo_map_component{.txm = res::Tag::make("window.png") });
-	ecs::add_component(window_mlt, scn::name_component{.name = "WINDOW"});
-	ecs::add_component(window_mlt, scn::is_transparent_flag_component{});
+	ecs::registry.emplace<scn::base_material_component>(window_mlt, scn::base_material_component{});
+	ecs::registry.emplace<scn::albedo_map_component>(window_mlt, scn::albedo_map_component{ .txm = res::Tag::make("window.png") });
+	ecs::registry.emplace<scn::name_component>(window_mlt, scn::name_component{ .name = "WINDOW"});
+	ecs::registry.emplace<scn::is_transparent_flag_component>(window_mlt);
 
 	//  camera
 	{
@@ -105,12 +206,13 @@ editor::EditorSystem::EditorSystem()
 		rotation.x = -glm::radians(45.0f);
 		auto ecs_entity = ecs::create_entity();
 		children.push_back(ecs_entity);
-		ecs::add_component(ecs_entity, scn::camera_component{ .viewport = viewport });
-		ecs::add_component(ecs_entity, scn::transform_component{});
-		ecs::add_component(ecs_entity, scn::is_render_component_flag{});
-		ecs::add_component(ecs_entity, scn::mouse_controller_component{ .rotation = rotation });
-		ecs::add_component(ecs_entity, scn::parent_component{ .parent = world_anchor });
-		ecs::add_component(ecs_entity, scn::name_component{ .name = "Editor camera"});
+		ecs::registry.emplace<scn::name_component>(ecs_entity, "Editor camera");
+		ecs::registry.emplace<scn::parent_component>(ecs_entity, world_anchor);
+		ecs::registry.emplace<scn::camera_component>(ecs_entity, scn::camera_component{ .viewport = viewport });
+		ecs::registry.emplace<scn::local_transform>(ecs_entity);
+		ecs::registry.emplace<scn::world_transform>(ecs_entity);
+		ecs::registry.emplace<scn::is_render_component_flag>(ecs_entity);
+		ecs::registry.emplace<scn::mouse_controller_component>(ecs_entity, scn::mouse_controller_component{ .rotation = rotation });
 	}
 	// web
 	{
@@ -125,14 +227,16 @@ editor::EditorSystem::EditorSystem()
 		res::mesh_view& mesh = web.mesh;
 		//mesh.material_id = 0;
 
-		ecs::add_component(editor_web, scn::model_root_component{ .data = data });
-		ecs::add_component(editor_web, scn::mesh_component{ .mesh = mesh });
-		ecs::add_component(editor_web, scn::transform_component{ .local = glm::scale(glm::vec3(1, 0, 1)) });
-		ecs::add_component(editor_web, scn::parent_component{ .parent = world_anchor });
-		ecs::add_component(editor_web, scn::name_component{ .name = "Editor Web"});
-		ecs::add_component(editor_web, rnd::render_mode_component{rnd::RENDER_MODE::LINE});// TODO: move to material
-		ecs::add_component(editor_web, scn::is_render_component_flag{});
-		ecs::add_component(editor_web, scn::material_link_component{ .material = black_mlt });
+		ecs::registry.emplace<scn::model_root_component>(editor_web, scn::model_root_component{ .data = data });
+		ecs::registry.emplace<scn::mesh_component>(editor_web, scn::mesh_component{ .mesh = mesh });
+		ecs::registry.emplace<scn::name_component>(editor_web, "Editor Web");
+		ecs::registry.emplace<scn::parent_component>(editor_web, world_anchor);
+		auto& transform = ecs::registry.emplace<scn::local_transform>(editor_web);
+		transform.local = glm::scale(glm::vec3(1, 0, 1));
+		ecs::registry.emplace<scn::world_transform>(editor_web);
+		ecs::registry.emplace<rnd::render_mode_component>(editor_web, rnd::RENDER_MODE::LINE);// TODO: move to material
+		ecs::registry.emplace<scn::is_render_component_flag>(editor_web);
+		ecs::registry.emplace<scn::material_link_component>(editor_web, black_mlt );
 	}
 	// windows objects
 	for(int i = 0; i < 10; ++i)
@@ -146,45 +250,39 @@ editor::EditorSystem::EditorSystem()
 
 		glm::vec2 rnd_pos = glm::diskRand(5.f);
 
-		ecs::add_component(wind, scn::model_root_component{ .data = data });
-		ecs::add_component(wind, scn::mesh_component{ .mesh = mesh });
-		ecs::add_component(wind, scn::transform_component{ .local = glm::translate(glm::mat4{1.0}, glm::vec3(rnd_pos.x, 0, rnd_pos.y)) });
-		ecs::add_component(wind, scn::parent_component{ .parent = world_anchor });
-		ecs::add_component(wind, scn::name_component{ .name = "Window" });
-		ecs::add_component(wind, scn::is_render_component_flag{});
-		ecs::add_component(wind, scn::material_link_component{ .material = window_mlt });
+		ecs::registry.emplace<scn::name_component>(wind, scn::name_component{ .name = "Window" });
+		ecs::registry.emplace<scn::parent_component>(wind, world_anchor);
+		ecs::registry.emplace<scn::model_root_component>(wind, scn::model_root_component{ .data = data });
+		ecs::registry.emplace<scn::mesh_component>(wind, scn::mesh_component{ .mesh = mesh });
+		auto& transform = ecs::registry.emplace<scn::local_transform>(wind);
+		transform.local = glm::translate(glm::mat4{ 1.0 }, glm::vec3(rnd_pos.x, 0, rnd_pos.y));
+		ecs::registry.emplace<scn::world_transform>(wind);
+		ecs::registry.emplace<scn::is_render_component_flag>(wind);
+		ecs::registry.emplace<scn::material_link_component>(wind, window_mlt );
 	}
 
 	// light
 	{
 		light = ecs::create_entity();
 		children.push_back(light);
-		ecs::add_component(light, scn::directional_light{
-			.direction = glm::vec4(-0.2f, -1.0f, -0.3f, 0.0),
-			.diffuse = glm::vec4(0.5f, 0.5f, 0.5f, 1.0),
-			.ambient = glm::vec4(0.2f, 0.2f, 0.2f, 1.0),
-			.specular = glm::vec4(1)
-			});
+		ecs::registry.emplace<scn::directional_light>(light, 
+			glm::vec4(-0.2f, -1.0f, -0.3f, 0.0),
+			glm::vec4(0.5f, 0.5f, 0.5f, 1.0),
+			glm::vec4(0.2f, 0.2f, 0.2f, 1.0),
+			glm::vec4(1)
+		);
 
-		/*auto m = scn::generate_sphere();
-		res::meshes_conteiner& data = m.data;
-		res::mesh_view& mesh = m.mesh;*/
-
-		//ecs::add_component(light, scn::model_root_component{ .data = data });
-		//ecs::add_component(light, scn::mesh_component{ .mesh = mesh });
-		//ecs::add_component(light, scn::transform_component{ .local = glm::translate(glm::mat4{1.0}, glm::vec3(50, 50, 50)) });
-		ecs::add_component(light, scn::parent_component{ .parent = world_anchor });
-		ecs::add_component(light, scn::name_component{ .name = "Global Light" });
-		ecs::add_component(light, scn::is_render_component_flag{});
-		//ecs::add_component(light, scn::material_link_component{ .material = light_mlt });
-
+		ecs::registry.emplace<scn::name_component>(light, scn::name_component{ .name = "Global Light" });
+		ecs::registry.emplace<scn::parent_component>(light, world_anchor);
+		ecs::registry.emplace<scn::is_render_component_flag>(light);
 	}
+
 	// sky
 	{
 		sky = ecs::create_entity();
 		children.push_back(sky);
 		auto m = scn::generate_cube();
-		ecs::add_component(sky, scn::sky_component{ .data = m.data, .mesh = m.mesh, .cube_map = std::vector<res::Tag>{
+		ecs::registry.emplace<scn::sky_component>(sky, scn::sky_component{ .data = m.data, .mesh = m.mesh, .cube_map = std::vector<res::Tag>{
 			res::Tag::make("skybox/right.jpg"),
 			res::Tag::make("skybox/left.jpg"),
 			res::Tag::make("skybox/bottom.jpg"),
@@ -193,12 +291,12 @@ editor::EditorSystem::EditorSystem()
 			res::Tag::make("skybox/back.jpg"),
 			}
 			});
-		ecs::add_component(sky, scn::is_render_component_flag{});
-		ecs::add_component(sky, scn::parent_component{ .parent = world_anchor });
-		ecs::add_component(sky, scn::name_component{ .name = "Sky" });
+		ecs::registry.emplace<scn::is_render_component_flag>(sky);
+		ecs::registry.emplace<scn::name_component>(sky, scn::name_component{ .name = "Sky" });
+		ecs::registry.emplace<scn::parent_component>(sky, world_anchor);
 	}
 
-	ecs::add_component(world_anchor, scn::children_component{ .children = children });
+	ecs::registry.emplace<scn::children_component>(world_anchor, children);
 }
 
 
@@ -207,17 +305,18 @@ editor::EditorSystem::~EditorSystem()
 	inp::get_system().deactivate_manager(input);
 }
 
-void show_tree_items(ecs::entity ent)
+void editor::EditorSystem::show_tree_items(ecs::entity ent)
 {
-	std::string obj_idx = std::to_string(ent.index);
+	std::string obj_idx = std::to_string((int)ent);
 	std::string name = "Node##" + obj_idx;
-	if (auto* com_name = ecs::get_component<scn::name_component>(ent)) {
-		if (!com_name->name.empty()) {
-			name = com_name->name + "##" + obj_idx;
+	if (ecs::registry.all_of<scn::name_component>(ent)) {
+		auto& com_name = ecs::registry.get<scn::name_component>(ent);
+		if (!com_name.name.empty()) {
+			name = com_name.name + "##" + obj_idx;
 		}
 	}
-	static ecs::entity selected_node;
-	static ecs::entity parent_node_to_add;
+	static ecs::entity selected_node = entt::null;
+	static ecs::entity parent_node_to_add = entt::null;
 	static char buf[256];
 
 	if (ImGui::TreeNode(name.c_str()))
@@ -227,10 +326,15 @@ void show_tree_items(ecs::entity ent)
 			selected_node = ent;
 		}
 		
+		if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+			selected_entity = ent;
+		}
+
 		if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
 
-			if (auto* name_comp = ecs::get_component<scn::name_component>(ent)) {
-				strncpy(buf, name_comp->name.c_str(), sizeof(buf) - 1);
+			if (ecs::registry.all_of<scn::name_component>(ent)) {
+				auto& name_comp = ecs::registry.get<scn::name_component>(ent);
+				strncpy(buf, name_comp.name.c_str(), sizeof(buf) - 1);
 				buf[sizeof(buf) - 1] = '\0';
 				ImGui::OpenPopup("Rename Node");
 			}
@@ -238,8 +342,9 @@ void show_tree_items(ecs::entity ent)
 
 		if (ImGui::BeginPopup("Rename Node")) {
 			if (ImGui::InputText("##rename", buf, sizeof(buf), ImGuiInputTextFlags_EnterReturnsTrue)) {
-				if (auto* name_comp = ecs::get_component<scn::name_component>(ent)) {
-					name_comp->name = buf;
+				if (ecs::registry.all_of<scn::name_component>(ent)) {
+					auto& name_comp = ecs::registry.get<scn::name_component>(ent);
+					name_comp.name = buf;
 				}
 				
 				ImGui::CloseCurrentPopup();
@@ -247,24 +352,25 @@ void show_tree_items(ecs::entity ent)
 			ImGui::EndPopup();
 		}
 
-		if (parent_node_to_add.index != 0) {
+		if (parent_node_to_add != entt::null) {
 			if (ImGui::BeginPopup("create_new_entity")) {
 				if (ImGui::InputText("##new_entity_name", buf, sizeof(buf), ImGuiInputTextFlags_EnterReturnsTrue)) {
 					ecs::entity child = ecs::create_entity();
-					ecs::add_component(child, scn::name_component{ buf });
-					ecs::add_component(child, scn::parent_component{ parent_node_to_add });
-					if (auto* children = ecs::get_component<scn::children_component>(parent_node_to_add)) {
-						auto children_list = children->children;
+					ecs::registry.emplace<scn::name_component>(child, buf);
+					ecs::registry.emplace<scn::parent_component>(child, parent_node_to_add);
+					if (ecs::registry.all_of<scn::children_component>(parent_node_to_add)) {
+						auto& children = ecs::registry.get<scn::children_component>(parent_node_to_add);
+						auto children_list = children.children;
 						children_list.push_back(child);
-						ecs::remove_component<scn::children_component>(parent_node_to_add);
-						ecs::add_component(parent_node_to_add, scn::children_component{ .children = children_list });
+						ecs::registry.remove<scn::children_component>(parent_node_to_add);
+						ecs::registry.emplace<scn::children_component>(parent_node_to_add, children_list);
 					}
 					else {
-						ecs::add_component(parent_node_to_add, scn::children_component{ .children = std::vector<ecs::entity>{child} });
+						ecs::registry.emplace<scn::children_component>(parent_node_to_add, std::vector<ecs::entity>{child});
 					}
 
 
-					parent_node_to_add.index = 0;
+					parent_node_to_add = entt::null;
 					ImGui::CloseCurrentPopup();
 				}
 				ImGui::EndPopup();
@@ -274,24 +380,26 @@ void show_tree_items(ecs::entity ent)
 		if (selected_node == ent) {
 			if (ImGui::BeginPopup("tree_context_menu")) {
 				if (ImGui::MenuItem("Add Camera")) {
-					ecs::add_component<scn::camera_component>(ent, scn::camera_component{ .viewport = glm::ivec4{100,100, 500, 500} });
+					ecs::registry.emplace<scn::camera_component>(ent, 
+						scn::camera_component{ .viewport = glm::ivec4{100,100, 500, 500} }
+					);
 				}
 
 				if (ImGui::MenuItem("Add Directional Light")) {
-					ecs::add_component(ent, scn::directional_light{
-						.direction = glm::vec4(-0.2f, -1.0f, -0.3f, 0.0),
-						.diffuse = glm::vec4(0.5f, 0.5f, 0.5f, 1.0),
-						.ambient = glm::vec4(0.2f, 0.2f, 0.2f, 1.0),
-						.specular = glm::vec4(1.0f)
-					});
+					ecs::registry.emplace<scn::directional_light>(ent, 
+						glm::vec4(-0.2f, -1.0f, -0.3f, 0.0),
+						glm::vec4(0.5f, 0.5f, 0.5f, 1.0),
+						glm::vec4(0.2f, 0.2f, 0.2f, 1.0),
+						glm::vec4(1.0f)
+					);
 				}
-				if (ecs::get_component<scn::is_render_component_flag>(ent)) {
+				if (ecs::registry.all_of<scn::is_render_component_flag>(ent)) {
 					if (ImGui::MenuItem("Remove Render Flag")) {
 						ecs::remove_component<scn::is_render_component_flag>(ent);
 					}
 				} else {
 					if (ImGui::MenuItem("Add Render Flag")) {
-						ecs::add_component(ent, scn::is_render_component_flag{});
+						ecs::registry.emplace<scn::is_render_component_flag>(ent);
 					}
 				}
 				if (ImGui::MenuItem("Add Child Entity")) {
@@ -307,19 +415,19 @@ void show_tree_items(ecs::entity ent)
 			}
 		}
 
-		if (auto* anims = ecs::get_component<scn::animations_component>(ent))
-		{
+		if (ecs::registry.all_of<scn::animations_component>(ent)) {
+			auto& anims = ecs::registry.get<scn::animations_component>(ent);
 			std::string_view play_anim_name;
-			if (auto* play = ecs::get_component<scn::playable_animation>(ent))
-			{
-				play_anim_name = play->name;
-				ImGui::Checkbox("Is Repeat", &(play->is_repeat_animation));
+			if (ecs::registry.all_of<scn::playable_animation>(ent)) {
+				auto& play = ecs::registry.get<scn::playable_animation>(ent);
+				play_anim_name = play.name;
+				ImGui::Checkbox("Is Repeat", &(play.is_repeat_animation));
 			}
 
 			std::vector<std::string> names;
 			names.push_back("NONE");
 			int cur = 0, i = 0;
-			for (auto& anim : anims->animations)
+			for (auto& anim : anims.animations)
 			{
 				if (play_anim_name == anim.name && cur == 0) {
 					cur = i + 1;
@@ -336,18 +444,18 @@ void show_tree_items(ecs::entity ent)
 					if (ImGui::Selectable(names[n].c_str(), is_selected)) {
 						cur = n;
 
-						if (auto* play = ecs::get_component<scn::playable_animation>(ent))
-						{
+						if (ecs::registry.all_of<scn::playable_animation>(ent)) {
+							auto& play = ecs::registry.get<scn::playable_animation>(ent);
 							if (cur == 0) {
 								ecs::remove_component<scn::playable_animation>(ent);
 							} else {
-								play->name = names[cur];
-								play->current_tick = 0.f;
+								play.name = names[cur];
+								play.current_tick = 0.f;
 							}
 						} else if (cur != 0){
 							scn::playable_animation play_new;
 							play_new.name = names[cur];
-							ecs::add_component(ent, play_new);
+							ecs::registry.emplace<scn::playable_animation>(ent, play_new);
 						}
 					}
 
@@ -359,10 +467,10 @@ void show_tree_items(ecs::entity ent)
 			}
 		}
 
-		if (auto* trans = ecs::get_component<scn::transform_component>(ent))
-		{
+		if (ecs::registry.all_of<scn::local_transform>(ent)) {
+			auto& trans = ecs::registry.get<scn::local_transform>(ent);
 			bool is_update = false;
-			eng::transform3d tr{ trans->local };
+			eng::transform3d tr{ trans.local };
 
 			glm::vec3 scale = tr.get_scale();
 			std::string scale_name = "scale##" + obj_idx;
@@ -392,34 +500,37 @@ void show_tree_items(ecs::entity ent)
 			}
 
 			if (is_update) {
-				trans->local = tr.to_matrix();
+				trans.local = tr.to_matrix();
+				ecs::registry.patch<scn::local_transform>(ent);
 			}
 		}
 
-		if (auto* color = ecs::get_component<scn::directional_light>(ent))
-		{
-			ImGui::ColorEdit3("Light Color", glm::value_ptr(color->diffuse));
-			ImGui::ColorEdit3("Ambient Color", glm::value_ptr(color->ambient));
-			ImGui::ColorEdit3("Specular Color", glm::value_ptr(color->specular));
-			ImGui::DragFloat3("Position", glm::value_ptr(color->direction), 0.01f, -1.0f, 1.0f, "%.1f");
-			if (auto* mlt = ecs::get_component<scn::material_link_component>(ent)) {
-				if (auto* base = ecs::get_component<scn::base_material_component>(mlt->material)) {
-					base->albedo = color->diffuse;
+		if (ecs::registry.all_of<scn::directional_light>(ent)) {
+			auto& color = ecs::registry.get<scn::directional_light>(ent);
+			ImGui::ColorEdit3("Light Color", glm::value_ptr(color.diffuse));
+			ImGui::ColorEdit3("Ambient Color", glm::value_ptr(color.ambient));
+			ImGui::ColorEdit3("Specular Color", glm::value_ptr(color.specular));
+			ImGui::DragFloat3("Position", glm::value_ptr(color.direction), 0.01f, -1.0f, 1.0f, "%.1f");
+			if (ecs::registry.all_of<scn::material_link_component>(ent)) {
+				auto& mlt = ecs::registry.get<scn::material_link_component>(ent);
+				if (ecs::registry.all_of<scn::base_material_component>(mlt.material)) {
+					auto& base = ecs::registry.get<scn::base_material_component>(mlt.material);
+					base.albedo = color.diffuse;
 				}
 			}
 		}
 
-		if (auto* camera = ecs::get_component<scn::camera_component>(ent))
-		{
-			ImGui::Text("fov: %3.f", camera->fov);
-			ImGui::Text("near: %3.f", camera->near_distance);
-			ImGui::Text("far: %3.f", camera->far_distance);
-			ImGui::Text("x: %d, y: %d, width: %d, height: %d", camera->viewport.center.x, camera->viewport.center.y, camera->viewport.size.x, camera->viewport.size.y);
+		if (ecs::registry.all_of<scn::camera_component>(ent)) {
+			auto& camera = ecs::registry.get<scn::camera_component>(ent);
+			ImGui::Text("fov: %3.f", camera.fov);
+			ImGui::Text("near: %3.f", camera.near_distance);
+			ImGui::Text("far: %3.f", camera.far_distance);
+			ImGui::Text("x: %d, y: %d, width: %d, height: %d", camera.viewport.center.x, camera.viewport.center.y, camera.viewport.size.x, camera.viewport.size.y);
 		}
 
-		if (auto* children = ecs::get_component<scn::children_component>(ent))
-		{
-			for (auto& child : children->children)
+		if (ecs::registry.all_of<scn::children_component>(ent)) {
+			auto& children = ecs::registry.get<scn::children_component>(ent);
+			for (auto& child : children.children)
 			{
 				show_tree_items(child);
 			}
@@ -460,7 +571,7 @@ bool editor::EditorSystem::show_toolbar()
 
 		if (ImGui::CollapsingHeader("Scene Objects"))
 		{
-			for (ecs::entity ent : ecs::filter<scn::scene_anchor_component>())
+			for (const auto ent : ecs::registry.view<scn::scene_anchor_component>())
 			{
 				show_tree_items(ent);
 			}
@@ -472,19 +583,22 @@ bool editor::EditorSystem::show_toolbar()
 			ImGui::Text("Camera");
 			ImGui::Separator();
 			std::vector<std::string> names;
+			std::vector<ecs::entity> cameras;
 			int cam_id = 1;
 			int cam_cur = 0;
 			int cam_cur_id = 0;
-			auto cameras = ecs::filter<scn::camera_component>();
-			for (auto& ent : cameras)
+			auto cameras_view = ecs::registry.view<scn::camera_component>();
+			for (auto& ent : cameras_view)
 			{
-				if (auto* name = ecs::get_component<scn::name_component>(ent)) {
-					names.push_back(name->name);
+				cameras.push_back(ent);
+				if (ecs::registry.all_of<scn::name_component>(ent)) {
+					auto& name = ecs::registry.get<scn::name_component>(ent);
+					names.push_back(name.name);
 				} else {
 					names.push_back("Camera" + std::to_string(cam_id++));
 				}
 
-				if (auto* visible = ecs::get_component<scn::is_render_component_flag>(ent)) {
+				if (ecs::registry.all_of<scn::is_render_component_flag>(ent)) {
 					cam_cur_id = cam_cur;
 				}
 
@@ -500,8 +614,8 @@ bool editor::EditorSystem::show_toolbar()
 						auto old = cameras[cam_cur_id];
 						auto new_one = cameras[n];
 						cam_cur_id = n;
-						ecs::add_component(new_one, scn::is_render_component_flag{});
-						ecs::remove_component<scn::is_render_component_flag>(old);
+						ecs::registry.emplace<scn::is_render_component_flag>(new_one);
+						ecs::registry.remove<scn::is_render_component_flag>(old);
 					}
 
 					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -511,10 +625,11 @@ bool editor::EditorSystem::show_toolbar()
 				ImGui::EndCombo();
 			}
 
-			for (auto& ent : ecs::filter<scn::camera_component, scn::is_render_component_flag>()) {
+			for (const auto ent : ecs::registry.view<scn::camera_component, scn::is_render_component_flag>()) {
 				eng::transform3d ct{ glm::mat4{1.0} };
-				if (auto* trans = ecs::get_component<scn::transform_component>(ent)) {
-					ct = eng::transform3d{ trans->local };
+				if (ecs::registry.all_of<scn::local_transform>(ent)) {
+					auto& trans = ecs::registry.get<scn::local_transform>(ent);
+					ct = eng::transform3d{ trans.local };
 				}
 				ImGui::Text("pitch: %.3f, yaw: %.3f, roll: %.3f", glm::degrees(ct.get_pitch()), glm::degrees(ct.get_yaw()), glm::degrees(ct.get_roll()));
 				auto pos = ct.get_pos();
@@ -576,6 +691,33 @@ bool editor::EditorSystem::show_toolbar()
 		auto pos = ct.get_pos();
 		ImGui::Text("x: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
 
+		static bool edit_mode_enabled = false; // Variable to track the editing mode state
+
+		// Check if a valid entity is selected
+		if (edit_mode_enabled || selected_entity != entt::null) {
+			if (ImGui::Button(edit_mode_enabled ? "Disable Object Edit Mode" : "Enable Object Edit Mode")) {
+				edit_mode_enabled = !edit_mode_enabled; // Toggle the editing mode state
+				if (edit_mode_enabled) {
+					ecs::registry.emplace<scn::mouse_controller_component>(selected_entity);
+					// Remove mouse controller from the camera if it exists
+					for (const auto ent : ecs::registry.view<scn::camera_component>()) {
+						if (ecs::registry.all_of<scn::mouse_controller_component>(ent)) {
+							ecs::registry.remove<scn::mouse_controller_component>(ent);
+						}
+					}
+				} else {
+					ecs::registry.remove<scn::mouse_controller_component>(selected_entity);
+					// Re-add mouse controller to the camera if it was removed
+					for (const auto ent : ecs::registry.view<scn::camera_component>()) {
+						ecs::registry.emplace<scn::mouse_controller_component>(ent);
+					}
+				}
+			}
+		} else {
+			ImGui::BeginDisabled(); // Disable the button if no valid entity is selected and edit mode is not active
+			ImGui::Button(edit_mode_enabled ? "Disable Object Edit Mode" : "Enable Object Edit Mode");
+			ImGui::EndDisabled();
+		}
 	}
 	ImGui::End();
 	return is_open;
@@ -596,7 +738,7 @@ bool editor::EditorSystem::show_web()
 		//ecs::remove_component<scn::is_render_component_flag>(sky);
 	}
 	else if (cur_is_show && cur_is_show != is_show_web){
-		ecs::add_component(editor_web, scn::is_render_component_flag{});
+		ecs::registry.emplace<scn::is_render_component_flag>(editor_web);
 		//ecs::add_component(sky, scn::is_render_component_flag{});
 	} 
 
@@ -613,16 +755,16 @@ bool editor::EditorSystem::show_scene()
 		ImVec2 pos = ImGui::GetCursorScreenPos();
 		glm::mat4 viewMatrix{ 0 };
 		glm::mat4 projMat{ 0 };
-		for (auto& ent : ecs::filter<scn::camera_component>())
+		for (const auto ent : ecs::registry.view<scn::camera_component>())
 		{
-			auto* camera = ecs::get_component<scn::camera_component>(ent);
-			camera->viewport.size = glm::ivec2(contentRegionAvailable.x, contentRegionAvailable.y);
-			if (auto* trans = ecs::get_component<scn::transform_component>(ent))
-			{
-				viewMatrix = glm::inverse(trans->local);
+			auto& camera = ecs::registry.get<scn::camera_component>(ent);
+			camera.viewport.size = glm::ivec2(contentRegionAvailable.x, contentRegionAvailable.y);
+			if (ecs::registry.all_of<scn::local_transform>(ent)) {
+				auto& trans = ecs::registry.get<scn::local_transform>(ent);
+				viewMatrix = glm::inverse(trans.local);
 			}
-			if (camera->viewport.size != glm::ivec2{ 0 }) {
-				projMat = glm::perspective(glm::radians(camera->fov), (float)camera->viewport.size.x / (float)camera->viewport.size.y, camera->near_distance, camera->far_distance);
+			if (camera.viewport.size != glm::ivec2{ 0 }) {
+				projMat = glm::perspective(glm::radians(camera.fov), (float)camera.viewport.size.x / (float)camera.viewport.size.y, camera.near_distance, camera.far_distance);
 			}
 		}
 
@@ -644,30 +786,22 @@ bool editor::EditorSystem::show_ecs_test()
 	ImGui::SetNextWindowSize(ImVec2{ 400, 300 }, ImGuiCond_FirstUseEver);
 	if (ImGui::Begin("ECS Test", &is_open))
 	{
-		for (auto ent : ecs::filter<eng::transform3d, glm::vec2>()) {
-			eng::transform3d* trn = ecs::get_component<eng::transform3d>(ent);
-			glm::vec2* v = ecs::get_component<glm::vec2>(ent);
-			if (trn == nullptr) {
-				ImGui::Text("entity: %d, null", ent.index);
-				continue;
-			}
-			ImGui::Text("entity: %d, pitch: %.3f, yaw: %.3f, roll: %.3f", ent.index, trn->get_pitch(), trn->get_yaw(), trn->get_roll());
-			auto pos = trn->get_pos();
+		for (const auto ent : ecs::registry.view<eng::transform3d, glm::vec2>()) {
+			auto& trn = ecs::registry.get<eng::transform3d>(ent);
+			auto& v = ecs::registry.get<glm::vec2>(ent);
+			ImGui::Text("entity: %d, pitch: %.3f, yaw: %.3f, roll: %.3f", ent, trn.get_pitch(), trn.get_yaw(), trn.get_roll());
+			auto pos = trn.get_pos();
 			ImGui::Text("\t\tx: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
-			ImGui::Text("\t\tx: %.3f, y: %.3f", v->x, v->y);
+			ImGui::Text("\t\tx: %.3f, y: %.3f", v.x, v.y);
 		}
 
 		ImGui::Separator();
 		ImGui::NewLine();
 
-		for (auto ent : ecs::filter<eng::transform3d>()) {
-			eng::transform3d* trn = ecs::get_component<eng::transform3d>(ent);
-			if (trn == nullptr) {
-				ImGui::Text("entity: %d, null", ent.index);
-				continue;
-			}
-			ImGui::Text("entity: %d, pitch: %.3f, yaw: %.3f, roll: %.3f", ent.index, trn->get_pitch(), trn->get_yaw(), trn->get_roll());
-			auto pos = trn->get_pos();
+		for (auto ent : ecs::registry.view<eng::transform3d>()) {
+			auto& trn = ecs::registry.get<eng::transform3d>(ent);
+			ImGui::Text("entity: %d, pitch: %.3f, yaw: %.3f, roll: %.3f", ent, trn.get_pitch(), trn.get_yaw(), trn.get_roll());
+			auto pos = trn.get_pos();
 			ImGui::Text("\t\tx: %.3f, y: %.3f, z: %.3f", pos.x, pos.y, pos.z);
 		}
 
@@ -682,15 +816,20 @@ bool editor::EditorSystem::show_materials()
 	bool is_open = true;
 	if (ImGui::Begin("Materials", &is_open, ImGuiWindowFlags_NoScrollbar))
 	{
-		auto mlts = ecs::filter<scn::base_material_component>();
+		auto mlts_view = ecs::registry.view<scn::base_material_component>();
+		std::vector<ecs::entity> mlts;
+		for (auto& ent : mlts_view) {
+			mlts.push_back(ent);
+		}
 
 		auto items_getter = [](void* data, int idx) -> const char*
 		{
 			std::vector<ecs::entity>* items = (std::vector<ecs::entity>*)data;
 			if (idx < 0 || idx >= items->size())
 				return nullptr;
-			if (auto* name = ecs::get_component<scn::name_component>((*items)[idx])) {
-				return name->name.c_str();
+			if (ecs::registry.all_of<scn::name_component>((*items)[idx])) {
+				auto& name = ecs::registry.get<scn::name_component>((*items)[idx]);
+				return name.name.c_str();
 			}
 
 			return "Unnamed material";
@@ -707,64 +846,64 @@ bool editor::EditorSystem::show_materials()
 		if (item_current >= 0 && item_current < mlts.size())
 		{
 			ImGui::Begin("Material Properties");
-
-			if (auto* material = ecs::get_component<scn::base_material_component>(mlts[item_current]))
-			{
-				ImGui::ColorEdit4("Albedo", &material->albedo.r);
-				ImGui::ColorEdit4("Specular", &material->specular.r);
-				ImGui::ColorEdit4("Ambient", &material->ambient.r);
-				ImGui::ColorEdit4("Emissive", &material->emissive.r);
-				ImGui::DragFloat("Shininess", &material->shininess, 1.0f, 0.0f, 1000.0f);
+			test_json_selected_material = mlts[item_current];
+			if (ecs::registry.all_of<scn::base_material_component>(mlts[item_current])) {
+				auto& material = ecs::registry.get<scn::base_material_component>(mlts[item_current]);
+				ImGui::ColorEdit4("Albedo", &material.albedo.r);
+				ImGui::ColorEdit4("Specular", &material.specular.r);
+				ImGui::ColorEdit4("Ambient", &material.ambient.r);
+				ImGui::ColorEdit4("Emissive", &material.emissive.r);
+				ImGui::DragFloat("Shininess", &material.shininess, 1.0f, 0.0f, 1000.0f);
 			}
 
-			if (auto* transparent = ecs::get_component<scn::transparent_material_component>(mlts[item_current]))
-			{
-				ImGui::ColorEdit4("Transparent", &transparent->transparent.r);
-				ImGui::DragFloat("Opacity", &transparent->opacity, 0.01f, 0.0f, 1.0f);
+			if (ecs::registry.all_of<scn::transparent_material_component>(mlts[item_current])) {
+				auto& transparent = ecs::registry.get<scn::transparent_material_component>(mlts[item_current]);
+				ImGui::ColorEdit4("Transparent", &transparent.transparent.r);
+				ImGui::DragFloat("Opacity", &transparent.opacity, 0.01f, 0.0f, 1.0f);
 			}
 
-			if (auto* reflective = ecs::get_component<scn::reflective_material_component>(mlts[item_current]))
-			{
-				ImGui::ColorEdit4("Reflective", &reflective->reflective.r);
-				ImGui::DragFloat("Reflectivity", &reflective->reflectivity, 0.01f, 0.0f, 1.0f);
+			if (ecs::registry.all_of<scn::reflective_material_component>(mlts[item_current])) {
+				auto& reflective = ecs::registry.get<scn::reflective_material_component>(mlts[item_current]);
+				ImGui::ColorEdit4("Reflective", &reflective.reflective.r);
+				ImGui::DragFloat("Reflectivity", &reflective.reflectivity, 0.01f, 0.0f, 1.0f);
 			}
 
-			if (auto* refractive = ecs::get_component<scn::refractive_material_component>(mlts[item_current]))
-			{
-				ImGui::DragFloat("Refraction Index", &refractive->refracti, 0.01f, 0.0f, 10.0f);
+			if (ecs::registry.all_of<scn::refractive_material_component>(mlts[item_current])) {
+				auto& refractive = ecs::registry.get<scn::refractive_material_component>(mlts[item_current]);
+				ImGui::DragFloat("Refraction Index", &refractive.refracti, 0.01f, 0.0f, 10.0f);
 			}
 
-			if (auto* shininess = ecs::get_component<scn::shininess_strength_component>(mlts[item_current]))
-			{
-				ImGui::DragFloat("Shininess Strength", &shininess->shininess_strength, 0.01f, 0.0f, 1.0f);
+			if (ecs::registry.all_of<scn::shininess_strength_component>(mlts[item_current])) {
+				auto& shininess = ecs::registry.get<scn::shininess_strength_component>(mlts[item_current]);
+				ImGui::DragFloat("Shininess Strength", &shininess.shininess_strength, 0.01f, 0.0f, 1.0f);
 			}
 
-			if (auto* normal_map = ecs::get_component<scn::normal_map_component>(mlts[item_current]))
-			{
-				ImGui::Text("Normal Map: %s", normal_map->txm.get_full().data());
+			if (ecs::registry.all_of<scn::normal_map_component>(mlts[item_current])) {
+				auto& normal_map = ecs::registry.get<scn::normal_map_component>(mlts[item_current]);
+				ImGui::Text("Normal Map: %s", normal_map.txm.get_full().data());
 			}
 
-			if (auto* metallic_map = ecs::get_component<scn::metallic_map_component>(mlts[item_current]))
-			{
-				ImGui::Text("Metallic Map: %s", metallic_map->txm.get_full().data());
+			if (ecs::registry.all_of<scn::metallic_map_component>(mlts[item_current])) {
+				auto& metallic_map = ecs::registry.get<scn::metallic_map_component>(mlts[item_current]);
+				ImGui::Text("Metallic Map: %s", metallic_map.txm.get_full().data());
 			}
 
-			if (auto* roughness_map = ecs::get_component<scn::roughness_map_component>(mlts[item_current]))
-			{
-				ImGui::Text("Roughness Map: %s", roughness_map->txm.get_full().data());
+			if (ecs::registry.all_of<scn::roughness_map_component>(mlts[item_current])) {
+				auto& roughness_map = ecs::registry.get<scn::roughness_map_component>(mlts[item_current]);
+				ImGui::Text("Roughness Map: %s", roughness_map.txm.get_full().data());
 			}
 
-			if (auto* ao_map = ecs::get_component<scn::ao_map_component>(mlts[item_current]))
-			{
-				ImGui::Text("AO Map: %s", ao_map->txm.get_full().data());
+			if (ecs::registry.all_of<scn::ao_map_component>(mlts[item_current])) {
+				auto& ao_map = ecs::registry.get<scn::ao_map_component>(mlts[item_current]);
+				ImGui::Text("AO Map: %s", ao_map.txm.get_full().data());
 			}
 
-			if (auto* albedo_map = ecs::get_component<scn::albedo_map_component>(mlts[item_current]))
-			{
-				ImGui::Text("Albedo Map: %s", albedo_map->txm.get_full().data());
+			if (ecs::registry.all_of<scn::albedo_map_component>(mlts[item_current])) {
+				auto& albedo_map = ecs::registry.get<scn::albedo_map_component>(mlts[item_current]);
+				ImGui::Text("Albedo Map: %s", albedo_map.txm.get_full().data());
 			}
 
-			if (ecs::get_component<scn::is_transparent_flag_component>(mlts[item_current])) {
+			if (ecs::registry.all_of<scn::is_transparent_flag_component>(mlts[item_current])) {
 				if (ImGui::Button("-##transparent_flag")) {
 					ecs::remove_component<scn::is_transparent_flag_component>(mlts[item_current]);
 				}
@@ -772,7 +911,7 @@ bool editor::EditorSystem::show_materials()
 				ImGui::Text("Transparent");
 			} else {
 				if (ImGui::Button("+##transparent_flag")) {
-					ecs::add_component(mlts[item_current], scn::is_transparent_flag_component{});
+					ecs::registry.emplace<scn::is_transparent_flag_component>(mlts[item_current]);
 				}
 				ImGui::SameLine(); 
 				ImGui::Text("Transparent");
@@ -921,12 +1060,15 @@ bool editor::EditorSystem::init_ecs_test()
 
 	is_inited_ecs_test = true;
 	ecs::entity first = ecs::create_entity();
-	eng::transform3d* trn = ecs::add_component(first, eng::transform3d{});
-	glm::vec2* tmp = ecs::add_component(first, glm::vec2{ 9, 9 });
-	trn->set_pos(glm::vec3{ 6, 6, 6 });
+	eng::transform3d trn{ glm::translate(glm::mat4{1.0}, glm::vec3(6)) };
+	ecs::registry.emplace<eng::transform3d>(first, trn);
+	glm::vec2 tmp{ 9, 9 };
+	ecs::registry.emplace<glm::vec2>(first, tmp);
+	trn.set_pos(glm::vec3{ 6, 6, 6 });
 	ecs::entity second = ecs::create_entity();
-	eng::transform3d* trn2 = ecs::add_component(second, eng::transform3d{ glm::translate(glm::mat4{1.0}, glm::vec3(3)) });
-	trn2->add_yaw(45.f);
+	eng::transform3d trn2{ glm::translate(glm::mat4{1.0}, glm::vec3(3)) };
+	ecs::registry.emplace<eng::transform3d>(second, trn2);
+	trn2.add_yaw(45.f);
 
 	return true;
 }

@@ -8,6 +8,8 @@ namespace res
 	class Tag
 	{
 	public:
+		static const Tag null;
+	
 		struct hash {
 			std::size_t operator() (const Tag& tag) const {
 				return tag.get_hash();

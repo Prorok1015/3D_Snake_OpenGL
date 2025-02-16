@@ -6,54 +6,36 @@
 #include "ecs_component.h"
 #include "ecs_common_system.h"
 
+namespace {
+	struct is_mouse_controller_updated {};
 
-bool is_point_in_rect_wh(glm::ivec2 point, glm::ivec4 rect) {
-	return point.x >= rect.x &&
-		point.x <= rect.x + rect.z &&
-		point.y >= rect.y &&
-		point.y <= rect.y + rect.w;
-}
+	void on_update_mouse_controller_by_mouse_click_event(ecs::entity evt) {
+		const auto& mouse_btn = ecs::registry.get<inp::mouse_click_event>(evt);
 
-bool is_point_in_rect_tr(glm::ivec2 point, glm::ivec4 rect) {
-	return point.x >= rect.x &&
-		point.x <= rect.z &&
-		point.y >= rect.y &&
-		point.y <= rect.w;
-}
-
-// TODO: use dt
-void scn::ecs_process_update_camera_matrix(const float dt)
-{
-	auto events = ecs::filter<ecs::input_changed_event_component>();
-		
-	if (events.empty()) {
-		return;
-	}	
-	const auto& evt = events.front();
-
-	for (const auto& ent : ecs::filter<scn::camera_component, scn::mouse_controller_component>()) {
-
-		auto* camera = ecs::get_component<scn::camera_component>(ent);
-		auto* data = ecs::get_component<scn::mouse_controller_component>(ent);
-		auto& rotation = data->rotation;
-		auto& pos = data->position;
-		auto& distance = data->distance;
-		auto& speed = data->movement_speed;
-		auto& rotate_speed = data->rotating_speed;
-		auto& is_moving = data->is_moving;
-		auto& is_rotating = data->is_rotating;
-		auto& last_mouse_pos = data->last_mouse_pos;
-
-		if (auto* mouse_btn = ecs::get_component<inp::mouse_click_event>(evt)) {
-			if (mouse_btn->key == inp::MOUSE_BUTTONS::LEFT)
-				is_moving = (mouse_btn->action == inp::KEY_ACTION::DOWN);
-			if (mouse_btn->key == inp::MOUSE_BUTTONS::RIGHT)
-				is_rotating = (mouse_btn->action == inp::KEY_ACTION::DOWN);
+		for (const auto& [ent, data] : ecs::registry.view<scn::mouse_controller_component>().each()) {
+			auto& is_moving = data.is_moving;
+			auto& is_rotating = data.is_rotating;
+			if (mouse_btn.key == inp::MOUSE_BUTTONS::LEFT)
+				is_moving = (mouse_btn.action == inp::KEY_ACTION::DOWN);
+			if (mouse_btn.key == inp::MOUSE_BUTTONS::RIGHT)
+				is_rotating = (mouse_btn.action == inp::KEY_ACTION::DOWN);
+			ecs::registry.emplace_or_replace<is_mouse_controller_updated>(ent);
 		}
+	}
 
-		if (auto* cursor = ecs::get_component<inp::cursor_move_event>(evt))	{
-			glm::vec2 delta = (cursor->prev - cursor->pos) / (glm::vec2(camera->viewport.size) / 2);
-			last_mouse_pos = cursor->pos;
+	void on_update_mouse_controller_by_mouse_move_event(ecs::entity ent) {
+		const auto& cursor = ecs::registry.get<inp::cursor_move_event>(ent);
+
+		for (const auto& [ent, data] : ecs::registry.view<scn::mouse_controller_component>().each()) {
+			auto& is_moving = data.is_moving;
+			auto& is_rotating = data.is_rotating;
+			auto& last_mouse_pos = data.last_mouse_pos;
+			auto& pos = data.position;
+			auto& rotation = data.rotation;
+			auto& speed = data.movement_speed;
+			auto& rotate_speed = data.rotating_speed;
+			glm::vec2 delta = cursor.direction;
+			last_mouse_pos = cursor.pos;
 
 			if (is_moving)
 			{
@@ -69,16 +51,57 @@ void scn::ecs_process_update_camera_matrix(const float dt)
 				rotation.x = std::clamp(rotation.x + pitch, -glm::radians(90.0f), glm::radians(90.0f));
 				rotation.y += yaw;
 			}
-		}
-
-		if (auto* scroll = ecs::get_component<inp::scroll_move_event>(evt)) {
-			distance -= scroll->direction.y * speed;
-			distance = std::clamp(distance, 0.f, 150.f);
-		}
-
-		if (auto* trans = ecs::get_component<scn::transform_component>(ent)) {
-			glm::mat4 orientation = glm::toMat4(glm::quat(rotation));
-			trans->local = glm::translate(pos) * orientation * glm::translate(glm::mat4(1.0), glm::vec3(0, 0, distance));
+			ecs::registry.emplace_or_replace<is_mouse_controller_updated>(ent);
 		}
 	}
+
+	void on_update_mouse_controller_by_scroll_event(ecs::entity ent) {
+		const auto& scroll = ecs::registry.get<inp::scroll_move_event>(ent);
+
+		for (const auto& [ent, data] : ecs::registry.view<scn::mouse_controller_component>().each()) {
+			auto& distance = data.distance;
+			auto& speed = data.movement_speed;
+			distance -= scroll.direction.y * speed;
+			distance = std::clamp(distance, 0.f, 150.f);
+			ecs::registry.emplace_or_replace<is_mouse_controller_updated>(ent);
+		}
+	}
+
+	void on_update_mouse_controller_local_transform(ecs::entity ent) {
+		if (ecs::registry.all_of<scn::local_transform, scn::mouse_controller_component>(ent)) {
+			auto& trans = ecs::registry.get<scn::local_transform>(ent);
+			auto& data = ecs::registry.get<scn::mouse_controller_component>(ent);
+			auto& rotation = data.rotation;
+			auto& pos = data.position;
+			auto& distance = data.distance;
+			glm::mat4 orientation = glm::toMat4(glm::quat(rotation));
+			trans.local = glm::translate(pos) * orientation * glm::translate(glm::mat4(1.0), glm::vec3(0, 0, distance));
+		}
+	}
+}
+
+void scn::init_camera_controller_system() {
+	entt::sigh_helper{ecs::registry}
+	.with<inp::mouse_click_event>()
+	.on_construct<&on_update_mouse_controller_by_mouse_click_event>()
+	.on_update<&on_update_mouse_controller_by_mouse_click_event>()
+	.with<inp::cursor_move_event>()
+	.on_construct<&on_update_mouse_controller_by_mouse_move_event>()
+	.on_update<&on_update_mouse_controller_by_mouse_move_event>()
+	.with<inp::scroll_move_event>()
+	.on_construct<&on_update_mouse_controller_by_scroll_event>()
+	.on_update<&on_update_mouse_controller_by_scroll_event>()
+	.with<is_mouse_controller_updated>()
+	.on_construct<&on_update_mouse_controller_local_transform>()
+	.on_update<&on_update_mouse_controller_local_transform>();
+}
+
+void scn::deinit_camera_controller_system() {
+	ecs::registry.on_construct<inp::mouse_click_event>().disconnect<&on_update_mouse_controller_by_mouse_click_event>();
+	ecs::registry.on_update<inp::mouse_click_event>().disconnect<&on_update_mouse_controller_by_mouse_click_event>();
+	ecs::registry.on_construct<inp::cursor_move_event>().disconnect<&on_update_mouse_controller_by_mouse_move_event>();
+	ecs::registry.on_update<inp::cursor_move_event>().disconnect<&on_update_mouse_controller_by_mouse_move_event>();
+	ecs::registry.on_construct<inp::scroll_move_event>().disconnect<&on_update_mouse_controller_by_scroll_event>();
+	ecs::registry.on_update<inp::scroll_move_event>().disconnect<&on_update_mouse_controller_by_scroll_event>();
+	ecs::registry.on_construct<is_mouse_controller_updated>().disconnect<&on_update_mouse_controller_local_transform>();
 }

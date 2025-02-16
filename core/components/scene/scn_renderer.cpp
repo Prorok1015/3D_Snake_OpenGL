@@ -127,16 +127,16 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
     auto& txm_manager = rnd::get_system().get_texture_manager();
 
-    for (ecs::entity& ent : ecs::filter<scn::camera_component, scn::is_render_component_flag>())
+    for(const auto& ent : ecs::registry.view<scn::camera_component, scn::is_render_component_flag>())
     {
-        scn::camera_component* camera = ecs::get_component<scn::camera_component>(ent);
-        if (camera->viewport.size.x < 1 || camera->viewport.size.y < 1) {
-            continue;
+        auto& camera = ecs::registry.get<scn::camera_component>(ent);
+        if (camera.viewport.size.x < 1 || camera.viewport.size.y < 1) {
+            return;
         }
         auto color_rt = txm_manager.find(color_rt_tag);
         auto color_tp_rt = txm_manager.find(color_rt_transparent_tag);
         auto waight_tp_rt = txm_manager.find(waight_rt_transparent_tag);
-        if (color_rt && (color_rt->width() != camera->viewport.size.x || color_rt->height() != camera->viewport.size.y))
+        if (color_rt && (color_rt->width() != camera.viewport.size.x || color_rt->height() != camera.viewport.size.y))
         {
             txm_manager.remove(color_rt_tag);
             txm_manager.remove(color_rt_transparent_tag);
@@ -148,8 +148,8 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
         if (!color_rt) {
             rnd::driver::texture_header header;
-            header.data.extent.width = camera->viewport.size.x;
-            header.data.extent.height = camera->viewport.size.y;
+            header.data.extent.width = camera.viewport.size.x;
+            header.data.extent.height = camera.viewport.size.y;
             header.data.format = rnd::driver::texture_header::TYPE::RGBA8;
             header.usage = rnd::driver::TEXTURE_USAGE::COLOR_TARGET;
             header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_EDGE;
@@ -182,17 +182,18 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
             eng::transform3d pos{ glm::mat4{1.0} };
             common_matrix.view = glm::inverse(glm::mat4{ 1.0 });
 
-            if (auto* trans = ecs::get_component<scn::transform_component>(ent))
+            if (ecs::registry.all_of<scn::local_transform>(ent))
             {
-                common_matrix.view = glm::inverse(trans->local);
-                pos = eng::transform3d{ trans->local };
+                auto& trans = ecs::registry.get<scn::local_transform>(ent);
+                common_matrix.view = glm::inverse(trans.local);
+                pos = eng::transform3d{ trans.local };
             }
 
-            common_matrix.projection = scn::make_projection(*camera);
+            common_matrix.projection = scn::make_projection(camera);
             common_matrix.view_position = glm::vec4(pos.get_pos(), 1.0);
             rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
 
-            drv->set_viewport(camera->viewport);
+            drv->set_viewport(camera.viewport);
             draw_instances(drv);
             rnd::shader_scene_desc scene{};
             draw_ecs_model(drv, scene);
@@ -227,7 +228,7 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
             drv->push_frame_buffer();
             drv->set_render_targets({ color_tp_rt, waight_tp_rt }, txm_manager.find(z_pass_tag));
             drv->clear(rnd::driver::CLEAR_FLAGS::COLOR_BUFFER, { glm::vec4(0), glm::vec4(1) });
-            drv->set_viewport(camera->viewport);
+            drv->set_viewport(camera.viewport);
             draw_transparent(drv);
             drv->pop_frame_buffer();
         }
@@ -246,7 +247,7 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
             drv->push_frame_buffer();
             drv->set_render_target(color_rt);
-            drv->set_viewport(camera->viewport);
+            drv->set_viewport(camera.viewport);
             draw_composition(drv, color_tp_rt, waight_tp_rt);
             drv->pop_frame_buffer();
         }
@@ -257,18 +258,19 @@ void scn::renderer_3d::prepare_directional_light()
 {
     rnd::lights_params global_lights;
     directional_light_count = 0;
-    for (ecs::entity& ent : ecs::filter<scn::directional_light>()) {
+
+    for (const auto ent : ecs::registry.view<scn::directional_light>()) {
         if (directional_light_count >= rnd::lights_params::MAX_LIGHT_COUNT) {
             ASSERT_FAIL("Maxsimum of Directional lights is 12");
             break;
         }
-        auto* light = ecs::get_component<scn::directional_light>(ent);
+        auto& light = ecs::registry.get<scn::directional_light>(ent);
 
         rnd::lights_params::directional_light sun;
-        sun.ambient = light->ambient;
-        sun.diffuse = light->diffuse;
-        sun.specular = light->specular;
-        sun.direction = light->direction;
+        sun.ambient = light.ambient;
+        sun.diffuse = light.diffuse;
+        sun.specular = light.specular;
+        sun.direction = light.direction;
         global_lights.directional_lights[directional_light_count++] = sun;
     }
     rnd::get_system().get_shader_manager().update_global_sun(global_lights);
@@ -276,25 +278,26 @@ void scn::renderer_3d::prepare_directional_light()
 
 void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 {
-    for (auto ent : ecs::filter<res::instance_object>()) {
-        res::instance_object* inst = ecs::get_component<res::instance_object>(ent);
-        if (inst->worlds.empty()) {
+    for (const auto ent : ecs::registry.view<res::instance_object>()) {
+        auto& inst = ecs::registry.get<res::instance_object>(ent);
+        if (inst.worlds.empty()) {
             continue;
         }
 
         rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
 
-        if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
-            tmp = rnd_mode->mode;
+        if (ecs::registry.all_of<rnd::render_mode_component>(ent)) {
+            auto& rnd_mode = ecs::registry.get<rnd::render_mode_component>(ent);
+            tmp = rnd_mode.mode;
         }
 
-        vertex_buffer->set_data(inst->tpl.vertices);
-        index_buffer->set_data(inst->tpl.indices);
+        vertex_buffer->set_data(inst.tpl.vertices);
+        index_buffer->set_data(inst.tpl.indices);
 
-        matrices_buffer_inst->set_data(inst->worlds);
+        matrices_buffer_inst->set_data(inst.worlds);
 
         rnd::shader_scene_instance_desc desc;
-        auto& material = inst->tpl.material;
+        auto& material = inst.tpl.material;
         if (material.is_state(res::Material::ALBEDO_TXM)) {
             desc.tex0 = rnd::get_system().get_texture_manager().require_texture(material.get_txm(res::Material::ALBEDO_TXM));
             desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = true;
@@ -326,27 +329,27 @@ void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 
         rnd::get_system().get_shader_manager().use(desc);
 
-        if (inst->worlds.size() == 1) {
-            drv->draw_indices(vertex_array_inst, tmp, inst->tpl.indices.size());
+        if (inst.worlds.size() == 1) {
+            drv->draw_indices(vertex_array_inst, tmp, inst.tpl.indices.size());
         }
         else {
-            drv->draw_instanced_indices(vertex_array_inst, tmp, inst->tpl.indices.size(), inst->worlds.size());
+            drv->draw_instanced_indices(vertex_array_inst, tmp, inst.tpl.indices.size(), inst.worlds.size());
         }
     }
 }
 
 void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv, rnd::shader_scene_desc& scene)
 {
-    for (auto ent : ecs::filter<scn::model_root_component, scn::is_render_component_flag>()) {
-        auto* transform = ecs::get_component<scn::transform_component>(ent);
-        auto* root = ecs::get_component<scn::model_root_component>(ent);
+    for (const auto ent : ecs::registry.view<scn::model_root_component, scn::is_render_component_flag>()) {
+        auto& root = ecs::registry.get<scn::model_root_component>(ent);
         rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
 
-        if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
-            rnd::get_system().set_render_mode(rnd_mode->mode);
+        if (ecs::registry.all_of<rnd::render_mode_component>(ent)) {
+            auto& rnd_mode = ecs::registry.get<rnd::render_mode_component>(ent);
+            rnd::get_system().set_render_mode(rnd_mode.mode);
         }
 
-        vertex_buffer->set_data(root->data.vertices);
+        vertex_buffer->set_data(root.data.vertices);
         if (directional_light_count > 0) {
             scene.defines[rnd::shader_scene_desc::DIRECTION_LIGHT_COUNT] = true;
             scene.defines_values[rnd::shader_scene_desc::DIRECTION_LIGHT_COUNT] = std::to_string(directional_light_count);
@@ -357,14 +360,14 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv, rnd::s
             scene.defines_values[rnd::shader_scene_desc::POINT_LIGHT_COUNT] = std::to_string(point_light_count);
         }
 
-        if (auto* anim = ecs::get_component<scn::playable_animation>(ent)) {
+        if (ecs::registry.all_of<scn::playable_animation>(ent)) {
             scene.defines[rnd::shader_scene_desc::USE_ANIMATION] = true;
             scene.defines[rnd::shader_scene_desc::MAX_BONE_MATRICES_COUNT] = true;
             scene.defines_values[rnd::shader_scene_desc::MAX_BONE_MATRICES_COUNT] = "128";
             rnd::bones_matrices bones_matreces;
-            bones_matreces.row_height = root->data.bones_data.original_size.x;
-            bones_matreces.bone_count = root->data.bones_data.original_size.y;
-            auto& bones = root->data.bones_matrices;
+            bones_matreces.row_height = root.data.bones_data.original_size.x;
+            bones_matreces.bone_count = root.data.bones_data.original_size.y;
+            auto& bones = root.data.bones_matrices;
             if (bones.size() < rnd::bones_matrices::MAX_BONE_MATRICES_COUNT) {
                 std::copy(bones.begin(), bones.end(), bones_matreces.bones);
                 rnd::get_system().get_shader_manager().update_global_bones_matrices(bones_matreces, bones.size());
@@ -373,7 +376,7 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv, rnd::s
             }
         }
 
-        draw_ecs_meshes(ent, root->data, scene, drv);
+        draw_ecs_meshes(ent, root.data, scene, drv);
 
         rnd::get_system().set_render_mode(tmp);
     }
@@ -381,27 +384,31 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv, rnd::s
 
 void scn::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv)
 {
-    if (auto* meshes = ecs::get_component<scn::mesh_component>(ent))
+    if (ecs::registry.all_of<scn::mesh_component>(ent))
     {
+        auto& meshes = ecs::registry.get<scn::mesh_component>(ent);
         scene.uWorldMeshMatr = glm::mat4{ 1.0 };
-        if (auto* transform = ecs::get_component<scn::transform_component>(ent))
+        if (ecs::registry.all_of<scn::world_transform>(ent))
         {
-            scene.uWorldMeshMatr = transform->world;
+            auto& transform = ecs::registry.get<scn::world_transform>(ent);
+            scene.uWorldMeshMatr = transform.world;
         }
 
-        if (auto* material = ecs::get_component<scn::material_link_component>(ent)) {
-            apply_material(material->material, scene);
+        if (ecs::registry.all_of<scn::material_link_component>(ent)) {
+            auto& material = ecs::registry.get<scn::material_link_component>(ent);
+            apply_material(material.material, scene);
             //auto is_transparent = ecs::get_component<scn::is_transparent_flag_component>(material->material);
             //if (!is_transparent) {
-                draw(scene, meshes->mesh, data, drv);
+                draw(scene, meshes.mesh, data, drv);
             //}
         }
 
     }
 
-    if (auto* children = ecs::get_component<scn::children_component>(ent))
+    if (ecs::registry.all_of<scn::children_component>(ent))
     {
-        for (auto& child : children->children)
+        auto& children = ecs::registry.get<scn::children_component>(ent);
+        for (auto& child : children.children)
         {
             draw_ecs_meshes(child, data, scene, drv);
         }
@@ -410,27 +417,31 @@ void scn::renderer_3d::draw_ecs_meshes(ecs::entity ent, const res::meshes_contei
 
 void scn::renderer_3d::draw_ecs_meshes_transparant(ecs::entity ent, const res::meshes_conteiner& data, rnd::shader_scene_desc& scene, rnd::driver::driver_interface* drv)
 {
-    if (auto* meshes = ecs::get_component<scn::mesh_component>(ent))
+    if (ecs::registry.all_of<scn::mesh_component>(ent))
     {
+        auto& meshes = ecs::registry.get<scn::mesh_component>(ent);
         scene.uWorldMeshMatr = glm::mat4{ 1.0 };
-        if (auto* transform = ecs::get_component<scn::transform_component>(ent))
+        if (ecs::registry.all_of<scn::world_transform>(ent))
         {
-            scene.uWorldMeshMatr = transform->world;
+            auto& transform = ecs::registry.get<scn::world_transform>(ent);
+            scene.uWorldMeshMatr = transform.world;
         }
 
-        if (auto* material = ecs::get_component<scn::material_link_component>(ent)) {
-            apply_material(material->material, scene);
-            auto is_transparent = ecs::get_component<scn::is_transparent_flag_component>(material->material);
+        if (ecs::registry.all_of<scn::material_link_component>(ent)) {
+            auto& material = ecs::registry.get<scn::material_link_component>(ent);
+            apply_material(material.material, scene);
+            auto is_transparent = ecs::registry.all_of<scn::is_transparent_flag_component>(material.material);
             if (is_transparent) {
-                draw(scene, meshes->mesh, data, drv);
+                draw(scene, meshes.mesh, data, drv);
             }        
         }
 
     }
 
-    if (auto* children = ecs::get_component<scn::children_component>(ent))
+    if (ecs::registry.all_of<scn::children_component>(ent))
     {
-        for (auto& child : children->children)
+        auto& children = ecs::registry.get<scn::children_component>(ent);
+        for (auto& child : children.children)
         {
             draw_ecs_meshes_transparant(child, data, scene, drv);
         }
@@ -439,31 +450,35 @@ void scn::renderer_3d::draw_ecs_meshes_transparant(ecs::entity ent, const res::m
 
 void scn::renderer_3d::apply_material(ecs::entity material, rnd::shader_scene_desc& desc)
 {
-    if (auto* base_mlt = ecs::get_component<scn::base_material_component>(material))
+    if (ecs::registry.all_of<scn::base_material_component>(material))
     {
-        desc.diffuseColor = base_mlt->albedo;
-        desc.shininess = base_mlt->shininess;
-        desc.emissiveColor = base_mlt->emissive;
+        auto& base_mlt = ecs::registry.get<scn::base_material_component>(material);
+        desc.diffuseColor = base_mlt.albedo;
+        desc.shininess = base_mlt.shininess;
+        desc.emissiveColor = base_mlt.emissive;
         desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = false;
         desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = false;
         desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = false;
     }
 
-    if (auto* albedo_txm = ecs::get_component<scn::albedo_map_component>(material))
+    if (ecs::registry.all_of<scn::albedo_map_component>(material))
     {
-        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(albedo_txm->txm);
+        auto& albedo_txm = ecs::registry.get<scn::albedo_map_component>(material);
+        desc.tex0 = rnd::get_system().get_texture_manager().require_texture(albedo_txm.txm);
         desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = true;
     }
 
-    if (auto* specular_txm = ecs::get_component<scn::specular_map_component>(material))
+    if (ecs::registry.all_of<scn::specular_map_component>(material))
     {
-        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(specular_txm->txm);
+        auto& specular_txm = ecs::registry.get<scn::specular_map_component>(material);
+        desc.tex1 = rnd::get_system().get_texture_manager().require_texture(specular_txm.txm);
         desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = true;
     }
 
-    if (auto* normal_txm = ecs::get_component<scn::normal_map_component>(material))
+    if (ecs::registry.all_of<scn::normal_map_component>(material))
     {
-        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(normal_txm->txm);
+        auto& normal_txm = ecs::registry.get<scn::normal_map_component>(material);
+        desc.tex2 = rnd::get_system().get_texture_manager().require_texture(normal_txm.txm);
         desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = true;
     }
 }
@@ -475,16 +490,16 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
     auto& txm_manager = rnd::get_system().get_texture_manager();
     rnd::global_params common_matrix;
 
-    for (ecs::entity& ent : ecs::filter<scn::camera_component, scn::is_render_component_flag>())
+    for (const auto ent : ecs::registry.view<scn::camera_component, scn::is_render_component_flag>())
     {
-        scn::camera_component* camera = ecs::get_component<scn::camera_component>(ent);
-        if (camera->viewport.size.x < 1 || camera->viewport.size.y < 1) {
+        auto& camera = ecs::registry.get<scn::camera_component>(ent);
+        if (camera.viewport.size.x < 1 || camera.viewport.size.y < 1) {
             continue;
         }
         auto z_pass_rt = txm_manager.find(z_pass_tag);
         auto z_pass_color_rt = txm_manager.find(z_pass_color_tag);
 
-        if (z_pass_rt && (z_pass_rt->width() != camera->viewport.size.x || z_pass_rt->height() != camera->viewport.size.y))
+        if (z_pass_rt && (z_pass_rt->width() != camera.viewport.size.x || z_pass_rt->height() != camera.viewport.size.y))
         {
             txm_manager.remove(z_pass_tag);
             txm_manager.remove(z_pass_color_tag);
@@ -494,8 +509,8 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
 
         if (!z_pass_rt) {
             rnd::driver::texture_header header;
-            header.data.extent.width = camera->viewport.size.x;
-            header.data.extent.height = camera->viewport.size.y;
+            header.data.extent.width = camera.viewport.size.x;
+            header.data.extent.height = camera.viewport.size.y;
             header.data.format = rnd::driver::texture_header::TYPE::D32;
             header.usage = rnd::driver::TEXTURE_USAGE::DEPTH_TARGET;
             header.wrap = rnd::driver::texture_header::WRAPPING::CLAMP_TO_BORDER;
@@ -523,17 +538,18 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
         eng::transform3d pos{ glm::mat4{1.0} };
         common_matrix.view = glm::inverse(glm::mat4{ 1.0 });
 
-        if (auto* trans = ecs::get_component<scn::transform_component>(ent))
+        if (ecs::registry.all_of<scn::local_transform>(ent))
         {
-            common_matrix.view = glm::inverse(trans->local);
-            pos = eng::transform3d{ trans->local };
+            auto& trans = ecs::registry.get<scn::local_transform>(ent);
+            common_matrix.view = glm::inverse(trans.local);
+            pos = eng::transform3d{ trans.local };
         }
 
-        common_matrix.projection = scn::make_projection(*camera);
+        common_matrix.projection = scn::make_projection(camera);
         common_matrix.view_position = glm::vec4(pos.get_pos(), 1.0);
 
         rnd::get_system().get_shader_manager().update_global_uniform(common_matrix);
-        drv->set_viewport(camera->viewport);
+        drv->set_viewport(camera.viewport);
         rnd::pass_z_prepass_desc z_pass;
         draw_ecs_model(drv, z_pass);
 
@@ -543,17 +559,17 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
 
 void scn::renderer_3d::draw_transparent(rnd::driver::driver_interface* drv)
 {
-    for (const auto& ent : ecs::filter<scn::model_root_component, scn::is_render_component_flag>())
+    for (const auto ent : ecs::registry.view<scn::model_root_component, scn::is_render_component_flag>())
     {
-        auto* transform = ecs::get_component<scn::transform_component>(ent);
-        auto* root = ecs::get_component<scn::model_root_component>(ent);
+        auto& root = ecs::registry.get<scn::model_root_component>(ent);
         rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
 
-        if (auto* rnd_mode = ecs::get_component<rnd::render_mode_component>(ent)) {
-            rnd::get_system().set_render_mode(rnd_mode->mode);
+        if (ecs::registry.all_of<rnd::render_mode_component>(ent)) {
+            auto& rnd_mode = ecs::registry.get<rnd::render_mode_component>(ent);
+            rnd::get_system().set_render_mode(rnd_mode.mode);
         }
 
-        vertex_buffer->set_data(root->data.vertices);
+        vertex_buffer->set_data(root.data.vertices);
         rnd::pass_transparent_desc desc;
         if (directional_light_count > 0) {
             desc.defines[rnd::shader_scene_desc::DIRECTION_LIGHT_COUNT] = true;
@@ -565,14 +581,14 @@ void scn::renderer_3d::draw_transparent(rnd::driver::driver_interface* drv)
             desc.defines_values[rnd::shader_scene_desc::POINT_LIGHT_COUNT] = std::to_string(point_light_count);
         }
 
-        if (auto* anim = ecs::get_component<scn::playable_animation>(ent)) {
+        if (ecs::registry.all_of<scn::playable_animation>(ent)) {
             desc.defines[rnd::shader_scene_desc::USE_ANIMATION] = true;
             desc.defines[rnd::shader_scene_desc::MAX_BONE_MATRICES_COUNT] = true;
             desc.defines_values[rnd::shader_scene_desc::MAX_BONE_MATRICES_COUNT] = "128";
             rnd::bones_matrices bones_matreces;
-            bones_matreces.row_height = root->data.bones_data.original_size.x;
-            bones_matreces.bone_count = root->data.bones_data.original_size.y;
-            auto& bones = root->data.bones_matrices;
+            bones_matreces.row_height = root.data.bones_data.original_size.x;
+            bones_matreces.bone_count = root.data.bones_data.original_size.y;
+            auto& bones = root.data.bones_matrices;
             if (bones.size() < rnd::bones_matrices::MAX_BONE_MATRICES_COUNT) {
                 std::copy(bones.begin(), bones.end(), bones_matreces.bones);
                 rnd::get_system().get_shader_manager().update_global_bones_matrices(bones_matreces, bones.size());
@@ -582,7 +598,7 @@ void scn::renderer_3d::draw_transparent(rnd::driver::driver_interface* drv)
             }
         }
 
-        draw_ecs_meshes_transparant(ent, root->data, desc, drv);
+        draw_ecs_meshes_transparant(ent, root.data, desc, drv);
 
         rnd::get_system().set_render_mode(tmp);
     }
@@ -608,12 +624,12 @@ void scn::renderer_3d::draw_composition(rnd::driver::driver_interface* drv, rnd:
 
 void scn::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
 { 
-    for (const auto& sky : ecs::filter<scn::is_render_component_flag, scn::sky_component>()) {
-        auto* cube_map = ecs::get_component<scn::sky_component>(sky);
+    for (const auto sky : ecs::registry.view<scn::is_render_component_flag, scn::sky_component>()) {
+        auto& cube_map = ecs::registry.get<scn::sky_component>(sky);
         rnd::shader_sky_desc sky;
-        sky.tex0 = rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map->cube_map);
-        auto& vs = cube_map->data.vertices;
-        auto& is = cube_map->data.indices;
+        sky.tex0 = rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map.cube_map);
+        auto& vs = cube_map.data.vertices;
+        auto& is = cube_map.data.indices;
         vertex_buffer->set_data(vs);
         index_buffer->set_data(is);
 

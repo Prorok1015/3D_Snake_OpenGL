@@ -7,3 +7,4 @@ target_sources(${PROJECT_NAME} PRIVATE ${SE_RENDER_SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(${PROJECT_NAME} PRIVATE common PRIVATE render PRIVATE resource_system PRIVATE input_system PRIVATE window PRIVATE gui PRIVATE ecs)
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::json)

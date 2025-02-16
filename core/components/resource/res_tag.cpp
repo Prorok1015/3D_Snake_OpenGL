@@ -1,6 +1,8 @@
 #include "res_tag.h"
 #include <engine_log.h>
 
+const res::Tag res::Tag::null{};
+
 res::Tag res::operator+ (const res::Tag& l, const res::Tag& r)
 {
 	if (l == r) {
