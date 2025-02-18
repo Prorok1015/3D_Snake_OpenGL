@@ -58,7 +58,7 @@ void scn::tag_invoke(json::value_from_tag, json::value& jv, const scene_anchor_c
     jv = {"__type", "world_anchor"};
 }
 
-void scn::tag_invoke(json::value_from_tag, json::value& jv, const is_render_component_flag& c) {
+void scn::tag_invoke(json::value_from_tag, json::value& jv, const renderable& c) {
     jv = true;
 }
 

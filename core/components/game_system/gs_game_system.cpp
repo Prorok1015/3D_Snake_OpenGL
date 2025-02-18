@@ -137,7 +137,7 @@ void ensure_ecs_material(ecs::entity material, const res::Material& mlt)
 
 void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, const res::meshes_conteiner& data, std::unordered_map<int, ecs::entity> material_mapping)
 {
-	ecs::registry.emplace<scn::is_render_component_flag>(ent);
+	ecs::registry.emplace<scn::renderable>(ent);
 	ecs::registry.emplace<scn::name_component>(ent, node.name);
 	ecs::registry.emplace_or_replace<scn::local_transform>(ent, node.mt);
 
@@ -166,7 +166,7 @@ void ensure_ecs_node(ecs::entity ent, const res::node_hierarchy_view& node, cons
 		ecs::registry.emplace<scn::mesh_component>(mesh_ent, mesh);
 		ecs::registry.emplace<scn::local_transform>(mesh_ent);
 		ecs::registry.emplace<scn::world_transform>(mesh_ent);
-		ecs::registry.emplace<scn::is_render_component_flag>(mesh_ent);
+		ecs::registry.emplace<scn::renderable>(mesh_ent);
 		ecs::registry.emplace<scn::material_link_component>(mesh_ent, material_mapping[mesh.material_id]);
 	}
 
@@ -320,7 +320,7 @@ void gs::GameSystem::add_cube_to_scene(float radius)
 	//ecs::entity obj = ecs::create_entity();
 	//ecs::add_component(obj, scn::model_comonent{ m.meshes });
 	//ecs::add_component(obj, scn::transform_component{ m.model });
-	//ecs::add_component(obj, scn::is_render_component_flag{});
+	//ecs::add_component(obj, scn::renderable{});
 
 	//renderer->scene_objects.push_back(obj);
 }

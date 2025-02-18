@@ -24,7 +24,7 @@ namespace editor
 		bool show_textures();
 		void show_tree_items(ecs::entity ent);
 		bool show_clear_cache();
-
+		void draw_manipulator(const glm::vec2& pos, const glm::vec2& size);
 		void draw_gizmo(const glm::vec2& pos, const glm::vec2& size, const glm::mat4& view, const glm::mat4& proj);
 		void draw_scene_image(const glm::vec2& pos, const glm::vec2& contentRegionAvailable);
 		bool init_ecs_test();

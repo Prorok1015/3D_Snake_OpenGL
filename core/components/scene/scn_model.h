@@ -60,7 +60,7 @@ namespace scn {
 
     };
 
-    struct is_render_component_flag {
+    struct renderable {
 
     };
 
@@ -97,7 +97,7 @@ namespace scn {
     void tag_invoke(json::value_from_tag, json::value& jv, const children_component& c);
     void tag_invoke(json::value_from_tag, json::value& jv, const local_transform& c);
     void tag_invoke(json::value_from_tag, json::value& jv, const scene_anchor_component& c);
-    void tag_invoke(json::value_from_tag, json::value& jv, const is_render_component_flag& c);
+    void tag_invoke(json::value_from_tag, json::value& jv, const renderable& c);
     void tag_invoke(json::value_from_tag, json::value& jv, const sky_component& c);
     void tag_invoke(json::value_from_tag, json::value& jv, const directional_light& c);
     void tag_invoke(json::value_from_tag, json::value& jv, const playable_animation& c);

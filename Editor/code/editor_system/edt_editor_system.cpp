@@ -211,7 +211,7 @@ editor::EditorSystem::EditorSystem()
 		ecs::registry.emplace<scn::camera_component>(ecs_entity, scn::camera_component{ .viewport = viewport });
 		ecs::registry.emplace<scn::local_transform>(ecs_entity);
 		ecs::registry.emplace<scn::world_transform>(ecs_entity);
-		ecs::registry.emplace<scn::is_render_component_flag>(ecs_entity);
+		ecs::registry.emplace<scn::renderable>(ecs_entity);
 		ecs::registry.emplace<scn::mouse_controller_component>(ecs_entity, scn::mouse_controller_component{ .rotation = rotation });
 	}
 	// web
@@ -235,7 +235,7 @@ editor::EditorSystem::EditorSystem()
 		transform.local = glm::scale(glm::vec3(1, 0, 1));
 		ecs::registry.emplace<scn::world_transform>(editor_web);
 		ecs::registry.emplace<rnd::render_mode_component>(editor_web, rnd::RENDER_MODE::LINE);// TODO: move to material
-		ecs::registry.emplace<scn::is_render_component_flag>(editor_web);
+		ecs::registry.emplace<scn::renderable>(editor_web);
 		ecs::registry.emplace<scn::material_link_component>(editor_web, black_mlt );
 	}
 	// windows objects
@@ -257,7 +257,7 @@ editor::EditorSystem::EditorSystem()
 		auto& transform = ecs::registry.emplace<scn::local_transform>(wind);
 		transform.local = glm::translate(glm::mat4{ 1.0 }, glm::vec3(rnd_pos.x, 0, rnd_pos.y));
 		ecs::registry.emplace<scn::world_transform>(wind);
-		ecs::registry.emplace<scn::is_render_component_flag>(wind);
+		ecs::registry.emplace<scn::renderable>(wind);
 		ecs::registry.emplace<scn::material_link_component>(wind, window_mlt );
 	}
 
@@ -274,7 +274,7 @@ editor::EditorSystem::EditorSystem()
 
 		ecs::registry.emplace<scn::name_component>(light, scn::name_component{ .name = "Global Light" });
 		ecs::registry.emplace<scn::parent_component>(light, world_anchor);
-		ecs::registry.emplace<scn::is_render_component_flag>(light);
+		ecs::registry.emplace<scn::renderable>(light);
 	}
 
 	// sky
@@ -291,7 +291,7 @@ editor::EditorSystem::EditorSystem()
 			res::Tag::make("skybox/back.jpg"),
 			}
 			});
-		ecs::registry.emplace<scn::is_render_component_flag>(sky);
+		ecs::registry.emplace<scn::renderable>(sky);
 		ecs::registry.emplace<scn::name_component>(sky, scn::name_component{ .name = "Sky" });
 		ecs::registry.emplace<scn::parent_component>(sky, world_anchor);
 	}
@@ -369,7 +369,6 @@ void editor::EditorSystem::show_tree_items(ecs::entity ent)
 						ecs::registry.emplace<scn::children_component>(parent_node_to_add, std::vector<ecs::entity>{child});
 					}
 
-
 					parent_node_to_add = entt::null;
 					ImGui::CloseCurrentPopup();
 				}
@@ -393,13 +392,13 @@ void editor::EditorSystem::show_tree_items(ecs::entity ent)
 						glm::vec4(1.0f)
 					);
 				}
-				if (ecs::registry.all_of<scn::is_render_component_flag>(ent)) {
+				if (ecs::registry.all_of<scn::renderable>(ent)) {
 					if (ImGui::MenuItem("Remove Render Flag")) {
-						ecs::remove_component<scn::is_render_component_flag>(ent);
+						ecs::remove_component<scn::renderable>(ent);
 					}
 				} else {
 					if (ImGui::MenuItem("Add Render Flag")) {
-						ecs::registry.emplace<scn::is_render_component_flag>(ent);
+						ecs::registry.emplace<scn::renderable>(ent);
 					}
 				}
 				if (ImGui::MenuItem("Add Child Entity")) {
@@ -598,7 +597,7 @@ bool editor::EditorSystem::show_toolbar()
 					names.push_back("Camera" + std::to_string(cam_id++));
 				}
 
-				if (ecs::registry.all_of<scn::is_render_component_flag>(ent)) {
+				if (ecs::registry.all_of<scn::renderable>(ent)) {
 					cam_cur_id = cam_cur;
 				}
 
@@ -614,8 +613,8 @@ bool editor::EditorSystem::show_toolbar()
 						auto old = cameras[cam_cur_id];
 						auto new_one = cameras[n];
 						cam_cur_id = n;
-						ecs::registry.emplace<scn::is_render_component_flag>(new_one);
-						ecs::registry.remove<scn::is_render_component_flag>(old);
+						ecs::registry.emplace<scn::renderable>(new_one);
+						ecs::registry.remove<scn::renderable>(old);
 					}
 
 					// Set the initial focus when opening the combo (scrolling + keyboard navigation focus)
@@ -625,7 +624,7 @@ bool editor::EditorSystem::show_toolbar()
 				ImGui::EndCombo();
 			}
 
-			for (const auto ent : ecs::registry.view<scn::camera_component, scn::is_render_component_flag>()) {
+			for (const auto ent : ecs::registry.view<scn::camera_component, scn::renderable>()) {
 				eng::transform3d ct{ glm::mat4{1.0} };
 				if (ecs::registry.all_of<scn::local_transform>(ent)) {
 					auto& trans = ecs::registry.get<scn::local_transform>(ent);
@@ -734,12 +733,12 @@ bool editor::EditorSystem::show_web()
 {
 	const bool cur_is_show = GUI_IS_ITEM_CHECKED("Editor/Draw web");
 	if (!cur_is_show && cur_is_show != is_show_web) {
-		ecs::remove_component<scn::is_render_component_flag>(editor_web);
-		//ecs::remove_component<scn::is_render_component_flag>(sky);
+		ecs::remove_component<scn::renderable>(editor_web);
+		//ecs::remove_component<scn::renderable>(sky);
 	}
 	else if (cur_is_show && cur_is_show != is_show_web){
-		ecs::registry.emplace<scn::is_render_component_flag>(editor_web);
-		//ecs::add_component(sky, scn::is_render_component_flag{});
+		ecs::registry.emplace<scn::renderable>(editor_web);
+		//ecs::add_component(sky, scn::renderable{});
 	} 
 
 	is_show_web = cur_is_show;
@@ -1008,6 +1007,11 @@ bool editor::EditorSystem::show_clear_cache()
 	}
 	ImGui::End();
 	return is_open;
+}
+
+void editor::EditorSystem::draw_manipulator(const glm::vec2& pos, const glm::vec2& size)
+{
+
 }
 
 void editor::EditorSystem::draw_gizmo(const glm::vec2& start, const glm::vec2& size, const glm::mat4& view, const glm::mat4& proj)

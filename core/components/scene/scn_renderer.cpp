@@ -127,7 +127,7 @@ void scn::renderer_3d::on_render(rnd::driver::driver_interface* drv)
 
     auto& txm_manager = rnd::get_system().get_texture_manager();
 
-    for(const auto& ent : ecs::registry.view<scn::camera_component, scn::is_render_component_flag>())
+    for(const auto& ent : ecs::registry.view<scn::camera_component, scn::renderable>())
     {
         auto& camera = ecs::registry.get<scn::camera_component>(ent);
         if (camera.viewport.size.x < 1 || camera.viewport.size.y < 1) {
@@ -340,7 +340,7 @@ void scn::renderer_3d::draw_instances(rnd::driver::driver_interface* drv)
 
 void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv, rnd::shader_scene_desc& scene)
 {
-    for (const auto ent : ecs::registry.view<scn::model_root_component, scn::is_render_component_flag>()) {
+    for (const auto ent : ecs::registry.view<scn::model_root_component, scn::renderable>()) {
         auto& root = ecs::registry.get<scn::model_root_component>(ent);
         rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
 
@@ -353,11 +353,17 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv, rnd::s
         if (directional_light_count > 0) {
             scene.defines[rnd::shader_scene_desc::DIRECTION_LIGHT_COUNT] = true;
             scene.defines_values[rnd::shader_scene_desc::DIRECTION_LIGHT_COUNT] = std::to_string(directional_light_count);
+        } else {
+			scene.defines[rnd::shader_scene_desc::DIRECTION_LIGHT_COUNT] = false;
+			scene.defines_values[rnd::shader_scene_desc::DIRECTION_LIGHT_COUNT] = "";
         }
 
         if (point_light_count > 0) {
             scene.defines[rnd::shader_scene_desc::POINT_LIGHT_COUNT] = true;
             scene.defines_values[rnd::shader_scene_desc::POINT_LIGHT_COUNT] = std::to_string(point_light_count);
+        } else {
+            scene.defines[rnd::shader_scene_desc::POINT_LIGHT_COUNT] = false;
+			scene.defines_values[rnd::shader_scene_desc::POINT_LIGHT_COUNT] = "";
         }
 
         if (ecs::registry.all_of<scn::playable_animation>(ent)) {
@@ -374,7 +380,11 @@ void scn::renderer_3d::draw_ecs_model(rnd::driver::driver_interface* drv, rnd::s
             } else {
                 ASSERT_FAIL("Bones matrices count too big.");
             }
-        }
+        } else {
+			scene.defines[rnd::shader_scene_desc::USE_ANIMATION] = false;
+			scene.defines[rnd::shader_scene_desc::MAX_BONE_MATRICES_COUNT] = false;
+			scene.defines_values[rnd::shader_scene_desc::MAX_BONE_MATRICES_COUNT] = "";
+		}
 
         draw_ecs_meshes(ent, root.data, scene, drv);
 
@@ -466,6 +476,9 @@ void scn::renderer_3d::apply_material(ecs::entity material, rnd::shader_scene_de
         auto& albedo_txm = ecs::registry.get<scn::albedo_map_component>(material);
         desc.tex0 = rnd::get_system().get_texture_manager().require_texture(albedo_txm.txm);
         desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = true;
+    } else {
+		desc.tex0 = nullptr;
+		desc.defines[rnd::shader_scene_desc::USE_TXM_AS_DIFFUSE] = false;
     }
 
     if (ecs::registry.all_of<scn::specular_map_component>(material))
@@ -473,6 +486,9 @@ void scn::renderer_3d::apply_material(ecs::entity material, rnd::shader_scene_de
         auto& specular_txm = ecs::registry.get<scn::specular_map_component>(material);
         desc.tex1 = rnd::get_system().get_texture_manager().require_texture(specular_txm.txm);
         desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = true;
+    } else {
+		desc.tex1 = nullptr;
+        desc.defines[rnd::shader_scene_desc::USE_SPECULAR_MAP] = false;
     }
 
     if (ecs::registry.all_of<scn::normal_map_component>(material))
@@ -480,6 +496,9 @@ void scn::renderer_3d::apply_material(ecs::entity material, rnd::shader_scene_de
         auto& normal_txm = ecs::registry.get<scn::normal_map_component>(material);
         desc.tex2 = rnd::get_system().get_texture_manager().require_texture(normal_txm.txm);
         desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = true;
+    } else {
+        desc.tex2 = nullptr;
+        desc.defines[rnd::shader_scene_desc::USE_NORMAL_MAP] = false;
     }
 }
 
@@ -490,7 +509,7 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
     auto& txm_manager = rnd::get_system().get_texture_manager();
     rnd::global_params common_matrix;
 
-    for (const auto ent : ecs::registry.view<scn::camera_component, scn::is_render_component_flag>())
+    for (const auto ent : ecs::registry.view<scn::camera_component, scn::renderable>())
     {
         auto& camera = ecs::registry.get<scn::camera_component>(ent);
         if (camera.viewport.size.x < 1 || camera.viewport.size.y < 1) {
@@ -559,7 +578,7 @@ void scn::renderer_3d::z_prepass(rnd::driver::driver_interface* drv)
 
 void scn::renderer_3d::draw_transparent(rnd::driver::driver_interface* drv)
 {
-    for (const auto ent : ecs::registry.view<scn::model_root_component, scn::is_render_component_flag>())
+    for (const auto ent : ecs::registry.view<scn::model_root_component, scn::renderable>())
     {
         auto& root = ecs::registry.get<scn::model_root_component>(ent);
         rnd::RENDER_MODE tmp = rnd::get_system().get_render_mode();
@@ -624,7 +643,7 @@ void scn::renderer_3d::draw_composition(rnd::driver::driver_interface* drv, rnd:
 
 void scn::renderer_3d::draw_sky(rnd::driver::driver_interface* drv)
 { 
-    for (const auto sky : ecs::registry.view<scn::is_render_component_flag, scn::sky_component>()) {
+    for (const auto sky : ecs::registry.view<scn::renderable, scn::sky_component>()) {
         auto& cube_map = ecs::registry.get<scn::sky_component>(sky);
         rnd::shader_sky_desc sky;
         sky.tex0 = rnd::get_system().get_texture_manager().require_cubemap_texture(cube_map.cube_map);
@@ -644,7 +663,9 @@ void scn::renderer_3d::draw(rnd::shader_scene_desc& desc, res::mesh_view& mesh, 
 
     if (data.bones_data.bones_indeces_txm.is_valid()) {
         desc.tex3 = rnd::get_system().get_texture_manager().require_texture(data.bones_data.bones_indeces_txm);
-    }
+    } else {
+		desc.tex3 = nullptr;
+	}
 
     rnd::configure_pass(desc);
     // draw mesh
